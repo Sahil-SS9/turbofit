@@ -1,10 +1,10 @@
 ---
 name: turbofit
-description: "Operate the Turbofit adaptive local inference plugin."
+description: "Hardware-aware adaptive Hermes runtime using portable Turbofiles, total usable memory, owned native llama.cpp residency, stable auto/active:main/active:aux routes, and evidence-backed promotion. Use for recommending, activating, inspecting, testing, or troubleshooting Turbofit runtimes."
 version: 2.4.0
 author: SouthpawIN + Nous Girl
 license: MIT
-tags: [hermes-agent, plugin, llama-cpp, adaptive-runtime]
+tags: [hermes-agent, llama-cpp, llm, accelerator, cpu, adaptive-runtime, turbofile]
 ---
 
 # Turbofit
@@ -13,48 +13,128 @@ tags: [hermes-agent, plugin, llama-cpp, adaptive-runtime]
 
 Fit List keeps dedicated VRAM separate from integrated/RAM-only total memory. Dedicated: Maple Preview TQ2_0 at 8GB, Qwen 3.8 27B Unleashed UD-IQ3_XXS at 16GB, UD-Q3_K_XL at 24–95GB, and Qwen 3.8 27B 16-bit at 96GB+ until an Unleashed FP16 GGUF is published. Shared total memory: Maple at 8–15GB, Ornith 1.5 35A3B at 16–23GB, and Unleashed UD-Q3_K_XL at 24GB+. An 8GB GPU may also use Ornith when host RAM can hold offloaded experts. Maple remains Auto on dedicated 8GB at native 64K/128K. Auxiliary is Ornith, optional Carwin Nano, or auto.
 
-Use this bundled plugin skill when configuring or inspecting Turbofit for Hermes Agent.
+## Use when
 
-## Operator workflow
+- Selecting an evidence-backed main/aux runtime for physical hardware
+- Activating or inspecting a Turbofile profile
+- Diagnosing pressure, contraction, expansion, routing, or native residency
+- Benchmarking or promoting a model pair
+- Updating candidate intelligence or generated wiki views
 
-1. Call `turbofit_status` to inspect provider registration, gateway health, selected hardware profile, active rung, and stable routes.
-2. Call `turbofit_configure` with `profile: auto` for hardware selection. Manual `hardware-*gb` profiles are accepted only when physical topology fits.
-3. Set `primary: true` to use `custom:turbofit` with model `auto` as the main Hermes provider.
-4. Set `fallback: true` to append Turbofit to the canonical `fallback_providers` chain; set it false to remove only Turbofit while preserving other fallbacks.
-5. Set `publish_tailnet: true` to create private Tailscale Serve routes for the provider and dashboard; the returned HTTPS provider URL is registered automatically.
-6. Set `install_sirvir: true` to install or update the canonical `SouthpawIN/sirvir` GitHub profile without replacing its memories or user state.
-7. Set `install_freetoken: true` only on Linux x86_64 + NVIDIA driver 580+ + CUDA toolkit 13+ to install pinned FreeToken 0.1.2 as a text-only MoE **candidate**. It never changes Auto until exact on-box campaigns promote a supported model recipe.
-8. Start a new Hermes session after provider changes.
+## Canonical workflow
 
-The same controls are available in Hermes Desktop under **Turbofit** and through `/turbofit status|update|shift|serve|tiers|setup`.
+Work from the Git repository, not an installed copy.
 
-`/turbofit setup` refreshes Hermes Desktop. A refused `http://127.0.0.1:8091/v1/models` means the Turbofit runtime is down — not the Hermes messaging gateway. Diagnose that from Sirvir or Desktop with `turbofit_status`. Setup downloads recommended models if they are missing.
+```bash
+scripts/turbofit-runtime list
+scripts/turbofit-runtime set auto
+scripts/turbofit-runtime set <profile-id>
+scripts/turbofit-runtime status
+scripts/turbofit-controller --once
+curl -fsS http://127.0.0.1:8091/v1/models
+```
 
-## Intelligence benchmarks
+`set auto` chooses a canonical profile from immutable physical topology. `set
+<profile-id>` validates a measured, natively resolvable manual combination.
+Both begin at API safety and use the same adaptive controller to contract and
+heal; manual selection changes only the healing ceiling.
 
-- `scripts/turbofit-catalog-campaign` proves native runtime fit and TPS; it does not produce intelligence scores.
-- `scripts/turbofit-intelligence-campaign` runs the exact successful quantized production recipe through pinned DeepSWE and the Turbofit agentic main/auxiliary pair harness.
-- Use `status`, `run-one`, or `run --limit N`; state is resumable in `references/intelligence-campaign-state.json`.
-- Scores require both benchmark suites and immutable raw evidence. Never replace missing scores with catalog tiers, parameter counts, or vendor benchmark claims.
-- `/turbofit tiers` and `scripts/turbofit-hardware-tiers` show every 8/16/24/48/64/96/200/300 GB class with pending versus measured intelligence and TPS.
-- `scripts/turbofit-intelligence-campaign` benchmarks only the current machine's TurboFit List tournament candidates. `rebuild-scores` recomputes derived composites from raw suite counts; zero-call/token trials remain invalid infrastructure.
-- `scripts/turbofit-promote-list-winner` promotes only an exact-tier candidate with current physical evidence, positive intelligence/TPS/balanced values, and matching recipe hashes. `scripts/turbofit-list` renders the global evidence-only List.
-- Qwen 3.8 DFlash2 is a separate candidate runtime/artifact pair (`dflash2-llama.cpp`, `Qwen3.8-27B-DFlash2-Q4_K_M.gguf`). Never attach that drafter to Bonsai. Bonsai uses its own released DSpark sidecar and Prism runtime until a dedicated Bonsai DFlash checkpoint exists.
+Use only stable provider IDs: `auto`, `active:main`, and `active:aux`.
+
+FreeToken 0.1.2 at revision `0ab982f10905fa775962a4eddcb44caa50065251` is an optional NVIDIA/CUDA-13 text-only MoE candidate. Install or probe with `scripts/install-freetoken-runtime`; never expose it as an Auto rung, inherit its published TPS, or replace active Qwen 3.8/Ornith authority until an exact supported model recipe passes the full physical and intelligence campaigns.
+
+## Runtime authorities
+
+1. Turbofile: portable recommendation and ordered rung policy.
+2. Hardware fingerprint: physical topology, total usable memory, and per-device capacity; never transient free memory.
+3. Pressure snapshot: ownership-aware transient capacity.
+4. Pure policy: dwell/hysteresis/cooldown/flap decision.
+5. Native runtime backend: sole local residency authority for owned processes.
+6. Reconciler: drain, activate, verify, publish, rollback.
+7. Gateway route state: backing targets for stable IDs.
+
+Legacy `serve`, direct launchers, and scaling watcher are compatibility tools, not adaptive authorities.
 
 ## Portable memory allocation
 
-- Hardware fingerprints classify memory as `dedicated`, `unified`, or `cpu` and reserve 5% of host RAM, bounded to 1–8 GiB.
-- Dedicated systems may combine accelerator VRAM with host RAM through llama.cpp offload; contexts beyond the model's native window place KV cache in host RAM when at least 32 GiB is usable.
-- Unified-memory systems count RAM once and suppress discrete multi-GPU split flags.
-- CPU-only systems set model and draft GPU layers to zero.
-- Native backend order is CUDA, ROCm, Vulkan, then CPU on Linux/Windows, and Metal on macOS. Use `scripts/install-native-runtimes --backend <backend>` for an explicit build.
+Hardware fingerprints classify memory as `dedicated`, `unified`, or `cpu`. Turbofit reserves 5% of host RAM, bounded to 1–8 GiB, and never double-counts unified memory. Dedicated systems can combine VRAM and host RAM through llama.cpp offload; contexts beyond the model's native window move KV cache pressure to host RAM when at least 32 GiB is usable. Unified-memory systems suppress discrete split flags. CPU-only systems use pinned CPU runtimes with both model and draft GPU layers set to zero.
 
-## Invariants
+Backend order is CUDA → ROCm → Vulkan → CPU on Linux/Windows and Metal on macOS. Build or verify the current machine's pinned backend with `scripts/install-native-runtimes --backend cuda|rocm|metal|vulkan|cpu`.
 
-- Stable model IDs are `auto`, `active:main`, and `active:aux`.
-- FreeToken support is candidate-only: no active Qwen 3.8/Ornith replacement, no source TPS inheritance, and no Auto promotion without exact hardware/model evidence.
-- External GPU processes are read-only pressure signals and are never terminated or signaled.
-- The hardware recommendation remains the healing ceiling; transient pressure changes only the effective rung.
-- Runtime activation and model lifecycle remain owned by `NativeRuntimeBackend`, which signals only PID-verified children it launched.
-- Plain HTTP provider endpoints are limited to loopback or Tailscale addresses; all other endpoints require HTTPS.
-- Every native llama.cpp command includes `--jinja`; DSpark variants include target, draft, projector, and draft-attention arguments.
+## Non-negotiable safety
+
+- Never kill or signal external accelerator/model processes.
+- Signal only PID-and-command-verified processes owned by Turbofit.
+- Count external memory as unavailable and managed residency as reclaimable.
+- A temporary auxiliary admission redirect may precede drain; never publish a
+  new target rung before verification.
+- Restore and verify the previous rung after any failed transition.
+- Never place paths, secrets, credentials, provider keys, or device indices in Turbofiles.
+- Never treat research candidates or generated wiki text as production authority.
+- Never mark benchmark success without a canonical promotion record.
+
+## Profile/recommendation checks
+
+```bash
+PYTHONPATH=src python3 scripts/turbofit-runtime-recommend --fit-only --json
+PYTHONPATH=src:. python3 -m pytest tests/test_runtime_profile.py tests/test_profile_io.py tests/test_hardware.py tests/test_recommend.py -q -o 'addopts='
+```
+
+Topology matters: `1x48` and `2x24` are different classes. Unmeasured classes keep API as the Auto safety rung while setup may expose separately labeled portable-fit local candidates for on-box validation.
+
+**TurboFit Check** means the system scan-to-configuration process. **TurboFit List** means only the exact physical hardware-level winners generated by `scripts/turbofit-list`. Intelligence campaigns run only the current tier's tournament candidates; zero-call/token DeepSWE trials are invalid, and suite composites are rebuilt from real hash-bound pass counts rather than stale stored zeros.
+
+Qwen 3.8 DFlash2 is a separate candidate using the pinned Inco Q4_K_M drafter and pinned z-lab llama.cpp PR runtime. Never reuse it for Bonsai. Bonsai keeps its own Prism DSpark sidecar/runtime until a dedicated Bonsai DFlash checkpoint exists.
+
+## Pressure and adaptation checks
+
+```bash
+PYTHONPATH=src:. python3 -m pytest tests/test_pressure.py tests/test_pressure_probe.py tests/test_policy.py tests/test_reconciler.py tests/test_controller.py tests/test_runtime_service.py tests/integration -q -o 'addopts='
+```
+
+Expected contraction:
+
+```text
+dedicated aux → shared-main → smaller context/model → terminal API
+```
+
+Expected recovery walks one rung at a time toward the recommendation after margin and dwell.
+
+## Release gates
+
+```bash
+scripts/release-check
+scripts/release-check --real
+```
+
+The first command validates syntax, tests, profiles, links, and simulated transitions. The second additionally requires working accelerator telemetry, stable live routes, and controlled real pressure/recovery evidence. Do not claim release readiness if `--real` is blocked.
+
+Acceptance evidence: `references/results/adaptive-runtime-acceptance.json`.
+
+## Candidate intelligence
+
+Collectors write only `research/candidates.json`:
+
+```bash
+PYTHONPATH=. python3 research/discover_huggingface.py
+PYTHONPATH=. python3 research/discover_model_news.py --url <public-feed>
+PYTHONPATH=. python3 research/discover_api_models.py --provider <name> --url <public-model-list>
+```
+
+No collector may modify runtime profiles, routes, or credentials. Live cron schedules/delivery require explicit user approval.
+
+## Troubleshooting order
+
+1. `scripts/turbofit-runtime status` and the hardware fingerprint in Dashboard/Desktop
+2. The platform's available native inventory probe (CUDA, ROCm, Metal, Vulkan, or CPU)
+3. Native runtime `/health`, `/v1/models`, and `/metrics`
+4. Gateway `/v1/models`
+5. Route-state freshness and stable IDs
+6. Acceptance record blockers
+7. Focused tests, then full `scripts/release-check`
+
+If `http://127.0.0.1:8091/v1/models` is connection-refused, the Turbofit provider gateway is not running. That is setup missing. Do not restart the Hermes messaging gateway, do not start with a firewall hunt when nothing listens, and do not invoke Sirvir until the endpoint answers.
+
+If the platform reports a driver/runtime mismatch, stop the real pressure test. Do not attempt blind driver reloads or disruptive accelerator work.
+
+Full architecture and schema: `README.md`.

@@ -194,7 +194,63 @@ def provider_models():
             "context_length": auxiliary_context,
         },
     ]
+    metadata = provider_model_metadata()
+    for model, role in zip(models, ("auto", "main", "aux")):
+        model["metadata"] = metadata[role]
     return models
+
+
+def provider_model_metadata():
+    """Observe identity and controller wake state; never admit or repair work.
+
+    Published routes preserve selected identity across unload. They do not prove
+    residency. The lifecycle status currently proves only an in-flight wake;
+    neither leases nor a quiet controller establish ready, failed or idle.
+    """
+    from turbofit_runtime.native_lifecycle import (
+        LifecycleUnavailable, lifecycle_request, load_endpoint,
+    )
+
+    routes = {}
+    try:
+        with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+            state = json.load(handle)
+        if isinstance(state, dict) and state.get("active") and isinstance(state.get("routes"), dict):
+            routes = state["routes"]
+    except (OSError, ValueError):
+        pass
+
+    status = {}
+    if os.getenv("TURBOFIT_LIFECYCLE_REQUIRED", "0").lower() in {"1", "true", "yes"}:
+        try:
+            endpoint = load_endpoint(os.environ.get(
+                "TURBOFIT_NATIVE_STATE", Path.home() / ".local/state/turbofit/native"))
+            observed = lifecycle_request(endpoint, {"action": "status"}, timeout=0.5)
+            if isinstance(observed, dict) and observed.get("orphaned") is False:
+                status = observed.get("roles")
+                if not isinstance(status, dict):
+                    status = {}
+        except (LifecycleUnavailable, OSError, ValueError, TypeError):
+            pass
+
+    result = {}
+    for role in ("auto", "main", "aux"):
+        effective_role = "main" if role == "auto" else role
+        route = routes.get(effective_role)
+        if role == "aux" and isinstance(route, dict) and route.get("kind") == "shared-main":
+            effective_role = "main"
+            route = routes.get("main")
+        backing = None
+        residency = "unknown"
+        if isinstance(route, dict) and route.get("kind") == "local":
+            alias = route.get("alias")
+            if isinstance(alias, str) and alias:
+                backing = alias  # Preserve the published identifier exactly.
+                observation = status.get(effective_role)
+                if isinstance(observation, dict) and observation.get("waking") is True:
+                    residency = "loading"
+        result[role] = {"role": role, "backing_model": backing, "residency": residency}
+    return result
 
 
 def _positive_context(value):

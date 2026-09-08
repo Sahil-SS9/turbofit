@@ -189,6 +189,9 @@ For the split topology where Turbofit runs on a Mac and Hermes runs in a Proxmox
 
 ## Hermes configuration
 
+The stable model catalogue also exposes [optional read-only model metadata](docs/model-metadata.md)
+for backing identity and conservative residency observation; raw request IDs are unchanged.
+
 ```yaml
 model:
   provider: custom:turbofit

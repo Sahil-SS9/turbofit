@@ -826,6 +826,9 @@ def stall_until_ready(port, deadline_ts, alias=None):
 
 # ─── HTTP handler ─────────────────────────────────────────────────────────────
 
+from turbofit_runtime.native_lifecycle import leased_request
+
+
 class GatewayHandler(BaseHTTPRequestHandler):
     server_version = "turbofit-gateway/2.0"
 
@@ -917,6 +920,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         else:
             self._handle_main(routed_path, body=body)
 
+    @leased_request("main")
     def _handle_main(self, path, body=None):
         upstream_path = path[len("/main/"):] or "/"
 
@@ -975,6 +979,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         if status >= 400:
             self._send_503(f"All backends failed (last status {status})", tried=" → ".join(tried))
 
+    @leased_request("aux")
     def _handle_aux(self, path, body=None, required=False):
         upstream_path = path[len("/aux/"):] or "/"
         backend = resolve_aux()

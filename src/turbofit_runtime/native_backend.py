@@ -6,6 +6,7 @@ import os
 import shlex
 import re
 import signal
+import socket
 import subprocess
 import time
 import urllib.error
@@ -242,6 +243,10 @@ class NativeRuntimeBackend:
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             kwargs["start_new_session"] = True
+        with socket.socket() as probe:
+            probe.settimeout(0.25)
+            if probe.connect_ex(("127.0.0.1", component.port)) == 0:
+                raise ReconcileError("native port is occupied; refusing to adopt or replace its owner")
         process = subprocess.Popen(
             list(component.command),
             env=CampaignBackend.process_environment(
@@ -349,10 +354,39 @@ class NativeRuntimeBackend:
         self._pid_path(role).unlink(missing_ok=True)
         return True
 
+    def stop_role(self, role: str) -> bool:
+        if role not in {"main", "aux"}:
+            raise ValueError("invalid residency role")
+        return self._stop(role)
+
     def reset_managed(self) -> None:
         for role in ("aux", "main"):
             if not self._stop(role) and not self._stop(role, force=True, timeout=5):
                 raise ReconcileError(f"could not stop owned {role} runtime")
+
+    def ensure_role(self, role: str) -> None:
+        """Wake one current local role without unloading the other GPU lane."""
+        rung = self.profile.rungs[self.current_state.rung_index]
+        item = self._roles(rung.id).get(role)
+        if item is None or role not in {"main", "aux"}:
+            raise ReconcileError("no native resolution for requested role")
+        component = self._component(role, item, rung.context)
+        resident = self._owned.get(role)
+        if resident and self._is_owned(resident) and self._healthy(resident):
+            return
+        if not self._stop(role):
+            raise ReconcileError("cannot replace unhealthy owned runtime")
+        try:
+            resident = self._start(component)
+            deadline = self.clock() + self.verification_timeout_s
+            while not self._healthy(resident):
+                if self.clock() >= deadline or not self._is_owned(resident):
+                    raise ReconcileError("native wake verification failed or timed out")
+                self.sleep(min(0.2, max(0.0, deadline - self.clock())))
+        except Exception:
+            if not self._stop(role) and not self._stop(role, force=True, timeout=5):
+                raise ReconcileError("failed wake child could not be reclaimed")
+            raise
 
     def block_aux_admission(self) -> None:
         try:

@@ -145,7 +145,7 @@ class NativeRuntimeBackend:
             role=role,
             gpu=str(item["gpu"]),
             port=int(item["port"]),
-            context=context,
+            context=int(item.get("context", context)),
             alias=str(item["model_tag"]),
         )
 

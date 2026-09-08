@@ -2,14 +2,92 @@
 from __future__ import annotations
 
 import json
+import math
 import os
+import re
 import shutil
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from .hardware import HardwareFingerprint
 from .schema import MatrixRow
+
+
+# Typed launch overrides: validated keys only, never a raw shell escape.
+# Values are ints, floats or bools that map 1:1 onto native launcher flags.
+LAUNCH_OVERRIDE_FLAGS: dict[str, tuple[str, ...]] = {
+    "threads": ("--threads",),
+    "threads_batch": ("--threads-batch",),
+    "batch_size": ("-b",),
+    "ubatch_size": ("-ub",),
+    "cache_ram": ("--cache-ram",),
+    "cache_reuse": ("--cache-reuse",),
+    "no_perf": ("--no-perf",),
+    "parallel": ("--parallel",),
+    "checkpoints": ("--ctx-checkpoints",),
+    "slot_similarity": ("--slot-prompt-similarity",),
+    "mtp_n_max": (),
+    "no_context_shift": ("--no-context-shift",),
+    "cache_type_k": ("--cache-type-k",),
+    "cache_type_v": ("--cache-type-v",),
+}
+_LAUNCH_OVERRIDE_INT_KEYS = frozenset({"threads", "threads_batch", "parallel", "checkpoints", "mtp_n_max",
+                                     "batch_size", "ubatch_size", "cache_ram", "cache_reuse"})
+_LAUNCH_OVERRIDE_FLOAT_KEYS = frozenset({"slot_similarity"})
+_LAUNCH_OVERRIDE_STR_KEYS = frozenset({"cache_type_k", "cache_type_v"})
+_LAUNCH_OVERRIDE_BOOL_KEYS = frozenset({"no_context_shift", "no_perf"})
+_MTP_N_MAX_RE = re.compile(r"^mtp:n_max=(\d+),p_min=(0(?:\.\d+)?)$")
+
+
+def _validated_launch_overrides(raw: Any, where: str) -> dict[str, Any]:
+    if not isinstance(raw, Mapping):
+        raise ValueError(f"{where} must be a mapping")
+    unknown = set(raw) - set(LAUNCH_OVERRIDE_FLAGS)
+    if unknown:
+        raise ValueError(f"unknown launch override in {where}: {sorted(unknown)[0]}")
+    validated: dict[str, Any] = {}
+    for key, value in raw.items():
+        if key in _LAUNCH_OVERRIDE_INT_KEYS:
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError(f"launch override {key} in {where} must be a non-negative integer")
+            if key in {"parallel", "batch_size", "ubatch_size"} and not 1 <= value <= 65536:
+                raise ValueError(f"launch override {key} must be in 1..65536")
+        elif key in _LAUNCH_OVERRIDE_FLOAT_KEYS:
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+            ):
+                raise ValueError(f"launch override {key} in {where} must be a finite number")
+            validated[key] = float(value)
+            if key == "slot_similarity" and not 0 <= value <= 1:
+                raise ValueError("slot similarity must be in 0..1")
+            continue
+        elif key in _LAUNCH_OVERRIDE_STR_KEYS:
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"launch override {key} in {where} must be a non-empty string")
+        elif key in _LAUNCH_OVERRIDE_BOOL_KEYS:
+            if not isinstance(value, bool):
+                raise ValueError(f"launch override {key} in {where} must be a boolean")
+        validated[key] = value
+    return validated
+
+
+def _merge_launch_overrides(
+    spec_overrides: Any, context_overrides: Any, context: int, family: str
+) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    for source in (spec_overrides, context_overrides):
+        if source is None:
+            continue
+        validated = _validated_launch_overrides(
+            source, f"{family} context {context}"
+        )
+        merged.update(validated)
+    return merged
 
 
 def resolve_native_backend(
@@ -72,6 +150,7 @@ class ResolvedComponent:
     command: tuple[str, ...]
     model_path: str = ""
     projector_path: str = ""
+    context: int = 0
 
 
 @dataclass(frozen=True)
@@ -82,6 +161,8 @@ class ResolvedRecipe:
     aux_alias: str
     aux_mode: str
     components: tuple[ResolvedComponent, ...]
+    main_context: int = 0
+    aux_context: int = 0
 
 
 class RecipeBook:
@@ -169,6 +250,12 @@ class RecipeBook:
                 gpu = ",".join(requested) or str(self.hardware.devices[0].index)
         method = self._context_method(spec, context)
         context_override = (spec.get("context_overrides") or {}).get(str(context)) or {}
+        launch_overrides = _merge_launch_overrides(
+            spec.get("launch_overrides"),
+            context_override.get("launch_overrides"),
+            context,
+            family,
+        )
         kind = str(spec["kind"])
         alias = alias_override or str(spec["alias"])
         port = port_override or int(spec["port"])
@@ -279,10 +366,19 @@ class RecipeBook:
             draft = artifact(str(spec.get("draft", ""))) if spec.get("draft") else ""
             if draft:
                 command.extend(["--model-draft", draft])
-            command.extend([
-                "--spec-type",
-                "mtp:n_max=4,p_min=0.5" if runtime_flavor == "ik" else "draft-mtp",
-            ])
+            overrides = launch_overrides
+            if runtime_flavor == "ik":
+                spec_type = "mtp:n_max=4,p_min=0.5"
+                if "mtp_n_max" in overrides:
+                    match = _MTP_N_MAX_RE.match(spec_type)
+                    n_max = int(overrides["mtp_n_max"])
+                    p_min = match.group(2) if match else "0.5"
+                    spec_type = f"mtp:n_max={n_max},p_min={p_min}"
+                command.extend(["--spec-type", spec_type])
+            else:
+                command.extend(["--spec-type", "draft-mtp"])
+                if "mtp_n_max" in overrides:
+                    command.extend(["--spec-draft-n-max", str(overrides["mtp_n_max"])])
         if method in {"dspark", "dflash2"}:
             draft = artifact(str(spec.get("draft", ""))) if spec.get("draft") else ""
             label = "DFlash2" if method == "dflash2" else "DSpark"
@@ -301,10 +397,38 @@ class RecipeBook:
             ])
         if projector:
             command.extend(["--mmproj", projector])
+        for override_key, flag_name in (
+            ("threads", "--threads"),
+            ("threads_batch", "--threads-batch"),
+            ("batch_size", "-b"),
+            ("ubatch_size", "-ub"),
+            ("cache_ram", "--cache-ram"),
+            ("cache_reuse", "--cache-reuse"),
+            ("parallel", "--parallel"),
+            ("checkpoints", "--ctx-checkpoints"),
+            ("slot_similarity", "--slot-prompt-similarity"),
+            ("cache_type_k", "--cache-type-k"),
+            ("cache_type_v", "--cache-type-v"),
+        ):
+            if override_key in launch_overrides:
+                value = launch_overrides[override_key]
+                if isinstance(value, float):
+                    value = str(value)
+                if flag_name in command:
+                    command[command.index(flag_name) + 1] = str(value)
+                else:
+                    command.extend([flag_name, str(value)])
+        if launch_overrides.get("no_context_shift") is True:
+            command.append("--no-context-shift")
+        if launch_overrides.get("no_perf") is True:
+            command.append("--no-perf")
+        if {"batch_size", "ubatch_size"} & launch_overrides.keys():
+            if int(command[command.index("-ub") + 1]) > int(command[command.index("-b") + 1]):
+                raise ValueError("microbatch must not exceed batch size")
         return ResolvedComponent(
             role=role, family=family, alias=alias, kind=kind, method=method,
             gpu=gpu, port=port, command=tuple(command),
-            model_path=model, projector_path=projector,
+            model_path=model, projector_path=projector, context=context,
         )
 
     def resolve_component(
@@ -316,6 +440,7 @@ class RecipeBook:
         port: int,
         context: int,
         alias: str | None = None,
+        aux_context: int | None = None,
     ) -> ResolvedComponent:
         """Resolve one native process without exposing private recipe structure."""
         if role not in {"main", "aux"}:
@@ -324,6 +449,10 @@ class RecipeBook:
             raise ValueError("port must be in 1..65535")
         if context <= 0:
             raise ValueError("context must be positive")
+        if role == "aux" and aux_context is not None:
+            if aux_context <= 0:
+                raise ValueError("context must be positive")
+            context = aux_context
         return self._component(
             family,
             role,
@@ -333,21 +462,52 @@ class RecipeBook:
             alias_override=alias,
         )
 
+    def resolve_named(
+        self,
+        row_id: str,
+        main_name: str,
+        aux_name: str,
+        context: int,
+        *,
+        aux_context: int | None = None,
+    ) -> ResolvedRecipe:
+        """Resolve a named main/aux/context combination without a MatrixRow."""
+        return self._resolve_values(
+            row_id, main_name, aux_name, context, aux_context=aux_context
+        )
+
     def resolve(self, row: MatrixRow) -> ResolvedRecipe:
         return self._resolve_values(row.id, row.main, row.aux, row.context)
 
     def resolve_catalog_configuration(self, value: dict) -> ResolvedRecipe:
         required = {"id", "main", "auxiliary", "context", "status"}
-        if set(value) != required or value.get("status") != "candidate":
+        optional = {"auxiliary_context"}
+        keys = set(value)
+        if not required <= keys or keys - required - optional:
+            raise ValueError("invalid catalog configuration")
+        if value.get("status") != "candidate":
             raise ValueError("invalid catalog configuration")
         context = value["context"]
         if isinstance(context, bool) or not isinstance(context, int):
             raise ValueError("catalog context must be an integer")
+        aux_context = value.get("auxiliary_context")
+        if aux_context is not None:
+            if isinstance(aux_context, bool) or not isinstance(aux_context, int):
+                raise ValueError("catalog auxiliary context must be an integer")
         return self._resolve_values(
-            str(value["id"]), str(value["main"]), str(value["auxiliary"]), context
+            str(value["id"]), str(value["main"]), str(value["auxiliary"]), context,
+            aux_context=aux_context,
         )
 
-    def _resolve_values(self, row_id: str, main_name: str, aux_name: str, context: int) -> ResolvedRecipe:
+    def _resolve_values(
+        self,
+        row_id: str,
+        main_name: str,
+        aux_name: str,
+        context: int,
+        *,
+        aux_context: int | None = None,
+    ) -> ResolvedRecipe:
         _, main_spec = self._spec(main_name)
         main_large = bool(main_spec.get("large", False))
         main_override = (main_spec.get("context_overrides") or {}).get(str(context)) or {}
@@ -373,6 +533,10 @@ class RecipeBook:
             auto_aux_gpu = "0"
             auto_main_gpu = "0,1" if main_large else ("0" if aux_name == "auto" else "1")
         if aux_name == "auto":
+            if aux_context is not None and aux_context != context:
+                raise ValueError(
+                    "shared-main profile cannot use an auxiliary context distinct from the main context"
+                )
             main_gpu = override_gpu or auto_main_gpu
             main = self._component(main_name, "main", context, main_gpu, port_override=11605)
             return ResolvedRecipe(
@@ -382,8 +546,11 @@ class RecipeBook:
                 aux_alias=f"auto:{main.alias}",
                 aux_mode="shared-main",
                 components=(main,),
+                main_context=context,
+                aux_context=context,
             )
-        aux = self._component(aux_name, "aux", context, auto_aux_gpu, port_override=11610)
+        aux_role_context = context if aux_context is None else aux_context
+        aux = self._component(aux_name, "aux", aux_role_context, auto_aux_gpu, port_override=11610)
         main = self._component(
             main_name,
             "main",
@@ -398,4 +565,6 @@ class RecipeBook:
             aux_alias=aux.alias,
             aux_mode="dedicated",
             components=(aux, main),
+            main_context=context,
+            aux_context=aux_role_context,
         )

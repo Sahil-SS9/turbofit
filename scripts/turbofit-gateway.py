@@ -169,7 +169,8 @@ def reasoning_policy_for(backend):
 
 def provider_models():
     """OpenAI-compatible catalog exposed by the single Turbofit provider."""
-    context_length = active_context_length()
+    context_length = active_context_length(role="main")
+    auxiliary_context = active_context_length(role="aux")
     models: list[dict] = [
         {
             "id": "auto",
@@ -190,7 +191,7 @@ def provider_models():
             "object": "model",
             "owned_by": "turbofit",
             "description": "Stable route to the currently reconciled auxiliary role",
-            "context_length": context_length,
+            "context_length": auxiliary_context,
         },
     ]
     return models
@@ -219,55 +220,35 @@ def _live_n_ctx(route):
         return None
 
 
-def active_context_length(default=65536):
-    """Return the single shared main+aux context window.
-
-    Main and aux are required to use the same limit. Prefer an explicit
-    matching value from runtime state so tests stay offline; if state
-    omitted the window, probe the live servers and refuse to advertise
-    two different numbers.
-    """
-    stored = []
+def active_context_length(default=65536, *, role="main"):
+    """Return the served limit for a role; auto and shared-main use main."""
+    if role not in {"main", "aux"}:
+        raise ValueError("invalid context role")
     try:
         with open(RUNTIME_STATE, encoding="utf-8-sig") as f:
             state = json.load(f)
         routes = state.get("routes") or {}
-        for role in ("main", "aux"):
-            value = _positive_context((routes.get(role) or {}).get("context_length"))
-            if value:
-                stored.append(value)
+        selected_role = role
+        if role == "aux" and (routes.get("aux") or {}).get("kind") == "shared-main":
+            selected_role = "main"
+        value = _positive_context((routes.get(selected_role) or {}).get("context_length"))
+        if value:
+            return value
         shared = _positive_context(state.get("context_length"))
         if shared:
-            stored.append(shared)
-        if not stored:
-            profile = runtime_profiles().get(state.get("active")) or {}
-            value = _positive_context(profile.get("context"))
-            if value:
-                stored.append(value)
-    except (OSError, TypeError, ValueError, json.JSONDecodeError):
-        stored = []
-
-    unique_stored = set(stored)
-    if len(unique_stored) == 1:
-        return unique_stored.pop()
-    if len(unique_stored) > 1:
-        log.error("main/aux stored context mismatch: %s", sorted(unique_stored))
-
-    live = []
-    for resolver in (resolve_main, resolve_aux):
-        try:
-            value = _live_n_ctx(resolver())
-        except Exception:
-            value = None
+            return shared
+        profile = runtime_profiles().get(state.get("active")) or {}
+        key = "auxiliary_context" if selected_role == "aux" else "main_context"
+        value = _positive_context(profile.get(key) or profile.get("context"))
         if value:
-            live.append(value)
-    unique_live = set(live)
-    if len(unique_live) == 1:
-        return unique_live.pop()
-    if len(unique_live) > 1:
-        log.error("main/aux live context mismatch: %s", sorted(unique_live))
-        return live[0]
-    return default
+            return value
+    except (OSError, TypeError, ValueError, AttributeError):
+        pass
+    resolver = resolve_main if role == "main" else resolve_aux
+    try:
+        return _live_n_ctx(resolver()) or default
+    except Exception:
+        return default
 
 
 def parse_provider_model(model):

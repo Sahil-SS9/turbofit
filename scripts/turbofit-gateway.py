@@ -55,9 +55,16 @@ PROFILES = os.environ.get(
     "TURBOFIT_RUNTIME_PROFILES",
     str(SCRIPT_DIR.parent / "references" / "successful-runtime-profiles.json"),
 )
+REASONING_POLICIES = os.environ.get(
+    "TURBOFIT_REASONING_POLICIES",
+    str(SCRIPT_DIR.parent / "references" / "reasoning-policies.json"),
+)
 sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
-from turbofit_runtime.request_normalisation import apply_stream_usage_default
-
+from turbofit_runtime.request_normalisation import (  # noqa: E402
+    apply_stream_usage_default,
+    caller_controls_reasoning,
+    normalise_reasoning_budget,
+)
 RUNTIME_CLI = os.environ.get("TURBOFIT_RUNTIME_CLI", str(SCRIPT_DIR / "turbofit-runtime"))
 RECOMMENDER = os.environ.get("TURBOFIT_RECOMMENDER", str(SCRIPT_DIR / "turbofit-runtime-recommend"))
 SELF_PORT = int(os.environ.get("TURBOFIT_GATEWAY_PORT", "8091"))  # never pick a model on our own port
@@ -126,6 +133,38 @@ def runtime_profiles():
         return {}
     profiles = data.get("profiles") or {}
     return profiles if isinstance(profiles, dict) else {}
+
+
+def reasoning_policy_for(backend):
+    """Resolve the opt-in reasoning budget policy for one backend route.
+
+    Policies are keyed by route alias (or route-level ``reasoning_policy``
+    metadata published with the route) and are backend-aware: only the
+    configured affected backend/model is normalised, never every model.
+    """
+    if backend.get("is_api"):
+        return None
+    route_policy = backend.get("reasoning_policy")
+    if isinstance(route_policy, dict):
+        return route_policy
+    alias = str(backend.get("alias") or "").strip()
+    if not alias:
+        return None
+    try:
+        with open(REASONING_POLICIES, encoding="utf-8-sig") as f:
+            policies = json.load(f)
+    except FileNotFoundError:
+        if "TURBOFIT_REASONING_POLICIES" in os.environ:
+            raise ValueError("configured reasoning policies file is missing")
+        return None
+    except (OSError, ValueError) as exc:
+        raise ValueError("configured reasoning policies file is unreadable or invalid") from exc
+    if not isinstance(policies, dict) or not isinstance(policies.get("policies"), dict):
+        raise ValueError("reasoning policies must contain a policies mapping")
+    policy = policies["policies"].get(alias)
+    if policy is not None and (not isinstance(policy, dict) or not policy):
+        raise ValueError("configured reasoning policy must be a non-empty mapping")
+    return policy
 
 
 def provider_models():
@@ -446,6 +485,8 @@ def _runtime_policy_route(state, role):
             result["context_length"] = route["context_length"]
         if isinstance(route.get("request_policy"), dict):
             result["request_policy"] = dict(route["request_policy"])
+        if isinstance(route.get("reasoning_policy"), dict):
+            result["reasoning_policy"] = dict(route["reasoning_policy"])
         if role == "aux":
             result["mode"] = "api"
         return result
@@ -472,6 +513,8 @@ def _runtime_policy_route(state, role):
             result["context_length"] = route["context_length"]
         if isinstance(route.get("request_policy"), dict):
             result["request_policy"] = dict(route["request_policy"])
+        if isinstance(route.get("reasoning_policy"), dict):
+            result["reasoning_policy"] = dict(route["reasoning_policy"])
         if role == "aux":
             result["mode"] = str(route.get("mode") or "dedicated")
         return result
@@ -995,17 +1038,26 @@ class GatewayHandler(BaseHTTPRequestHandler):
             try:
                 payload = json.loads(body)
                 stream_requested = payload.get("stream") is True
+                # TF4: streaming requests without a caller preference ask the
+                # backend for a final usage frame; explicit false survives.
                 payload = apply_stream_usage_default(payload)
-                if role == "main" and not MAIN_ENABLE_THINKING:
-                    template_kwargs = payload.get("chat_template_kwargs")
-                    if not isinstance(template_kwargs, dict):
-                        template_kwargs = {}
-                    else:
-                        template_kwargs = dict(template_kwargs)
-                    template_kwargs["enable_thinking"] = False
-                    template_kwargs["thinking_mode"] = "disabled"
-                    payload["chat_template_kwargs"] = template_kwargs
-                    payload["reasoning_format"] = "none"
+                if role == "main":
+                    if not MAIN_ENABLE_THINKING and not caller_controls_reasoning(payload):
+                        template_kwargs = dict(payload.get("chat_template_kwargs") or {})
+                        template_kwargs.update(enable_thinking=False, thinking_mode="disabled")
+                        payload["chat_template_kwargs"] = template_kwargs
+                        payload["reasoning_format"] = "none"
+                        payload["think"] = False
+                    # TF3: backend-aware finite reasoning budget. Only the
+                    # configured affected backend is normalised: explicit
+                    # budgets win after clamping, disabled maps to 0, effort
+                    # maps to a finite budget. Template-level caller controls
+                    # are never removed by the gateway (the helper only sets
+                    # thinking_budget_tokens; it does not touch
+                    # chat_template_kwargs or think).
+                    policy = reasoning_policy_for(backend)
+                    if policy:
+                        payload = normalise_reasoning_budget(payload, policy)
                 if role == "aux" and AUX_MAX_TOKENS > 0:
                     requested = payload.get("max_tokens")
                     if isinstance(requested, bool) or not isinstance(requested, int) or requested <= 0:
@@ -1032,8 +1084,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
                     else backend.get("alias")
                 ) or payload.get("model")
                 body = json.dumps(payload).encode()
-            except Exception:
-                pass
+            except (ValueError, TypeError, AttributeError, OverflowError) as exc:
+                self._send_json(400, {"error": "invalid_request_or_policy", "message": str(exc)})
+                return {"status": 400, "ms": 0, "response_sent": True}
 
         # API fallback also needs the real provider credential.
         if backend.get("is_api"):

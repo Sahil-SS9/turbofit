@@ -201,12 +201,7 @@ def provider_models():
 
 
 def provider_model_metadata():
-    """Observe identity and controller wake state; never admit or repair work.
-
-    Published routes preserve selected identity across unload. They do not prove
-    residency. The lifecycle status currently proves only an in-flight wake;
-    neither leases nor a quiet controller establish ready, failed or idle.
-    """
+    """Read published identity and bounded owner observations without admission."""
     from turbofit_runtime.native_lifecycle import (
         LifecycleUnavailable, lifecycle_request, load_endpoint,
     )
@@ -233,23 +228,51 @@ def provider_model_metadata():
         except (LifecycleUnavailable, OSError, ValueError, TypeError):
             pass
 
+    def finite(value):
+        import math
+        try:
+            return type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            return False
+
     result = {}
     for role in ("auto", "main", "aux"):
         effective_role = "main" if role == "auto" else role
         route = routes.get(effective_role)
-        if role == "aux" and isinstance(route, dict) and route.get("kind") == "shared-main":
+        mode = route.get("kind") if isinstance(route, dict) else None
+        if role == "aux" and mode == "shared-main":
             effective_role = "main"
             route = routes.get("main")
         backing = None
         residency = "unknown"
+        freshness = {"age_s": None, "max_age_s": 15.0, "stale": True}
+        observed_at = None
         if isinstance(route, dict) and route.get("kind") == "local":
             alias = route.get("alias")
             if isinstance(alias, str) and alias:
-                backing = alias  # Preserve the published identifier exactly.
+                backing = alias
                 observation = status.get(effective_role)
-                if isinstance(observation, dict) and observation.get("waking") is True:
-                    residency = "loading"
-        result[role] = {"role": role, "backing_model": backing, "residency": residency}
+                if isinstance(observation, dict):
+                    fresh = observation.get("freshness")
+                    bound = (observation.get("backing_model") == alias
+                             and type(route.get("context_length")) is int
+                             and type(observation.get("context_length")) is int
+                             and observation.get("context_length") == route["context_length"])
+                    if bound and isinstance(fresh, dict):
+                        age, maximum = fresh.get("age_s"), fresh.get("max_age_s")
+                        stamp = observation.get("observed_at")
+                        valid = (finite(age) and age >= 0 and finite(maximum)
+                                 and 0 < maximum <= 15 and finite(stamp))
+                        if valid:
+                            freshness = {"age_s": age, "max_age_s": maximum,
+                                         "stale": fresh.get("stale") is not False or age > maximum}
+                            observed_at = stamp
+                            if not freshness["stale"] and observation.get("residency") in {
+                                "ready", "loading", "idle", "error", "unknown"
+                            }:
+                                residency = observation["residency"]
+        result[role] = {"role": role, "backing_model": backing, "residency": residency,
+                        "mode": mode, "observed_at": observed_at, "freshness": freshness}
     return result
 
 

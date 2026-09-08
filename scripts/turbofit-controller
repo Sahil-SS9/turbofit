@@ -142,9 +142,12 @@ def run_tick(runtime, args, lifecycle=None):
     guard = lifecycle.controller_tick() if lifecycle else nullcontext(True)
     with guard as allowed:
         if not allowed:
+            runtime.observe_residency(lifecycle)
             return None
         hardware = probe_hardware()
         controller = runtime.synchronize(args.selection, hardware)
+        if lifecycle:
+            runtime.observe_residency(lifecycle)
         idle_roles = lifecycle.idle_roles() if lifecycle else ()
         if set(idle_roles) == {"main", "aux"}:
             # Idle is intentional, not a failed runtime for the repair loop to
@@ -159,6 +162,7 @@ def run_tick(runtime, args, lifecycle=None):
         )
         result = runtime.tick(pressure, now=time.monotonic(), restore_current=not idle_roles)
         if lifecycle:
+            runtime.observe_residency(lifecycle)
             runtime.release_idle_residency(lifecycle)
         return result
 

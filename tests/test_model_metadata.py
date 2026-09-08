@@ -32,7 +32,7 @@ def catalogue(tmp_path, monkeypatch):
 def test_raw_ids_and_unloaded_backing_identity(catalogue):
     models = GATEWAY.provider_models()
     assert [m["id"] for m in models] == ["auto", "active:main", "active:aux"]
-    assert [m["metadata"] for m in models] == [
+    assert [{k: m["metadata"][k] for k in ("role", "backing_model", "residency")} for m in models] == [
         {"role": "auto", "backing_model": "Exact/Main:Q4", "residency": "unknown"},
         {"role": "main", "backing_model": "Exact/Main:Q4", "residency": "unknown"},
         {"role": "aux", "backing_model": "Exact/Aux:Q8", "residency": "unknown"}]
@@ -48,10 +48,13 @@ def test_shared_main_uses_main_backing_and_status_once(catalogue, monkeypatch):
     calls = []
     def status(endpoint, payload, timeout):
         calls.append((payload, timeout))
-        return {"orphaned": False, "roles": {"main": {"waking": True}, "aux": {"waking": False}}}
+        return {"orphaned": False, "roles": {"main": {"residency": "loading",
+            "backing_model": "Exact/Main:Q4", "context_length": 4096, "observed_at": 100,
+            "freshness": {"age_s": 0, "max_age_s": 15, "stale": False}}}}
     monkeypatch.setattr(native_lifecycle, "lifecycle_request", status)
     models = GATEWAY.provider_models()
-    assert models[2]["metadata"] == {"role": "aux", "backing_model": "Exact/Main:Q4", "residency": "loading"}
+    assert models[2]["metadata"]["backing_model"] == "Exact/Main:Q4"
+    assert models[2]["metadata"]["mode"] == "shared-main"
     assert all(m["metadata"]["residency"] == "loading" for m in models)
     assert calls == [({"action": "status"}, 0.5)]
 
@@ -74,8 +77,8 @@ def test_unreachable_controller_preserves_identity(catalogue, monkeypatch):
     def unavailable(_):
         raise native_lifecycle.LifecycleUnavailable("stale endpoint")
     monkeypatch.setattr(native_lifecycle, "load_endpoint", unavailable)
-    assert GATEWAY.provider_models()[1]["metadata"] == {
-        "role": "main", "backing_model": "Exact/Main:Q4", "residency": "unknown"}
+    assert GATEWAY.provider_models()[1]["metadata"]["backing_model"] == "Exact/Main:Q4"
+    assert GATEWAY.provider_models()[1]["metadata"]["residency"] == "unknown"
 
 
 @pytest.mark.parametrize("content", ['[]', '{', '{}', '{"active":"x","routes":[]}',
@@ -93,7 +96,9 @@ def test_http_catalogue_and_detail_observe_real_lifecycle_without_wake(catalogue
     import threading
     from http.server import ThreadingHTTPServer
 
-    lifecycle = native_lifecycle.IdleLifecycle(state_dir=tmp_path / "native")
+    lifecycle = native_lifecycle.IdleLifecycle(state_dir=tmp_path / "native", clock=lambda: 0, wall=lambda: 100)
+    lifecycle.observe({"main": {"backing_model": "Exact/Main:Q4",
+                                "context_length": 4096, "residency": "unknown"}})
     wakes = []
     endpoint = native_lifecycle.LifecycleEndpoint(lifecycle, ensure_ready=wakes.append)
     endpoint.start()
@@ -118,7 +123,8 @@ def test_http_catalogue_and_detail_observe_real_lifecycle_without_wake(catalogue
                 assert response.status == 200
                 model = data["data"][1] if path == "/v1/models" else data
                 assert model["id"] == "active:main"
-                assert model["metadata"] == {"role": "main", "backing_model": "Exact/Main:Q4", "residency": "unknown"}
+                assert model["metadata"]["residency"] == "error"
+                assert model["metadata"]["backing_model"] == "Exact/Main:Q4"
             finally:
                 connection.close()
         assert lifecycle.status() == before

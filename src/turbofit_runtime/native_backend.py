@@ -131,6 +131,7 @@ class NativeRuntimeBackend:
         self._blocked_previous: dict[str, Any] | None = None
         self._retiring_aux: OwnedRuntime | None = None
         self._owned: dict[str, OwnedRuntime] = {}
+        self._lost_roles: set[str] = set()
         self._recover_owned()
 
     def _pid_path(self, role: str) -> Path:
@@ -155,6 +156,7 @@ class NativeRuntimeBackend:
             if self._is_owned(runtime):
                 self._owned[role] = runtime
             else:
+                self._lost_roles.add(role)
                 self._pid_path(role).unlink(missing_ok=True)
 
     def _write_owned(self, runtime: OwnedRuntime) -> None:
@@ -315,15 +317,16 @@ class NativeRuntimeBackend:
                 values.append(max(0, int(float(match.group(1)))))
         return max(values, default=0)
 
-    def _stop(self, role: str, *, force: bool = False, timeout: float = 30.0) -> bool:
+    def _stop(self, role: str, *, force: bool = False, timeout: float = 30.0,
+              require_owned: bool = False) -> bool:
         runtime = self._owned.get(role)
         if runtime is None:
             self._pid_path(role).unlink(missing_ok=True)
-            return True
+            return not require_owned
         if not self._is_owned(runtime):
             self._owned.pop(role, None)
             self._pid_path(role).unlink(missing_ok=True)
-            return True
+            return not require_owned
         # Re-verify identity immediately before signalling: the process may
         # have died and its PID been reused between the ownership check and
         # the signal. Identity proof must be current, not cached.
@@ -332,14 +335,15 @@ class NativeRuntimeBackend:
             if identity != runtime.start_identity:
                 self._owned.pop(role, None)
                 self._pid_path(role).unlink(missing_ok=True)
-                return True
+                return not require_owned
         try:
             if runtime.process is not None and not force:
                 runtime.process.terminate()
             else:
                 os.kill(runtime.pid, signal.SIGKILL if force else signal.SIGTERM)
         except ProcessLookupError:
-            pass
+            if require_owned:
+                return False
         deadline = self.clock() + timeout
         while self._is_owned(runtime):
             if self.clock() >= deadline:
@@ -353,6 +357,41 @@ class NativeRuntimeBackend:
         self._owned.pop(role, None)
         self._pid_path(role).unlink(missing_ok=True)
         return True
+
+    def residency_snapshot(self) -> dict:
+        """Read owned identity and health, never adopt, launch, stop or repair.
+
+        Absence is unknown: only the lifecycle owner's successful idle release
+        can establish intentional unload. Port health alone is not ownership.
+        """
+        rung = self.profile.rungs[self.current_state.rung_index]
+        if rung.aux_mode is AuxMode.API:
+            return {}
+        result = {}
+        for role, item in self._roles(rung.id).items():
+            component = self._component(role, item, rung.context)
+            resident = self._owned.get(role)
+            state = "error" if role in self._lost_roles else "unknown"
+            if resident is not None:
+                matches = (resident.alias == component.alias and resident.port == component.port
+                           and resident.command == component.command
+                           and self._is_owned(resident))
+                state = "ready" if matches and self._healthy(resident) and self._is_owned(resident) else "error"
+            result[role] = {"backing_model": component.alias,
+                            "context_length": int(item.get("context", rung.context)),
+                            "residency": state}
+        return result
+
+    def release_idle_role(self, role: str) -> str:
+        """Distinguish verified unload from absence or ownership loss."""
+        if role not in {"main", "aux"}:
+            raise ValueError("invalid residency role")
+        resident = self._owned.get(role)
+        if resident is None:
+            return "error" if role in self._lost_roles else "unknown"
+        if not self._is_owned(resident):
+            return "error"
+        return "idle" if self._stop(role, require_owned=True) else "error"
 
     def stop_role(self, role: str) -> bool:
         if role not in {"main", "aux"}:
@@ -372,7 +411,9 @@ class NativeRuntimeBackend:
             raise ReconcileError("no native resolution for requested role")
         component = self._component(role, item, rung.context)
         resident = self._owned.get(role)
-        if resident and self._is_owned(resident) and self._healthy(resident):
+        if (resident and resident.alias == component.alias and resident.port == component.port
+                and resident.command == component.command
+                and self._is_owned(resident) and self._healthy(resident) and self._is_owned(resident)):
             return
         if not self._stop(role):
             raise ReconcileError("cannot replace unhealthy owned runtime")
@@ -383,6 +424,9 @@ class NativeRuntimeBackend:
                 if self.clock() >= deadline or not self._is_owned(resident):
                     raise ReconcileError("native wake verification failed or timed out")
                 self.sleep(min(0.2, max(0.0, deadline - self.clock())))
+            if not self._is_owned(resident):
+                raise ReconcileError("native wake ownership lost after health verification")
+            self._lost_roles.discard(role)
         except Exception:
             if not self._stop(role) and not self._stop(role, force=True, timeout=5):
                 raise ReconcileError("failed wake child could not be reclaimed")

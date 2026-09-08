@@ -228,7 +228,7 @@ def test_real_controller_tick_defers_during_request_then_calls_idle_release(tmp_
     controller = SimpleNamespace(state=SimpleNamespace(adaptive=SimpleNamespace(current_index=0)),
                                  requirements=SimpleNamespace(required_mb_by_rung=[1]))
     calls = []
-    runtime = SimpleNamespace(synchronize=lambda *args: controller,
+    runtime = SimpleNamespace(observe_residency=lambda owner: None, synchronize=lambda *args: controller,
                               tick=lambda *args, **kw: calls.append("tick"),
                               release_idle_residency=lambda owner: calls.append("release"))
     monkeypatch.setattr(mod, "probe_hardware", lambda: None)

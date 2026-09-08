@@ -17,7 +17,7 @@ def test_scheduler_does_not_reheat_idle_roles(tmp_path, monkeypatch):
         reconciler=ReconcilerState(controller.profile.id, 0, 'local:main', 'local:aux'))
     monkeypatch.setattr(backend, 'verify_rung', lambda rung: False)
     stopped = []
-    runtime = SimpleNamespace(synchronize=lambda *a: controller, tick=controller.tick,
+    runtime = SimpleNamespace(observe_residency=lambda owner: None, synchronize=lambda *a: controller, tick=controller.tick,
                               release_idle_residency=lambda owner: owner.release_idle(lambda role: stopped.append(role) or True))
     module = controller_module()
     monkeypatch.setattr(module, 'probe_hardware', lambda: None)

@@ -24,6 +24,8 @@ BackendFactory = Callable[[object, ReconcilerState], RuntimeBackend]
 class ResidencyBackend(Protocol):
     def ensure_role(self, role: str) -> None: ...
     def stop_role(self, role: str) -> bool: ...
+    def residency_snapshot(self) -> dict: ...
+    def release_idle_role(self, role: str) -> str: ...
 
 
 class RuntimeService:
@@ -142,6 +144,10 @@ class RuntimeService:
             return None
         return "main" if role == "aux" and rung.aux_mode.value == "shared-main" else role
 
+    def observe_residency(self, lifecycle) -> None:
+        if self.controller is not None:
+            lifecycle.observe(cast(ResidencyBackend, self.controller.backend).residency_snapshot())
+
     def ensure_residency(self, role: str) -> None:
         if self.controller is None:
             raise RuntimeError("controller has not synchronised")
@@ -149,7 +155,7 @@ class RuntimeService:
 
     def release_idle_residency(self, lifecycle) -> None:
         if self.controller is not None:
-            lifecycle.release_idle(cast(ResidencyBackend, self.controller.backend).stop_role)
+            lifecycle.release_idle(cast(ResidencyBackend, self.controller.backend).release_idle_role)
 
     def _retire_previous(self, existing: ControllerState) -> None:
         previous = next(

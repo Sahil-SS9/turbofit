@@ -59,6 +59,7 @@ class IdleLifecycle:
         self._last_activity = dict.fromkeys(self.roles, clock())
         self._wake_gates = {}
         self._wake_retry_after = {}
+        self._observations = {}
         self._lock_file = None
         self._orphaned = False
         try:
@@ -141,6 +142,7 @@ class IdleLifecycle:
                     raise LifecycleError("recent wake failed; retry after cooldown")
                 flight = {"event": threading.Event(), "error": None}
                 self._wake_gates[role] = flight
+                self._record_state(role, "loading")
         if not leader:
             # Never wait holding the lock needed by the leader to finish.
             if not flight["event"].wait(self.wake_timeout_s):
@@ -153,10 +155,12 @@ class IdleLifecycle:
             with self._lock:
                 self._last_activity[role] = self.clock()
                 self._persist()
+                self._record_state(role, "ready")
         except Exception as exc:
             flight["error"] = exc
             with self._lock:
                 self._wake_retry_after[role] = self.clock() + 5.0
+                self._record_state(role, "error")
             raise
         finally:
             with self._lock:
@@ -174,8 +178,17 @@ class IdleLifecycle:
     def release_idle(self, stop):
         with self._lock:
             for role in self.idle_roles():
-                if not stop(role):
-                    raise LifecycleError(f"could not release idle {role}")
+                try:
+                    outcome = stop(role)
+                    if outcome is False or outcome == "error":
+                        raise LifecycleError(f"could not release idle {role}")
+                except Exception:
+                    self._record_state(role, "error")
+                    raise
+                # Cleanup after failure is not a successful idle transition.
+                previous = self._observations.get(role, {}).get("residency")
+                if previous != "error" and (outcome == "idle" or (outcome is True and previous in {"ready", "idle"})):
+                    self._record_state(role, "idle")
 
     @contextmanager
     def controller_tick(self):
@@ -185,11 +198,51 @@ class IdleLifecycle:
         with self._lock:
             yield not (self._leases or self._wake_gates or self._orphaned)
 
+    def _record_state(self, role, state):
+        previous = self._observations.get(role, {})
+        self._observations[role] = dict(previous, residency=state,
+                                       observed_at=self.wall(), _monotonic=self.clock())
+
+    def observe(self, snapshots):
+        """Publish owner observations, never restoring telemetry from disk.
+
+        Readers cannot refresh age; restart requires new ownership verification.
+        An absent process only preserves idle/error for the same bound recipe.
+        """
+        with self._lock:
+            for role in self.roles:
+                if role in self._wake_gates:
+                    self._record_state(role, "loading")
+                    continue
+                item = snapshots.get(role)
+                if not item:
+                    self._observations.pop(role, None)
+                    continue
+                old = self._observations.get(role, {})
+                state = item["residency"]
+                same = all(old.get(k) == item.get(k) for k in ("backing_model", "context_length"))
+                if same and state == "unknown":
+                    if old.get("residency") in {"idle", "error"}:
+                        state = old["residency"]
+                    elif old.get("residency") == "ready":
+                        state = "error"
+                self._observations[role] = dict(item)
+                self._record_state(role, state)
+
     def status(self):
         with self._lock:
-            return {"orphaned": self._orphaned, "roles": {
-                r: {"leases": self.lease_count(r), "waking": r in self._wake_gates}
-                for r in self.roles}}
+            roles = {}
+            for role in self.roles:
+                item = dict(self._observations.get(role, {}))
+                stamp = item.pop("_monotonic", None)
+                age = max(0.0, self.clock() - stamp) if stamp is not None else None
+                stale = age is None or age > 15.0 or self._orphaned
+                item.update(leases=self.lease_count(role), waking=role in self._wake_gates,
+                            freshness={"age_s": age, "max_age_s": 15.0, "stale": stale})
+                if stale:
+                    item["residency"] = "unknown"
+                roles[role] = item
+            return {"orphaned": self._orphaned, "roles": roles}
 
 
 class LifecycleEndpoint:

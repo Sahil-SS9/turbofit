@@ -411,3 +411,154 @@ def test_memory_capacity_distinguishes_dedicated_unified_and_cpu_pools() -> None
     assert unified.total_usable_memory_mb == unified.host_usable_memory_mb == 124518
     assert cpu.memory_pool_kind == "cpu"
     assert cpu.total_usable_memory_mb == cpu.host_usable_memory_mb == 62259
+
+
+# The RAM probe is the accelerator budget on unified-memory parts (GB10 reports memory.total as
+# "[N/A]"; Metal shares system RAM), so it must answer or say it cannot -- never raise, and never
+# hand back a negative capacity. Every source is stubbed below so all branches run on any runner.
+
+MEMINFO_128 = "MemTotal:       134217728 kB\nMemFree:         1000000 kB\n"
+
+
+def _sysconf(values: dict | None):
+    # A libc that does not define a name makes os.sysconf raise, not return 0.
+    def fake(name: str) -> int:
+        if values is None or name not in values:
+            raise ValueError(f"unrecognized configuration name: {name}")
+        return values[name]
+
+    return fake
+
+
+def _host(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    sysconf: dict | None,
+    meminfo: str | None,
+    windows: bool = False,
+) -> None:
+    """Pin every source the probe can consult. ``sysconf=None`` is a libc without the names;
+    ``windows=False`` takes GlobalMemoryStatusEx away so the POSIX branches run on a Windows
+    runner too."""
+    import ctypes
+
+    import turbofit_runtime.hardware as hw
+
+    if sysconf is None:
+        monkeypatch.delattr(hw.os, "sysconf", raising=False)
+    else:
+        monkeypatch.setattr(hw.os, "sysconf", _sysconf(sysconf or None), raising=False)
+    if not windows:
+        monkeypatch.delattr(ctypes, "windll", raising=False)
+
+    def read_text(self, *args, **kwargs):
+        if self.as_posix() == "/proc/meminfo" and meminfo is not None:
+            return meminfo
+        raise FileNotFoundError(self.as_posix())
+
+    monkeypatch.setattr(hw.Path, "read_text", read_text)
+
+
+class _FakeWindll:
+    """GlobalMemoryStatusEx writes through the byref pointer and reports success separately."""
+
+    def __init__(self, *, ok: bool, total_bytes: int) -> None:
+        self.kernel32 = self
+        self._ok, self._total = ok, total_bytes
+
+    def GlobalMemoryStatusEx(self, ref) -> int:  # noqa: N802 - Win32 spelling
+        if self._ok:
+            ref._obj.ullTotalPhys = self._total
+        return 1 if self._ok else 0
+
+
+def test_system_ram_is_read_in_process_without_consulting_another_source(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import turbofit_runtime.hardware as hw
+
+    _host(monkeypatch, sysconf={"SC_PHYS_PAGES": 32768, "SC_PAGE_SIZE": 4096}, meminfo=None)
+
+    assert hw._system_ram_mb() == 128
+
+
+def test_system_ram_survives_a_libc_that_lacks_the_sysconf_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # os.sysconf raises ValueError for a name its libc does not define. That escaped the probe and
+    # propagated out of probe_hardware; the fallbacks below it were never reached.
+    import turbofit_runtime.hardware as hw
+
+    _host(monkeypatch, sysconf={}, meminfo=MEMINFO_128)
+
+    assert hw._system_ram_mb() == 131072
+
+
+def test_system_ram_treats_an_indeterminate_sysconf_answer_as_no_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # sysconf signals "indeterminate" with -1 rather than raising. Multiplied through, that
+    # reached HardwareFingerprint as a negative capacity.
+    import turbofit_runtime.hardware as hw
+
+    _host(monkeypatch, sysconf={"SC_PHYS_PAGES": -1, "SC_PAGE_SIZE": 4096}, meminfo=MEMINFO_128)
+
+    assert hw._system_ram_mb() == 131072
+
+
+def test_system_ram_is_zero_when_every_source_is_gone(monkeypatch: pytest.MonkeyPatch) -> None:
+    import turbofit_runtime.hardware as hw
+
+    _host(monkeypatch, sysconf=None, meminfo=None)
+
+    assert hw._system_ram_mb() == 0
+
+
+def test_windows_ram_does_not_read_a_failed_call_as_a_zero_byte_machine(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import ctypes
+
+    import turbofit_runtime.hardware as hw
+
+    monkeypatch.setattr(ctypes, "windll", _FakeWindll(ok=False, total_bytes=0), raising=False)
+    assert hw._windows_ram_bytes() == 0
+
+    monkeypatch.setattr(ctypes, "windll", _FakeWindll(ok=True, total_bytes=68 * 1024**3),
+                        raising=False)
+    assert hw._windows_ram_bytes() == 68 * 1024**3
+
+
+def test_windows_ram_is_reached_when_sysconf_has_no_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The ctypes path was gated on hasattr(os, "sysconf") alone, so it was unreachable on every
+    # POSIX host -- including one whose sysconf could not answer.
+    import ctypes
+
+    import turbofit_runtime.hardware as hw
+
+    _host(monkeypatch, sysconf={}, meminfo=None, windows=True)
+    monkeypatch.setattr(ctypes, "windll", _FakeWindll(ok=True, total_bytes=68 * 1024**3),
+                        raising=False)
+
+    assert hw._system_ram_mb() == 68 * 1024
+
+
+def test_probe_gb10_survives_a_libc_without_the_sysconf_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The end-to-end symptom: on a GB10 the GPU's whole capacity comes from the RAM probe, so a
+    # libc whose sysconf lacks SC_PHYS_PAGES took probe_hardware down instead of reading 128 GB.
+    _host(monkeypatch, sysconf={}, meminfo=MEMINFO_128)
+
+    def runner(command: list[str]) -> str:
+        if command[0] == "nvidia-smi":
+            return "0, GPU-gb10, NVIDIA GB10, [N/A], 12.1, 00000000:01:00.0\n"
+        raise FileNotFoundError(command[0])
+
+    fingerprint = probe_hardware(command_runner=runner, os_name="linux", architecture="aarch64")
+
+    assert fingerprint.system_ram_mb == 131072
+    assert fingerprint.devices[0].memory_total_mb == 131072
+    assert fingerprint.memory_pool_kind == "unified"

@@ -55,6 +55,9 @@ PROFILES = os.environ.get(
     "TURBOFIT_RUNTIME_PROFILES",
     str(SCRIPT_DIR.parent / "references" / "successful-runtime-profiles.json"),
 )
+sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
+from turbofit_runtime.request_normalisation import apply_stream_usage_default
+
 RUNTIME_CLI = os.environ.get("TURBOFIT_RUNTIME_CLI", str(SCRIPT_DIR / "turbofit-runtime"))
 RECOMMENDER = os.environ.get("TURBOFIT_RECOMMENDER", str(SCRIPT_DIR / "turbofit-runtime-recommend"))
 SELF_PORT = int(os.environ.get("TURBOFIT_GATEWAY_PORT", "8091"))  # never pick a model on our own port
@@ -992,6 +995,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             try:
                 payload = json.loads(body)
                 stream_requested = payload.get("stream") is True
+                payload = apply_stream_usage_default(payload)
                 if role == "main" and not MAIN_ENABLE_THINKING:
                     template_kwargs = payload.get("chat_template_kwargs")
                     if not isinstance(template_kwargs, dict):

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import nullcontext
 import json
+import math
 import os
 import sys
 import time
@@ -16,6 +18,7 @@ if str(SRC) not in sys.path:
 
 from turbofit_runtime.hardware import probe_hardware  # noqa: E402
 from turbofit_runtime.native_backend import NativeRuntimeBackend  # noqa: E402
+from turbofit_runtime.native_lifecycle import IdleLifecycle, LifecycleEndpoint  # noqa: E402
 from turbofit_runtime.pressure_probe import probe_accelerator_pressure  # noqa: E402
 from turbofit_runtime.recipes import RecipeBook  # noqa: E402
 from turbofit_runtime.routes import load_runtime_resolutions_many  # noqa: E402
@@ -26,19 +29,20 @@ from turbofit_runtime.selection import ProfileCatalog  # noqa: E402
 CONFIG_DIR = Path.home() / ".config" / "turbofit"
 
 
-def supported_profiles() -> tuple[Path, ...]:
+def supported_profiles(config_dir=CONFIG_DIR) -> tuple[Path, ...]:
     paths = list(sorted((ROOT / "runtime-profiles").glob("*gb.yaml")))
-    manual = CONFIG_DIR / "manual-profile.yaml"
+    manual = config_dir / "manual-profile.yaml"
     if manual.is_file():
         paths.append(manual)
     return tuple(paths)
 
 
 def build_runtime(args: argparse.Namespace) -> RuntimeService:
-    catalog = ProfileCatalog.from_paths(supported_profiles())
+    config_dir = getattr(args, "config_dir", CONFIG_DIR)
+    catalog = ProfileCatalog.from_paths(supported_profiles(config_dir))
     resolutions = load_runtime_resolutions_many((
         ROOT / "runtime-profiles" / "runtime-resolutions.json",
-        CONFIG_DIR / "manual-runtime-resolutions.json",
+        config_dir / "manual-runtime-resolutions.json",
     ))
     policy_path = ROOT / "references/catalog-campaign-policy.json"
     policy = json.loads(policy_path.read_text(encoding="utf-8")) if policy_path.is_file() else {}
@@ -49,7 +53,7 @@ def build_runtime(args: argparse.Namespace) -> RuntimeService:
     catalog = catalog.without_deferred_models(resolutions, deferred)
     hardware = probe_hardware()
     recipe_book = RecipeBook.load(
-        ROOT / "references" / "model-recipes.json", hardware=hardware,
+        getattr(args, "recipes", ROOT / "references" / "model-recipes.json"), hardware=hardware,
     )
 
     def backend_factory(profile, state):
@@ -70,7 +74,7 @@ def build_runtime(args: argparse.Namespace) -> RuntimeService:
         resolutions=resolutions,
         requirements_path=(
             ROOT / "runtime-profiles" / "rung-requirements.json",
-            CONFIG_DIR / "manual-rung-requirements.json",
+            config_dir / "manual-rung-requirements.json",
         ),
         controller_state_path=args.state,
         route_state_path=args.routes,
@@ -85,6 +89,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--interval", type=float, default=2.0)
     parser.add_argument("--manager-port", type=int, default=8092)
     parser.add_argument("--verification-timeout", type=float, default=900.0)
+    parser.add_argument("--idle-release", type=float, default=0.0,
+                        help="opt-in idle release seconds; 0 preserves always-resident policy")
+    parser.add_argument("--config-dir", type=Path, default=CONFIG_DIR)
+    parser.add_argument("--recipes", type=Path, default=ROOT / "references/model-recipes.json")
     parser.add_argument(
         "--selection",
         type=Path,
@@ -110,6 +118,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         parser.error("--interval must be positive")
     if args.verification_timeout <= 0:
         parser.error("--verification-timeout must be positive")
+    if not math.isfinite(args.idle_release) or args.idle_release < 0:
+        parser.error("--idle-release must be finite and non-negative")
+    if args.idle_release and args.once:
+        parser.error("--idle-release requires a persistent controller, not --once")
     return args
 
 
@@ -126,42 +138,73 @@ def _owned_status(state_dir: Path) -> dict:
     return {"residents": residents}
 
 
+def run_tick(runtime, args, lifecycle=None):
+    guard = lifecycle.controller_tick() if lifecycle else nullcontext(True)
+    with guard as allowed:
+        if not allowed:
+            runtime.observe_residency(lifecycle)
+            return None
+        hardware = probe_hardware()
+        controller = runtime.synchronize(args.selection, hardware)
+        if lifecycle:
+            runtime.observe_residency(lifecycle)
+        idle_roles = lifecycle.idle_roles() if lifecycle else ()
+        if set(idle_roles) == {"main", "aux"}:
+            # Idle is intentional, not a failed runtime for the repair loop to
+            # resurrect. The next request uses the last verified configuration.
+            runtime.release_idle_residency(lifecycle)
+            return None
+        current = controller.state.adaptive.current_index
+        required = controller.requirements.required_mb_by_rung[current]
+        pressure = probe_accelerator_pressure(
+            hardware, manager_status=_owned_status(args.runtime_state_dir),
+            managed_required_mb=required,
+        )
+        result = runtime.tick(pressure, now=time.monotonic(), restore_current=not idle_roles)
+        if lifecycle:
+            runtime.observe_residency(lifecycle)
+            runtime.release_idle_residency(lifecycle)
+        return result
+
+
 def main(argv: list[str]) -> int:
     args = parse_args(argv[1:])
     runtime = build_runtime(args)
-    while True:
-        try:
-            hardware = probe_hardware()
-            controller = runtime.synchronize(args.selection, hardware)
-            current = controller.state.adaptive.current_index
-            required = controller.requirements.required_mb_by_rung[current]
-            pressure = probe_accelerator_pressure(
-                hardware,
-                manager_status=_owned_status(args.runtime_state_dir),
-                managed_required_mb=required,
-            )
-            result = runtime.tick(pressure, now=time.monotonic())
-            print(
-                json.dumps(
-                    {
+    lifecycle = endpoint = None
+    if args.idle_release:
+        lifecycle = IdleLifecycle(state_dir=args.runtime_state_dir,
+                                  idle_timeout_s=args.idle_release,
+                                  wake_timeout_s=args.verification_timeout)
+        lifecycle.acquire_singleton()
+    try:
+        if lifecycle:
+            endpoint = LifecycleEndpoint(lifecycle, ensure_ready=runtime.ensure_residency,
+                                         resolve_role=runtime.residency_role)
+            endpoint.start()
+        while True:
+            try:
+                result = run_tick(runtime, args, lifecycle)
+                if result is not None:
+                    print(json.dumps({
                         "profile_id": result.state.profile_id,
                         "mode": result.state.selection_mode.value,
                         "rung_index": result.state.adaptive.current_index,
                         "action": result.action.value,
                         "transitioned": result.transitioned,
                         "reason": result.reason,
-                    },
-                    sort_keys=True,
-                ),
-                flush=True,
-            )
-        except Exception as exc:
-            print(json.dumps({"error": str(exc)}, sort_keys=True), file=sys.stderr, flush=True)
+                    }, sort_keys=True), flush=True)
+            except Exception as exc:
+                print(json.dumps({"error": str(exc)}, sort_keys=True), file=sys.stderr, flush=True)
+                if args.once:
+                    return 1
             if args.once:
-                return 1
-        if args.once:
-            return 0
-        time.sleep(args.interval)
+                return 0
+            time.sleep(args.interval)
+    finally:
+        if endpoint:
+            endpoint.stop()
+        if lifecycle:
+            lifecycle.release_singleton()
 
 
 if __name__ == "__main__":

@@ -114,11 +114,17 @@ class RuntimeRung:
     aux_manifest: str | None = None
     main_api_policy: str | None = None
     aux_api_policy: str | None = None
+    main_context: int | None = None
+    auxiliary_context: int | None = None
 
     def validate(self, *, terminal: bool) -> None:
         _slug(self.id, "rung id")
         _positive_int(self.context, "context")
         _nonempty(self.evidence, "evidence")
+        if self.main_context is not None:
+            _positive_int(self.main_context, "main_context")
+        if self.auxiliary_context is not None:
+            _positive_int(self.auxiliary_context, "auxiliary_context")
         if self.aux_mode is AuxMode.API:
             if not terminal:
                 raise ValueError("API rung must be terminal")
@@ -223,6 +229,8 @@ class Turbofile:
                     "aux_manifest",
                     "main_api_policy",
                     "aux_api_policy",
+                    "main_context",
+                    "auxiliary_context",
                 },
                 where=f"rungs[{index}]",
             )
@@ -240,6 +248,8 @@ class Turbofile:
                     aux_manifest=data.get("aux_manifest"),
                     main_api_policy=data.get("main_api_policy"),
                     aux_api_policy=data.get("aux_api_policy"),
+                    main_context=data.get("main_context"),
+                    auxiliary_context=data.get("auxiliary_context"),
                 )
             )
         profile = cls(
@@ -310,6 +320,8 @@ class Turbofile:
                 "aux_manifest",
                 "main_api_policy",
                 "aux_api_policy",
+                "main_context",
+                "auxiliary_context",
             ):
                 _optional(item, key, getattr(rung, key))
             rungs.append(item)

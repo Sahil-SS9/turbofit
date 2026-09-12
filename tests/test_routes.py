@@ -31,6 +31,7 @@ def test_builds_shared_main_route_for_24gb_profile() -> None:
         "kind": "local",
         "alias": "bonsai-27b-1bit-262k-main",
         "port": 8092,
+        "context_length": 262144,
     }
     assert state["routes"]["aux"] == {"kind": "shared-main"}
 

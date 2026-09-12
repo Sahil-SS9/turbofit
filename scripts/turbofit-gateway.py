@@ -55,6 +55,16 @@ PROFILES = os.environ.get(
     "TURBOFIT_RUNTIME_PROFILES",
     str(SCRIPT_DIR.parent / "references" / "successful-runtime-profiles.json"),
 )
+REASONING_POLICIES = os.environ.get(
+    "TURBOFIT_REASONING_POLICIES",
+    str(SCRIPT_DIR.parent / "references" / "reasoning-policies.json"),
+)
+sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
+from turbofit_runtime.request_normalisation import (  # noqa: E402
+    apply_stream_usage_default,
+    caller_controls_reasoning,
+    normalise_reasoning_budget,
+)
 RUNTIME_CLI = os.environ.get("TURBOFIT_RUNTIME_CLI", str(SCRIPT_DIR / "turbofit-runtime"))
 RECOMMENDER = os.environ.get("TURBOFIT_RECOMMENDER", str(SCRIPT_DIR / "turbofit-runtime-recommend"))
 SELF_PORT = int(os.environ.get("TURBOFIT_GATEWAY_PORT", "8091"))  # never pick a model on our own port
@@ -125,9 +135,42 @@ def runtime_profiles():
     return profiles if isinstance(profiles, dict) else {}
 
 
+def reasoning_policy_for(backend):
+    """Resolve the opt-in reasoning budget policy for one backend route.
+
+    Policies are keyed by route alias (or route-level ``reasoning_policy``
+    metadata published with the route) and are backend-aware: only the
+    configured affected backend/model is normalised, never every model.
+    """
+    if backend.get("is_api"):
+        return None
+    route_policy = backend.get("reasoning_policy")
+    if isinstance(route_policy, dict):
+        return route_policy
+    alias = str(backend.get("alias") or "").strip()
+    if not alias:
+        return None
+    try:
+        with open(REASONING_POLICIES, encoding="utf-8-sig") as f:
+            policies = json.load(f)
+    except FileNotFoundError:
+        if "TURBOFIT_REASONING_POLICIES" in os.environ:
+            raise ValueError("configured reasoning policies file is missing")
+        return None
+    except (OSError, ValueError) as exc:
+        raise ValueError("configured reasoning policies file is unreadable or invalid") from exc
+    if not isinstance(policies, dict) or not isinstance(policies.get("policies"), dict):
+        raise ValueError("reasoning policies must contain a policies mapping")
+    policy = policies["policies"].get(alias)
+    if policy is not None and (not isinstance(policy, dict) or not policy):
+        raise ValueError("configured reasoning policy must be a non-empty mapping")
+    return policy
+
+
 def provider_models():
     """OpenAI-compatible catalog exposed by the single Turbofit provider."""
-    context_length = active_context_length()
+    context_length = active_context_length(role="main")
+    auxiliary_context = active_context_length(role="aux")
     models: list[dict] = [
         {
             "id": "auto",
@@ -148,10 +191,89 @@ def provider_models():
             "object": "model",
             "owned_by": "turbofit",
             "description": "Stable route to the currently reconciled auxiliary role",
-            "context_length": context_length,
+            "context_length": auxiliary_context,
         },
     ]
+    metadata = provider_model_metadata()
+    for model, role in zip(models, ("auto", "main", "aux")):
+        model["metadata"] = metadata[role]
     return models
+
+
+def provider_model_metadata():
+    """Read published identity and bounded owner observations without admission."""
+    from turbofit_runtime.native_lifecycle import (
+        LifecycleUnavailable, lifecycle_request, load_endpoint,
+    )
+
+    routes = {}
+    try:
+        with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+            state = json.load(handle)
+        if isinstance(state, dict) and state.get("active") and isinstance(state.get("routes"), dict):
+            routes = state["routes"]
+    except (OSError, ValueError):
+        pass
+
+    status = {}
+    if os.getenv("TURBOFIT_LIFECYCLE_REQUIRED", "0").lower() in {"1", "true", "yes"}:
+        try:
+            endpoint = load_endpoint(os.environ.get(
+                "TURBOFIT_NATIVE_STATE", Path.home() / ".local/state/turbofit/native"))
+            observed = lifecycle_request(endpoint, {"action": "status"}, timeout=0.5)
+            if isinstance(observed, dict) and observed.get("orphaned") is False:
+                status = observed.get("roles")
+                if not isinstance(status, dict):
+                    status = {}
+        except (LifecycleUnavailable, OSError, ValueError, TypeError):
+            pass
+
+    def finite(value):
+        import math
+        try:
+            return type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            return False
+
+    result = {}
+    for role in ("auto", "main", "aux"):
+        effective_role = "main" if role == "auto" else role
+        route = routes.get(effective_role)
+        mode = route.get("kind") if isinstance(route, dict) else None
+        if role == "aux" and mode == "shared-main":
+            effective_role = "main"
+            route = routes.get("main")
+        backing = None
+        residency = "unknown"
+        freshness = {"age_s": None, "max_age_s": 15.0, "stale": True}
+        observed_at = None
+        if isinstance(route, dict) and route.get("kind") == "local":
+            alias = route.get("alias")
+            if isinstance(alias, str) and alias:
+                backing = alias
+                observation = status.get(effective_role)
+                if isinstance(observation, dict):
+                    fresh = observation.get("freshness")
+                    bound = (observation.get("backing_model") == alias
+                             and type(route.get("context_length")) is int
+                             and type(observation.get("context_length")) is int
+                             and observation.get("context_length") == route["context_length"])
+                    if bound and isinstance(fresh, dict):
+                        age, maximum = fresh.get("age_s"), fresh.get("max_age_s")
+                        stamp = observation.get("observed_at")
+                        valid = (finite(age) and age >= 0 and finite(maximum)
+                                 and 0 < maximum <= 15 and finite(stamp))
+                        if valid:
+                            freshness = {"age_s": age, "max_age_s": maximum,
+                                         "stale": fresh.get("stale") is not False or age > maximum}
+                            observed_at = stamp
+                            if not freshness["stale"] and observation.get("residency") in {
+                                "ready", "loading", "idle", "error", "unknown"
+                            }:
+                                residency = observation["residency"]
+        result[role] = {"role": role, "backing_model": backing, "residency": residency,
+                        "mode": mode, "observed_at": observed_at, "freshness": freshness}
+    return result
 
 
 def _positive_context(value):
@@ -177,55 +299,35 @@ def _live_n_ctx(route):
         return None
 
 
-def active_context_length(default=65536):
-    """Return the single shared main+aux context window.
-
-    Main and aux are required to use the same limit. Prefer an explicit
-    matching value from runtime state so tests stay offline; if state
-    omitted the window, probe the live servers and refuse to advertise
-    two different numbers.
-    """
-    stored = []
+def active_context_length(default=65536, *, role="main"):
+    """Return the served limit for a role; auto and shared-main use main."""
+    if role not in {"main", "aux"}:
+        raise ValueError("invalid context role")
     try:
         with open(RUNTIME_STATE, encoding="utf-8-sig") as f:
             state = json.load(f)
         routes = state.get("routes") or {}
-        for role in ("main", "aux"):
-            value = _positive_context((routes.get(role) or {}).get("context_length"))
-            if value:
-                stored.append(value)
+        selected_role = role
+        if role == "aux" and (routes.get("aux") or {}).get("kind") == "shared-main":
+            selected_role = "main"
+        value = _positive_context((routes.get(selected_role) or {}).get("context_length"))
+        if value:
+            return value
         shared = _positive_context(state.get("context_length"))
         if shared:
-            stored.append(shared)
-        if not stored:
-            profile = runtime_profiles().get(state.get("active")) or {}
-            value = _positive_context(profile.get("context"))
-            if value:
-                stored.append(value)
-    except (OSError, TypeError, ValueError, json.JSONDecodeError):
-        stored = []
-
-    unique_stored = set(stored)
-    if len(unique_stored) == 1:
-        return unique_stored.pop()
-    if len(unique_stored) > 1:
-        log.error("main/aux stored context mismatch: %s", sorted(unique_stored))
-
-    live = []
-    for resolver in (resolve_main, resolve_aux):
-        try:
-            value = _live_n_ctx(resolver())
-        except Exception:
-            value = None
+            return shared
+        profile = runtime_profiles().get(state.get("active")) or {}
+        key = "auxiliary_context" if selected_role == "aux" else "main_context"
+        value = _positive_context(profile.get(key) or profile.get("context"))
         if value:
-            live.append(value)
-    unique_live = set(live)
-    if len(unique_live) == 1:
-        return unique_live.pop()
-    if len(unique_live) > 1:
-        log.error("main/aux live context mismatch: %s", sorted(unique_live))
-        return live[0]
-    return default
+            return value
+    except (OSError, TypeError, ValueError, AttributeError):
+        pass
+    resolver = resolve_main if role == "main" else resolve_aux
+    try:
+        return _live_n_ctx(resolver()) or default
+    except Exception:
+        return default
 
 
 def parse_provider_model(model):
@@ -443,6 +545,8 @@ def _runtime_policy_route(state, role):
             result["context_length"] = route["context_length"]
         if isinstance(route.get("request_policy"), dict):
             result["request_policy"] = dict(route["request_policy"])
+        if isinstance(route.get("reasoning_policy"), dict):
+            result["reasoning_policy"] = dict(route["reasoning_policy"])
         if role == "aux":
             result["mode"] = "api"
         return result
@@ -469,6 +573,8 @@ def _runtime_policy_route(state, role):
             result["context_length"] = route["context_length"]
         if isinstance(route.get("request_policy"), dict):
             result["request_policy"] = dict(route["request_policy"])
+        if isinstance(route.get("reasoning_policy"), dict):
+            result["reasoning_policy"] = dict(route["reasoning_policy"])
         if role == "aux":
             result["mode"] = str(route.get("mode") or "dedicated")
         return result
@@ -799,6 +905,9 @@ def stall_until_ready(port, deadline_ts, alias=None):
 
 # ─── HTTP handler ─────────────────────────────────────────────────────────────
 
+from turbofit_runtime.native_lifecycle import leased_request
+
+
 class GatewayHandler(BaseHTTPRequestHandler):
     server_version = "turbofit-gateway/2.0"
 
@@ -890,6 +999,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         else:
             self._handle_main(routed_path, body=body)
 
+    @leased_request("main")
     def _handle_main(self, path, body=None):
         upstream_path = path[len("/main/"):] or "/"
 
@@ -948,6 +1058,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         if status >= 400:
             self._send_503(f"All backends failed (last status {status})", tried=" → ".join(tried))
 
+    @leased_request("aux")
     def _handle_aux(self, path, body=None, required=False):
         upstream_path = path[len("/aux/"):] or "/"
         backend = resolve_aux()
@@ -992,16 +1103,26 @@ class GatewayHandler(BaseHTTPRequestHandler):
             try:
                 payload = json.loads(body)
                 stream_requested = payload.get("stream") is True
-                if role == "main" and not MAIN_ENABLE_THINKING:
-                    template_kwargs = payload.get("chat_template_kwargs")
-                    if not isinstance(template_kwargs, dict):
-                        template_kwargs = {}
-                    else:
-                        template_kwargs = dict(template_kwargs)
-                    template_kwargs["enable_thinking"] = False
-                    template_kwargs["thinking_mode"] = "disabled"
-                    payload["chat_template_kwargs"] = template_kwargs
-                    payload["reasoning_format"] = "none"
+                # TF4: streaming requests without a caller preference ask the
+                # backend for a final usage frame; explicit false survives.
+                payload = apply_stream_usage_default(payload)
+                if role == "main":
+                    if not MAIN_ENABLE_THINKING and not caller_controls_reasoning(payload):
+                        template_kwargs = dict(payload.get("chat_template_kwargs") or {})
+                        template_kwargs.update(enable_thinking=False, thinking_mode="disabled")
+                        payload["chat_template_kwargs"] = template_kwargs
+                        payload["reasoning_format"] = "none"
+                        payload["think"] = False
+                    # TF3: backend-aware finite reasoning budget. Only the
+                    # configured affected backend is normalised: explicit
+                    # budgets win after clamping, disabled maps to 0, effort
+                    # maps to a finite budget. Template-level caller controls
+                    # are never removed by the gateway (the helper only sets
+                    # thinking_budget_tokens; it does not touch
+                    # chat_template_kwargs or think).
+                    policy = reasoning_policy_for(backend)
+                    if policy:
+                        payload = normalise_reasoning_budget(payload, policy)
                 if role == "aux" and AUX_MAX_TOKENS > 0:
                     requested = payload.get("max_tokens")
                     if isinstance(requested, bool) or not isinstance(requested, int) or requested <= 0:
@@ -1028,8 +1149,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
                     else backend.get("alias")
                 ) or payload.get("model")
                 body = json.dumps(payload).encode()
-            except Exception:
-                pass
+            except (ValueError, TypeError, AttributeError, OverflowError) as exc:
+                self._send_json(400, {"error": "invalid_request_or_policy", "message": str(exc)})
+                return {"status": 400, "ms": 0, "response_sent": True}
 
         # API fallback also needs the real provider credential.
         if backend.get("is_api"):

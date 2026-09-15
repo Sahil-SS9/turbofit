@@ -153,30 +153,51 @@
       }
     },
     "hardware-48gb": {
-      "local-bonsai-131072": {
+      "local-unleashed-q3kx-262k": {
         "main": {
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-128k-main",
+          "model_tag": "qwen38-27b-unleashed-q3kx-262k-main",
+          "expected_vram_mb": 17500,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
+          "port": 8092
+        },
+        "aux": {
+          "model_tag": "qwen38-27b-unleashed-q3kx-262k-aux",
+          "expected_vram_mb": 0,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
           "port": 8092
         }
       },
-      "local-bonsai-262144": {
+      "local-unleashed-q3kx-128k": {
         "main": {
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-262k-main",
+          "model_tag": "qwen38-27b-unleashed-q3kx-128k-main",
+          "expected_vram_mb": 16000,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
+          "port": 8092
+        },
+        "aux": {
+          "model_tag": "qwen38-27b-unleashed-q3kx-128k-aux",
+          "expected_vram_mb": 0,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
           "port": 8092
         }
       },
-      "local-bonsai-65536": {
+      "local-unleashed-q3kx-65k": {
         "main": {
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-64k-main",
+          "model_tag": "qwen38-27b-unleashed-q3kx-65k-main",
+          "expected_vram_mb": 15000,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
+          "port": 8092
+        },
+        "aux": {
+          "model_tag": "qwen38-27b-unleashed-q3kx-65k-aux",
+          "expected_vram_mb": 0,
+          "family": "qwen38-27b-unleashed",
+          "gpu": "0",
           "port": 8092
         }
       }

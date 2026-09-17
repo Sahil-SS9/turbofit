@@ -8,6 +8,7 @@ import platform
 import re
 import subprocess
 from collections import Counter
+from contextlib import suppress
 from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
@@ -402,28 +403,76 @@ def _nvidia_compatibility_library_dir() -> str | None:
     return str(candidate) if candidate.is_dir() else None
 
 
+def _sysconf_ram_bytes() -> int:
+    """``SC_PHYS_PAGES * SC_PAGE_SIZE``, in-process: no PATH, no fork, nothing to time out.
+
+    0 where the platform does not carry both names -- ``os.sysconf`` raises ValueError for a name
+    its libc does not define -- or where the libc declines to answer, which it signals by
+    returning -1 rather than raising.
+    """
+    sysconf = getattr(os, "sysconf", None)
+    if sysconf is None:
+        return 0
+    with suppress(OSError, ValueError):
+        pages, page = sysconf("SC_PHYS_PAGES"), sysconf("SC_PAGE_SIZE")
+        if pages > 0 and page > 0:
+            return pages * page
+    return 0
+
+
+def _windows_ram_bytes() -> int:
+    """GlobalMemoryStatusEx. 0 wherever kernel32 is not there to answer."""
+    with suppress(AttributeError, OSError, ValueError):
+        import ctypes
+
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        stat = MEMORYSTATUSEX()
+        stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        # The call reports success in its return value; without checking it, a failed call is
+        # read as a 0-byte machine from the zeroed struct.
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+            return int(stat.ullTotalPhys)
+    return 0
+
+
+def _proc_meminfo_ram_bytes() -> int:
+    """MemTotal from /proc/meminfo, in kB. The last resort on a Linux libc whose sysconf does
+    not carry the page-count names."""
+    with suppress(OSError, ValueError, IndexError):
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            if line.startswith("MemTotal:"):
+                return int(line.split()[1]) * 1024
+    return 0
+
+
 def _system_ram_mb() -> int:
-    if hasattr(os, "sysconf"):
-        page_size = os.sysconf("SC_PAGE_SIZE")
-        page_count = os.sysconf("SC_PHYS_PAGES")
-        return int(page_size * page_count // (1024 * 1024))
-    # Windows fallback via ctypes GlobalMemoryStatusEx
-    import ctypes
+    """Total physical memory in MB, or 0 when no source could answer.
 
-    class MEMORYSTATUSEX(ctypes.Structure):
-        _fields_ = [
-            ("dwLength", ctypes.c_ulong),
-            ("dwMemoryLoad", ctypes.c_ulong),
-            ("ullTotalPhys", ctypes.c_ulonglong),
-            ("ullAvailPhys", ctypes.c_ulonglong),
-            ("ullTotalPageFile", ctypes.c_ulonglong),
-            ("ullAvailPageFile", ctypes.c_ulonglong),
-            ("ullTotalVirtual", ctypes.c_ulonglong),
-            ("ullAvailVirtual", ctypes.c_ulonglong),
-            ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
-        ]
+    On unified-memory parts this number *is* the accelerator budget: nvidia-smi reports
+    ``memory.total`` as ``[N/A]`` on GB10 and Metal shares system RAM, so both paths above read
+    the machine's capacity from here. A bad reading is therefore not a small machine, and the
+    probe must not turn one into a crash: ``os.sysconf`` raises on a libc that does not define
+    the name and returns -1 when the value is indeterminate, and neither was handled -- the
+    first propagated out of ``probe_hardware``, the second reached ``HardwareFingerprint`` as a
+    negative capacity. The Windows fallback could not catch either, because it was gated on
+    ``hasattr(os, "sysconf")`` alone and so was unreachable on every POSIX host.
 
-    stat = MEMORYSTATUSEX()
-    stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-    ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
-    return int(stat.ullTotalPhys // (1024 * 1024))
+    Each source is tried in turn and 0 is the honest "unknown machine" answer.
+    """
+    for source in (_sysconf_ram_bytes, _windows_ram_bytes, _proc_meminfo_ram_bytes):
+        total = source()
+        if total > 0:
+            return int(total // (1024 * 1024))
+    return 0

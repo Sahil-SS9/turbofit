@@ -9,7 +9,7 @@ tags: [hermes-agent, llama-cpp, llm, accelerator, cpu, adaptive-runtime, turbofi
 
 # Turbofit
 
-## 2.3 model authority
+## 2.4 model authority
 
 Fit List keeps dedicated VRAM separate from integrated/RAM-only total memory. Dedicated: Maple Preview TQ2_0 at 8GB, Qwen 3.8 27B Unleashed UD-IQ3_XXS at 16GB, UD-Q3_K_XL at 24–95GB, and Qwen 3.8 27B 16-bit at 96GB+ until an Unleashed FP16 GGUF is published. Shared total memory: Maple at 8–15GB, Ornith 1.5 35A3B at 16–23GB, and Unleashed UD-Q3_K_XL at 24GB+. An 8GB GPU may also use Ornith when host RAM can hold offloaded experts. Maple remains Auto on dedicated 8GB at native 64K/128K. Auxiliary is Ornith, optional Carwin Nano, or auto.
 
@@ -99,20 +99,6 @@ dedicated aux → shared-main → smaller context/model → terminal API
 ```
 
 Expected recovery walks one rung at a time toward the recommendation after margin and dwell.
-
-## Engine pin/build provenance
-
-For vendored engines, verify the owning repository's full commit and engine subtree Git tree separately from a synthetic standalone snapshot commit. Probe anonymous remote fetchability rather than assuming that a local fix is unavailable; GitHub fork-network commit lookup does not establish default-branch inclusion. Keep engine fixes in the engine, and manager code limited to source/build/recipe binding.
-
-When testing copied engine installations, use a tiny shared-library fixture without fixture-supplied RPATH, preserve/rename the build tree, and execute the installed binary. Supply relative loader paths in the installer and inspect ELF RUNPATH plus actual dependency resolution: hashing copied libraries alone can pass while the loader still depends on an unbound build directory.
-
-For fresh CUDA validation beside a live inference service, keep compiler jobs and CPU affinity bounded at low scheduling/I/O priority; deny GPU device access and live-home writes before executing source. Permit trusted Git fetch networking separately, then seal TCP and datagram creation before CMake so build descendants cannot inherit fetch access. Resolve `/etc/resolv.conf` symlinks explicitly in the read-only allowlist rather than opening all of `/run`.
-
-Preserve the build tree under a new name before testing the copied installation; require every package-owned library to resolve inside the installed sibling directory. Run pristine model-dependent regressions with exact weight hashes and a positive execution marker because a zero exit may mean a non-hybrid skip. Small-context CPU checks do not close CUDA or production-context acceptance.
-
-Do not use an intentionally missing model as a supposedly nonbinding server parser test: the server may bind its listener before loading weights. Keep binding denied, preserve that refusal, and use an explicitly labelled `--help` parsing probe when only argument compatibility is required. Pass the absolute interpreter path as `execv` argv[0] as well as the executable argument; otherwise Python may report an empty `sys.executable`, weakening runtime evidence.
-
-Hash the complete deployed shared-library set and verify symlinks, not only the server executable. Preserve exact recipe and model hashes. Label those hashes as deployment references rather than predicted rebuild outputs: compiler versions, native CPU tuning, paths and embedded Git metadata can prevent byte-for-byte reproduction. Record dirty test-only source changes separately from the pristine tree and prior test receipts.
 
 ## Release gates
 

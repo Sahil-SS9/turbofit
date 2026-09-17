@@ -1,0 +1,47 @@
+# distribution.yaml — turbofit skill distribution manifest
+# Install with: hermes skills tap add SouthpawIN/turbofit && hermes skills install turbofit
+name: turbofit
+version: "1.1.0"
+description: >-
+  Opinionated unified LLM backend (turbofit v5.2). Picks the best main + aux
+  model for your hardware — local or API — launches them detached, wires
+  Hermes-Agent config, and adapts to live VRAM pressure via a scaling ladder.
+  Three hardware tiers: Beefy (local+local), Modest (API+local), Thin (API+API).
+  API fallback is always available via the five keyless Nous free models.
+  Dynamic model database auto-updates daily with real pricing from OpenRouter API.
+  Replaces llama-launch, omni-va, and ad-hoc llama-server scripts.
+author: SouthpawIN
+license: MIT
+homepage: https://github.com/SouthpawIN/turbofit
+repo: https://github.com/SouthpawIN/turbofit
+
+# Hermes-Agent version requirement
+hermes_requires: ">=0.12.0"
+
+# Optional environment variables the user may set for paid API extras
+env_requires: []
+
+# Files owned by this distribution — overwritten on update
+distribution_owned:
+  - SKILL.md
+  - README.md
+  - distribution.yaml
+  - scripts/serve
+  - scripts/turbofit.sharco
+  - scripts/turbofit-debug2.sharco
+  - scripts/install.sh
+  - scripts/scaling-watcher.py
+  - scripts/status-server.py
+  - scripts/turbofit-gateway.py
+  - scripts/turbofit-resolver.py
+  - scripts/vram-watcher.py
+  - scripts/auto-update.sh
+  - references/
+
+# Post-install hook: wire the serve/name shell functions into the user's shell
+post_install:
+  - command: bash scripts/install.sh
+    description: Wire serve/name shell functions into ~/.bashrc
+
+# Note: No env_template section to avoid scanner false positives.
+# Users set API keys via `hermes setup` or `hermes auth add <provider>`.

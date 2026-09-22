@@ -5,6 +5,7 @@ version: 2.3.1
 author: SouthpawIN + Nous Girl
 license: MIT
 tags: [hermes-agent, llama-cpp, llm, accelerator, cpu, adaptive-runtime, turbofile]
+adoption_status: provisional
 ---
 
 # Turbofit

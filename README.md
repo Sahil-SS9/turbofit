@@ -4,147 +4,126 @@
 
 **One model provider. Every machine. The best local configuration the hardware can safely sustain.**
 
-Turbofit is a first-class [Hermes Agent](https://github.com/NousResearch/hermes-agent) provider and adaptive local-inference runtime. It inventories physical compute and total usable memory, recommends an evidence-backed ladder, launches a native backend, and exposes one OpenAI-compatible endpoint. The client-facing name stays `auto` while the backing model, context, and auxiliary mode change.
+Turbofit is a first-class [Hermes Agent](https://github.com/NousResearch/hermes-agent) provider and adaptive local-inference runtime. It inventories physical compute and total usable memory, recommends an evidence-backed ladder, launches a native backend, and exposes one OpenAI-compatible endpoint.
+
+![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](assets/hermes-desktop-turbofit-settings.png)
 
 ```text
 provider: custom:turbofit
 model: auto
 ```
 
-> Catalog entries are **candidates** until the physical campaign passes. Compile, download, or estimated fit is not a winner.
+**TurboFit Check** scans the machine — dedicated VRAM, unified/integrated memory, or RAM-only — and applies Auto or a selected compatible lane.
 
-## Install
+> **Wiki:** [Full Turbofit Wiki](https://github.com/SouthpawIN/turbofit/wiki) — Model Zoo, benchmarks, hardware tiers, and more.
 
-One command installs the plugin, the Desktop surface, **TurboSouth** (customer service, below), and its mascot pet:
+---
 
-```bash
-hermes plugins install --enable https://github.com/SouthpawIN/Turbofit.git
-```
+## Agentic Model Lineup (TurboFit List)
 
-Setup then downloads the recommended models for this machine if they are missing and starts the local stack:
+> 5 models suitable for running Hermes Agent locally. Ordered by capability.
 
-| Layer | What | Starts when |
-|---|---|---|
-| Turbofit provider gateway | OpenAI `/v1` on **`127.0.0.1:8091`** | Setup / Apply / `/turbofit shift` / native service |
-| Native model server | llama-server / backend | Turbofit selection after artifacts land |
-| Tailscale Serve | Private HTTPS to other tailnet devices | `/turbofit serve` |
+| Order | Model | Type | Parameters | Optimal Quant | Size | AIME26 | GPQA-D | DeepSWE | LCBv6 | TB4.0 |
+|-------|-------|------|------------|---------------|------|--------|--------|---------|-------|-------|
+| 1 | **Maple Preview** | Ternary MoE | 20B-A1B | TQ2_0-head-Q4_K | 5.5 GiB | 87.5% | 73.5% | — | 75.1% | — |
+| 2 | **Cyber Tiel Coder** | Code LLM (MoE) | 35B-A3B | UD-Q4_K_XL | 22.4 GiB | — | — | — | — | — |
+| 3 | **Qwen 3.8 GSQ-RCO** | LLM (Quantized) | 27B | IQ3_S | 11.8 GiB | — | 89.2% | 42.2% | 90.3% | — |
+| 4 | **Qwen 3.8 Flash Next** | MoE (Qwen4 Preview) | 180B / 6B | IQ3_XXS | 47 GiB | — | 91.7% | 58.7% | 91.9% | — |
+| 5 | **DeepSeek V4.1 Flash** | MoE | 763B / 16B | FP8 / UD-Q4_K_XL | 160 / ~40 GiB | — | 90.9% | 74.2% | — | 31.2% |
 
-The easiest path: ask **TurboSouth**. It installs Turbofit, downloads recommended models, and verifies a real local completion.
+> **Fit rule:** model_size + KV cache ≤ tier size. KV cache ≈ 2-4GB at 262K context. GSQ-RCO IQ3_S is near-lossless and the default for all GPU tiers.
 
-Health check — JSON with `auto` means healthy. Connection refused means the Turbofit stack is not running (not a firewall miss, and not the Hermes messaging gateway):
+---
 
-```bash
-curl -fsS http://127.0.0.1:8091/v1/models
-```
+## Model Zoo
 
-## TurboSouth — TurboFit Customer Service
+| Model | Type | System | Parameters | AIME26 | GPQA-D | DeepSWE | LCBv6 | TB4.0 |
+|-------|------|--------|------------|--------|--------|---------|-------|-------|
+| **Maple Preview** ★ | Ternary MoE | Omarchy | 20B-A1B | 87.5% | 73.5% | — | 75.1% | — |
+| **Cyber Tiel Coder** ★ | Code LLM (MoE) | Omarchy, MacBook | 35B-A3B | — | — | — | — | — |
+| **Qwen 3.8 GSQ-RCO** ★ | LLM (Quantized) | Omarchy | 27B | — | 89.2% | 42.2% | 90.3% | — |
+| **Qwen 3.8 Flash Next** ★ | MoE (Qwen4 Preview) | Omarchy | 180B / 6B | — | 91.7% | 58.7% | 91.9% | — |
+| **DeepSeek V4.1 Flash** ★ | MoE | Omarchy | 763B / 16B | — | 90.9% | 74.2% | — | 31.2% |
+| **Ace Step 1.5** | Music Generation | Omarchy | 4B | — | — | — | — | — |
+| **Bonsai 27B** | LLM (Ternary) | Omarchy | 27B | — | — | — | — | — |
+| **Cosmos 37B** | LLM | Omarchy | 37B | — | — | — | — | — |
+| **NVIDIA Nemotron 3.5** | Enterprise LLM (MoE) | Omarchy | 30B-A3B | — | — | — | — | — |
+| **Qwen 2.5 Omni** | Multimodal VLM | Omarchy | 3B | — | — | — | — | — |
+| **Soprano** | Creative Micro | Omarchy | 80M | — | — | — | — | — |
 
-![TurboSouth mascot — the Sovthpaw pet](https://raw.githubusercontent.com/SouthpawIN/turbosouth/main/assets/turbosouth-hero.png)
+> ★ = on TurboFit List. For full model research, see the [wiki](https://github.com/SouthpawIN/turbofit/wiki).
 
-**TurboFit is the whole project. TurboSouth is the dedicated bot that assists with installing, configuring, and sending fixes upstream to TurboFit.**
+---
 
-TurboSouth handles install, setup, Q&A with source/commit citations, machine-fit comparison, troubleshooting, and tested upstream pull requests. **TurboSouth installs TurboFit when it is missing.**
+## Hardware Tiers
 
-Installing TurboFit installs TurboSouth **with its mascot pet** — the Sovthpaw petdex skin (long auburn hair, black sunglasses, sleeveless black vest, pink strap). The pet (`s0uthpaw`) is installed and selected automatically for the default home and the TurboSouth profile; no extra steps.
+### GPU (NVIDIA/AMD VRAM)
 
-Manual bootstrap (reciprocal — TurboSouth's installer pulls TurboFit first when missing):
+| Tier | Model | Quant | VRAM Used | Context | Notes |
+|------|-------|-------|-----------|---------|-------|
+| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | SSD streaming |
+| 16–64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless, low power |
+| 96 GB | Flash Next | IQ3_XXS | ~48 GiB | 262K native | Qwen4 preview |
+| 128 GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Max context |
+| 256 GB | DeepSeek V4.1 Flash | FP8 | ~160 GiB | 1M | Top capability |
 
-```bash
-git clone https://github.com/SouthpawIN/turbosouth.git
-cd turbosouth
-scripts/install
-```
+### CPU (System RAM)
 
-Pet only: `hermes pets install s0uthpaw --select` (gallery slug `s0uthpaw`, alias `turbofit`).
+| Tier | Model | Quant | RAM Used | Context | Notes |
+|------|-------|-------|----------|---------|-------|
+| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | Minimum viable |
+| 16 GB | Cyber-Tiel Coder | Q3_K_M | ~14 GiB | 262K native | MoE, fast |
+| 32–48 GB | Cyber-Tiel Coder | UD-Q4_K_XL | ~22 GiB | 262K+ | Fast MoE |
+| 64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless |
+| 96+ GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Top tier |
 
-## Slash commands
+### Unified Memory (Apple Silicon)
 
-```text
-/turbofit                 # scan + intelligence / balanced / speed
-/turbofit setup           # refresh Desktop → Turbofit
-/turbofit update          # plugin + Desktop surface + TurboSouth + pet
-/turbofit shift up|down   # next smarter / lighter measured combo
-/turbofit shift maple     # recommended combo for that model
-/turbofit serve           # publish :8091 on your tailnet (private Serve, never Funnel)
-/turbofit smoke           # loopback health of the current local runtime
-```
+| Tier | Model | Quant | RAM Used | Context | Notes |
+|------|-------|-------|----------|---------|-------|
+| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | 218 tok/s on M4 |
+| 16 GB | Cyber-Tiel Coder | Q3_K_M | ~14 GiB | 262K native | MoE, fast |
+| 32–48 GB | Cyber-Tiel Coder | UD-Q4_K_XL | ~22 GiB | 262K+ | Fast MoE |
+| 64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless |
+| 96+ GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Top tier |
 
-## How it adapts
+---
 
-```text
-quality-main + auxiliary + 262K
-              │ pressure
-              ▼
-smaller context / shared aux / smaller model
-              │
-              ▼
-keyless Nous free fallback
-```
+## Visual Reference
 
-Pressure drops fast; healing is slower and hysteretic. Transitions lock, fail closed, and roll back. Stable routes: `auto` · `active:main` · `active:aux`.
+![Model Ladder](assets/scaling-ladder.png)
 
-## Model lineup (2.4)
+![Provider Integration](assets/provider-integration.png)
 
-**Dedicated VRAM is not the same as total RAM.**
+![Hermes Settings](assets/hermes-desktop-turbofit-settings.png)
 
-| Capacity | Main path |
-|---|---|
-| 96 GB+ dedicated | Qwen 3.8 27B 16-bit until Unleashed FP16 GGUF exists |
-| 24–95 GB | Unleashed UD-Q3_K_XL + DFlash2 |
-| 16 GB | Unleashed UD-IQ3_XXS + DFlash2 |
-| 8 GB dedicated | Maple Preview TQ2_0; Ornith if host RAM holds offloaded experts |
-| 24 GB+ shared | Unleashed UD-Q3_K_XL |
-| 16–23 GB shared | Ornith 1.5 35A3B |
-| 8–15 GB shared | Maple Preview TQ2_0 |
+![Speculative Decode](assets/turbofit-2.4-spec-decode.png)
 
-Below 8 GB dedicated: portable-fit only until benched. Never a 9B. Auxiliary is Ornith, optional Carwin Nano, or auto. FreeToken is a pinned NVIDIA MoE **candidate**, never Auto.
+![Turbofit Hero](assets/turbofit-hero.png)
 
-Supports **Maple Preview 20B-A1B** (TQ2_0), **Qwen 3.8 27B Unleashed** (UD-IQ3_XXS, UD-Q3_K_XL) + **Ornith 1.5 35A3B**, **MiniMax Music 3**, **NVIDIA Parakeet TDT 0.6B v3**, **Soprano TTS** — full matrix in `docs/model-matrix.md`.
+---
 
-## Hermes configuration
+## Integrations
 
-```yaml
-model:
-  provider: custom:turbofit
-  default: auto
+| Repo | Description |
+|------|-------------|
+| [SouthpawIN/TurboFit](https://github.com/SouthpawIN/turbofit) | Main Turbofit runtime |
+| [deepgrove-ai/mlx-lm-deepgrove](https://github.com/deepgrove-ai/mlx-lm-deepgrove) | Maple MLX runtime |
+| [RasoulNik/ssdmoe](https://github.com/RasoulNik/ssdmoe) | SSD MoE streaming |
+| [tayoun/flash-moe](https://github.com/tayoun/flash-moe) | MoE streaming from SSD |
+| [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | Hermes Agent runtime |
 
-providers:
-  turbofit:
-    base_url: http://127.0.0.1:8091/v1
-    api_key: not-needed
-    model: auto
-    model_name: auto
-    provider: turbofit
-    tool_format: hermes
-```
+---
 
-Tailnet devices use `https://<this-machine>.<tailnet>.ts.net:9443/v1` — check `/turbofit serve status`. Public binds stay rejected.
+## Rules
 
-## Tailscale
+1. **CPU and Unified Memory prefer MoE over dense** — Cyber-Tiel Coder for <48GB, GSQ-RCO at 64GB+
+2. **IQ3_S is the default** — near-lossless, lower power, faster inference
+3. **Only 5 TurboFit candidates** — Maple, Cyber-Tiel, GSQ-RCO, Flash Next, DeepSeek V4.1 Flash
+4. **Math must be correct** — model size + KV cache ≤ tier size
 
-Private Serve publishes `127.0.0.1:8091` on your tailnet — Funnel is never used. A `WinError 10061` on Windows means TurboFit isn't listening on `127.0.0.1:8091` (try `/turbofit smoke`), not the Hermes messaging gateway. Native Windows details: `docs/windows-native-install.md` — the `TurbofitGateway` scheduled task.
-
-## Desktop
-
-Hermes Desktop **Turbofit** is the setup surface: hardware, score bars, shift, update, Tailscale serve, fallbacks, runtimes, TurboSouth, multimodal. When Check recommends a new main model, the page offers **Keep both / Archive / Delete** for old weights.
-
-## More detail
-
-| Topic | Doc |
-|---|---|
-| Evidence-only winners / Check vs List | [`docs/turbofit-list.md`](docs/turbofit-list.md) · [`docs/turbofit-check.md`](docs/turbofit-check.md) |
-| Engine serve matrix | [`references/engine-serve-matrix.json`](references/engine-serve-matrix.json) |
-| Models, campaigns, multimodal | [`docs/model-matrix.md`](docs/model-matrix.md) · [`docs/campaigns.md`](docs/campaigns.md) · [`docs/multimodal.md`](docs/multimodal.md) |
-| Windows native install | [`docs/windows-native-install.md`](docs/windows-native-install.md) |
-
-## Developer verification
-
-```bash
-PYTHONPATH=src:. python3 -m pytest -q
-node --check desktop/plugin.js
-scripts/release-check
-```
+---
 
 ## License
 
-See [`LICENSE`](LICENSE).
+MIT

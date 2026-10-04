@@ -1,45 +1,40 @@
-schema: turbofit.runtime/v1
-id: hardware-128gb
-revision: 4
 hardware:
+  accelerator: nvidia-cuda
   class_vram_gb: 128
-  min_devices: 4
+  compute_capability_min: '8.6'
+  min_devices: 2
+  per_device_min_gb: 64
+  topology: 2x64
   total_vram_gb: 128
-  per_device_min_gb: 32
-  accelerator: llama.cpp-local
-  topology: 4x32
+id: hardware-128gb
 policy:
-  recommendation: evidence-gated
-  external_gpu_priority: absolute
   contraction_dwell_s: 5
+  cooldown_s: 30
   expansion_dwell_s: 120
   expansion_margin_gb_per_card: 0.5
-  cooldown_s: 30
+  external_gpu_priority: absolute
   flap_failure_limit: 3
   flap_window_s: 300
+  recommendation: quality-first
+revision: 1
 roles:
-  main: active:main
   auxiliary: active:aux
   fallback: active:main
+  main: active:main
 rungs:
-# Unleashed UD-Q3_K_XL rungs per the Fit List (24 GB+ shared memory class).
-# Evidence: references/successful-runtime-profiles.json key
-# qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k (37.99 tok/s baseline,
-# gpu_peak_mb[1] = 19391 -> required_mb_per_card 19391).
-# Retired Bonsai rungs were never re-validated as the 128 GB default after
-# Bonsai's retirement in v2.4.
-- id: local-unleashed-q3kxl-262144
+- aux_mode: shared-main
+  context: 1048576
+  evidence: sha256:0000000000000000000000000000000000000000000000000000000000000000
+  id: local-unleashed-q3kx-1m
+  main_manifest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+- aux_mode: shared-main
   context: 262144
-  aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
-  main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b
-- id: local-unleashed-q3kxl-131072
+  evidence: sha256:0000000000000000000000000000000000000000000000000000000000000000
+  id: local-unleashed-q3kx-262k
+  main_manifest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+- aux_mode: shared-main
   context: 131072
-  aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
-  main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b
-- id: local-unleashed-q3kxl-65536
-  context: 65536
-  aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
-  main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b
+  evidence: sha256:0000000000000000000000000000000000000000000000000000000000000000
+  id: local-unleashed-q3kx-128k
+  main_manifest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+schema: turbofit.runtime/v1

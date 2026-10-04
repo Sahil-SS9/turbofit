@@ -3,15 +3,17 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import re
 import signal
+import socket
 import subprocess
 import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from .backend import CampaignBackend
 from .recipes import RecipeBook, ResolvedComponent
@@ -28,6 +30,63 @@ class OwnedRuntime:
     port: int
     command: tuple[str, ...]
     process: subprocess.Popen[str] | None = None
+    start_identity: str | None = None
+
+
+def process_start_identity(pid: int) -> str | None:
+    """Return a stable process-start identity for ``pid``.
+
+    Linux uses the /proc/<pid>/stat starttime field; Windows derives a
+    comparable identity from the process creation time via GetProcessTimes.
+    Anything that cannot be proven returns None (fail-safe: callers must
+    refuse to signal).
+    """
+    try:
+        raw = Path(f"/proc/{pid}/stat").read_bytes()
+    except OSError:
+        raw = b""
+    if raw:
+        try:
+            # The comm field may contain spaces; everything after the final ')' is stable.
+            fields = raw[raw.rindex(b")") + 2:].split()
+            boot = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+            return f"linux:{boot}:{int(fields[19])}"
+        except (IndexError, ValueError, OSError):
+            return None
+    if os.name == "nt":
+        try:  # pragma: no cover - exercised only on Windows
+            import ctypes
+            from ctypes import wintypes
+
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+            kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel32.OpenProcess.restype = wintypes.HANDLE
+            kernel32.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(wintypes.FILETIME)] * 4
+            kernel32.GetProcessTimes.restype = wintypes.BOOL
+            kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+            kernel32.CloseHandle.restype = wintypes.BOOL
+            handle = kernel32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+            if not handle:
+                return None
+            try:
+                creation = wintypes.FILETIME()
+                exit_time = wintypes.FILETIME()
+                kernel = wintypes.FILETIME()
+                user = wintypes.FILETIME()
+                if not kernel32.GetProcessTimes(
+                    handle,
+                    ctypes.byref(creation),
+                    ctypes.byref(exit_time),
+                    ctypes.byref(kernel),
+                    ctypes.byref(user),
+                ):
+                    return None
+                return f"windows:{creation.dwHighDateTime}_{creation.dwLowDateTime}"
+            finally:
+                kernel32.CloseHandle(handle)
+        except Exception:
+            return None
+    return None
 
 
 class NativeRuntimeBackend:
@@ -47,6 +106,7 @@ class NativeRuntimeBackend:
         sleep: Callable[[float], None] = time.sleep,
         clock: Callable[[], float] = time.monotonic,
         verification_timeout_s: float = 900.0,
+        identity_reader: Callable[[int], Optional[str]] | None = None,
     ) -> None:
         if current_state.profile_id != profile.id:
             raise ValueError("backend state profile does not match profile")
@@ -63,11 +123,15 @@ class NativeRuntimeBackend:
         self.sleep = sleep
         self.clock = clock
         self.verification_timeout_s = verification_timeout_s
+        self._identity_reader: Callable[[int], Optional[str]] = (
+            identity_reader or process_start_identity
+        )
         self._target_rung_id: str | None = None
         self._target_aux_mode: AuxMode | None = None
         self._blocked_previous: dict[str, Any] | None = None
         self._retiring_aux: OwnedRuntime | None = None
         self._owned: dict[str, OwnedRuntime] = {}
+        self._lost_roles: set[str] = set()
         self._recover_owned()
 
     def _pid_path(self, role: str) -> Path:
@@ -83,12 +147,16 @@ class NativeRuntimeBackend:
                     alias=str(data["alias"]),
                     port=int(data["port"]),
                     command=tuple(str(item) for item in data["command"]),
+                    start_identity=(
+                        str(data["start_identity"]) if data.get("start_identity") else None
+                    ),
                 )
             except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
                 continue
             if self._is_owned(runtime):
                 self._owned[role] = runtime
             else:
+                self._lost_roles.add(role)
                 self._pid_path(role).unlink(missing_ok=True)
 
     def _write_owned(self, runtime: OwnedRuntime) -> None:
@@ -97,6 +165,7 @@ class NativeRuntimeBackend:
             "alias": runtime.alias,
             "port": runtime.port,
             "command": list(runtime.command),
+            "start_identity": runtime.start_identity,
         })
 
     @staticmethod
@@ -122,11 +191,23 @@ class NativeRuntimeBackend:
         command_line = self._command_line(runtime.pid)
         if not command_line or not runtime.command:
             return False
-        return (
-            Path(runtime.command[0]).name in command_line
-            and f"--alias {runtime.alias}" in command_line
-            and f"--port {runtime.port}" in command_line
-        )
+        identity = self._identity_reader(runtime.pid)
+        if runtime.start_identity is not None:
+            # Strong proof: a reused PID with the same cmdline but a different
+            # creation identity must never be treated as ours.
+            if identity != runtime.start_identity:
+                return False
+        else:
+            # A legacy record cannot prove which incarnation it originally owned.
+            return False
+        try:
+            words = shlex.split(command_line)
+            alias_at, port_at = words.index("--alias"), words.index("--port")
+            return (Path(words[0]).name == Path(runtime.command[0]).name
+                    and words[alias_at + 1] == runtime.alias
+                    and words[port_at + 1] == str(runtime.port))
+        except (ValueError, IndexError):
+            return False
 
     def _roles(self, rung_id: str) -> dict[str, dict[str, int | str]]:
         try:
@@ -145,7 +226,7 @@ class NativeRuntimeBackend:
             role=role,
             gpu=str(item["gpu"]),
             port=int(item["port"]),
-            context=context,
+            context=int(item.get("context", context)),
             alias=str(item["model_tag"]),
         )
 
@@ -164,6 +245,10 @@ class NativeRuntimeBackend:
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             kwargs["start_new_session"] = True
+        with socket.socket() as probe:
+            probe.settimeout(0.25)
+            if probe.connect_ex(("127.0.0.1", component.port)) == 0:
+                raise ReconcileError("native port is occupied; refusing to adopt or replace its owner")
         process = subprocess.Popen(
             list(component.command),
             env=CampaignBackend.process_environment(
@@ -181,6 +266,7 @@ class NativeRuntimeBackend:
             port=component.port,
             command=component.command,
             process=process,
+            start_identity=self._identity_reader(process.pid),
         )
         self._write_owned(runtime)
         self._owned[component.role] = runtime
@@ -231,35 +317,120 @@ class NativeRuntimeBackend:
                 values.append(max(0, int(float(match.group(1)))))
         return max(values, default=0)
 
-    def _stop(self, role: str, *, force: bool = False, timeout: float = 30.0) -> bool:
+    def _stop(self, role: str, *, force: bool = False, timeout: float = 30.0,
+              require_owned: bool = False) -> bool:
         runtime = self._owned.get(role)
         if runtime is None:
             self._pid_path(role).unlink(missing_ok=True)
-            return True
+            return not require_owned
         if not self._is_owned(runtime):
             self._owned.pop(role, None)
             self._pid_path(role).unlink(missing_ok=True)
-            return True
+            return not require_owned
+        # Re-verify identity immediately before signalling: the process may
+        # have died and its PID been reused between the ownership check and
+        # the signal. Identity proof must be current, not cached.
+        if runtime.start_identity is not None:
+            identity = self._identity_reader(runtime.pid)
+            if identity != runtime.start_identity:
+                self._owned.pop(role, None)
+                self._pid_path(role).unlink(missing_ok=True)
+                return not require_owned
         try:
             if runtime.process is not None and not force:
                 runtime.process.terminate()
             else:
                 os.kill(runtime.pid, signal.SIGKILL if force else signal.SIGTERM)
         except ProcessLookupError:
-            pass
+            if require_owned:
+                return False
         deadline = self.clock() + timeout
-        while self._command_line(runtime.pid):
+        while self._is_owned(runtime):
             if self.clock() >= deadline:
                 return False
             self.sleep(min(0.2, max(0.0, deadline - self.clock())))
+        if runtime.process is not None:
+            try:
+                runtime.process.wait(timeout=max(0.0, deadline - self.clock()))
+            except subprocess.TimeoutExpired:
+                return False
         self._owned.pop(role, None)
         self._pid_path(role).unlink(missing_ok=True)
         return True
+
+    def residency_snapshot(self) -> dict:
+        """Read owned identity and health, never adopt, launch, stop or repair.
+
+        Absence is unknown: only the lifecycle owner's successful idle release
+        can establish intentional unload. Port health alone is not ownership.
+        """
+        rung = self.profile.rungs[self.current_state.rung_index]
+        if rung.aux_mode is AuxMode.API:
+            return {}
+        result = {}
+        for role, item in self._roles(rung.id).items():
+            component = self._component(role, item, rung.context)
+            resident = self._owned.get(role)
+            state = "error" if role in self._lost_roles else "unknown"
+            if resident is not None:
+                matches = (resident.alias == component.alias and resident.port == component.port
+                           and resident.command == component.command
+                           and self._is_owned(resident))
+                state = "ready" if matches and self._healthy(resident) and self._is_owned(resident) else "error"
+            result[role] = {"backing_model": component.alias,
+                            "context_length": int(item.get("context", rung.context)),
+                            "residency": state}
+        return result
+
+    def release_idle_role(self, role: str) -> str:
+        """Distinguish verified unload from absence or ownership loss."""
+        if role not in {"main", "aux"}:
+            raise ValueError("invalid residency role")
+        resident = self._owned.get(role)
+        if resident is None:
+            return "error" if role in self._lost_roles else "unknown"
+        if not self._is_owned(resident):
+            return "error"
+        return "idle" if self._stop(role, require_owned=True) else "error"
+
+    def stop_role(self, role: str) -> bool:
+        if role not in {"main", "aux"}:
+            raise ValueError("invalid residency role")
+        return self._stop(role)
 
     def reset_managed(self) -> None:
         for role in ("aux", "main"):
             if not self._stop(role) and not self._stop(role, force=True, timeout=5):
                 raise ReconcileError(f"could not stop owned {role} runtime")
+
+    def ensure_role(self, role: str) -> None:
+        """Wake one current local role without unloading the other GPU lane."""
+        rung = self.profile.rungs[self.current_state.rung_index]
+        item = self._roles(rung.id).get(role)
+        if item is None or role not in {"main", "aux"}:
+            raise ReconcileError("no native resolution for requested role")
+        component = self._component(role, item, rung.context)
+        resident = self._owned.get(role)
+        if (resident and resident.alias == component.alias and resident.port == component.port
+                and resident.command == component.command
+                and self._is_owned(resident) and self._healthy(resident) and self._is_owned(resident)):
+            return
+        if not self._stop(role):
+            raise ReconcileError("cannot replace unhealthy owned runtime")
+        try:
+            resident = self._start(component)
+            deadline = self.clock() + self.verification_timeout_s
+            while not self._healthy(resident):
+                if self.clock() >= deadline or not self._is_owned(resident):
+                    raise ReconcileError("native wake verification failed or timed out")
+                self.sleep(min(0.2, max(0.0, deadline - self.clock())))
+            if not self._is_owned(resident):
+                raise ReconcileError("native wake ownership lost after health verification")
+            self._lost_roles.discard(role)
+        except Exception:
+            if not self._stop(role) and not self._stop(role, force=True, timeout=5):
+                raise ReconcileError("failed wake child could not be reclaimed")
+            raise
 
     def block_aux_admission(self) -> None:
         try:

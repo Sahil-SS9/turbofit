@@ -268,7 +268,7 @@ class AdaptiveController:
             return False
         return True
 
-    def tick(self, pressure: PressureSnapshot, *, now: float) -> ControllerResult:
+    def tick(self, pressure: PressureSnapshot, *, now: float, restore_current: bool = True) -> ControllerResult:
         available = tuple(card.available_for_managed_mb for card in pressure.cards)
         for index, (rung, required) in enumerate(
             zip(self.profile.rungs, self.requirements.required_mb_by_rung, strict=True)
@@ -284,7 +284,7 @@ class AdaptiveController:
         plan = reconcile(self.state.adaptive, capacity, self.profile, now)
         if plan.action is not ActionKind.ACTIVATE:
             self.state = replace(self.state, adaptive=plan.state)
-            restored = self._ensure_current_rung_ready(available, now)
+            restored = restore_current and self._ensure_current_rung_ready(available, now)
             if restored:
                 return ControllerResult(
                     self.state, True, ActionKind.ACTIVATE, "restored missing current rung"

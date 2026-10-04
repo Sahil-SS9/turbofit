@@ -1,6 +1,6 @@
 # Turbofit Hermes plugin distribution
 name: turbofit
-version: "2.4.0"
+version: "2.3.1"
 description: >-
   Hermes plugin and setup dashboard for hardware-aware adaptive local inference,
   portable Turbofiles, pinned native llama.cpp residency, stable auto/active role
@@ -59,6 +59,9 @@ distribution_owned:
   - scripts/build-promo-video
   - scripts/download-models.py
   - scripts/download-artifacts
+  - scripts/install-mlx-runtime
+  - scripts/turbofit-gateway-runtime
+  - scripts/turbofit-mlx-runtime
   - scripts/install-dspark-runtime
   - scripts/install-strata.sh
   - scripts/test-turbofit-pipeline.sh
@@ -81,11 +84,13 @@ distribution_owned:
 
   - references/model-recipes.json
   - references/artifact-manifest.json
+  - references/python-runtimes.json
   - references/hardware-tier-tournaments.json
   - references/auxiliary-tier-recommendations.json
   - references/intelligence-scores.json
   - references/external-benchmarks.md
 
-# Installation does not start launchers, watchers, or modify provider credentials.
-# Runtime activation remains an explicit Turbofile selection.
+# Plugin installation alone does not start launchers, watchers, or modify provider
+# credentials. Explicit install_native setup may install a selected model and start
+# its loopback runtime and provider gateway.
 post_install: []

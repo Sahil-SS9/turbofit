@@ -122,6 +122,17 @@ def build_manual_profile_payload(
         "evidence": evidence,
         "main_manifest": manifest(main),
     }
+    recipe_aux_context = getattr(recipe, "aux_context", 0) or 0
+    recipe_main_context = getattr(recipe, "main_context", 0) or 0
+    distinct_role_contexts = (
+        dedicated
+        and recipe_main_context > 0
+        and recipe_aux_context > 0
+        and recipe_main_context != recipe_aux_context
+    )
+    if distinct_role_contexts:
+        local_rung["main_context"] = recipe_main_context
+        local_rung["auxiliary_context"] = recipe_aux_context
     if dedicated:
         local_rung["aux_manifest"] = manifest(aux)
     api_evidence = _sha({"profile": profile_id, "fallback": "api:auto"})
@@ -174,6 +185,9 @@ def build_manual_profile_payload(
             "gpu": component.gpu,
             "port": component.port,
         }
+        component_context = int(getattr(component, "context", 0) or 0)
+        if distinct_role_contexts and component_context > 0:
+            roles[role]["context"] = component_context
     resolutions = {
         "schema": "turbofit.runtime-resolutions/v1",
         "profiles": {profile_id: {"manual-exact": roles}},

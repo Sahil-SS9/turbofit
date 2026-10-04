@@ -121,8 +121,8 @@ def validate_measurement(item: BenchmarkMeasurement) -> None:
 def validate_configuration(item: ConfigurationIntelligence) -> None:
     if not item.configuration_id.strip() or not item.main.strip() or not item.auxiliary.strip():
         raise ValueError("configuration identity, main, and auxiliary are required")
-    if isinstance(item.hardware_tier_gb, bool) or item.hardware_tier_gb not in (8, 16, 24, 48, 64, 96, 200, 300):
-        raise ValueError("hardware tier must be one of 8/16/24/48/64/96/200/300 GB")
+    if isinstance(item.hardware_tier_gb, bool) or item.hardware_tier_gb not in (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384):
+        raise ValueError("hardware tier must be one of 8/16/24/32/48/64/96/128/192/256/384 GB")
     if item.context not in (65_536, 131_072, 262_144, 1_048_576):
         raise ValueError("unsupported production context")
     if not item.quantizations or any(not value.strip() for value in item.quantizations):

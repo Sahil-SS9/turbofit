@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 SCHEMA = "turbofit.hardware-tier-tournaments/v1"
-TIERS = (8, 16, 24, 48, 64, 96, 200, 300)
+TIERS = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
 EVIDENCE_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
@@ -29,7 +29,7 @@ def validate_tournaments(payload: Mapping[str, Any], configurations: Mapping[str
     configuration_ids = {item["id"] for item in configurations.get("rows", [])}
     tiers = payload.get("tiers")
     if not isinstance(tiers, list) or tuple(item.get("vram_gb") for item in tiers) != TIERS:
-        raise ValueError("hardware tiers must be 8/16/24/48/64/96/200/300 GB in order")
+        raise ValueError("hardware tiers must be 8/16/24/32/48/64/96/128/192/256/384 GB in order")
     for item in tiers:
         expected_id = f"hardware-{item['vram_gb']}gb"
         if set(item) != {"id", "vram_gb", "physical_evidence_required", "candidates", "winner"}:

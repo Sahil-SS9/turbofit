@@ -5,7 +5,7 @@ from turbofit_runtime.turbofit_list import build_turbofit_list, render_turbofit_
 
 def report() -> dict:
     tiers = []
-    for capacity in (8, 16, 24, 48, 64, 96, 200, 300):
+    for capacity in (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384):
         winner = None
         status = "catalog-candidates-only"
         if capacity == 48:
@@ -44,7 +44,7 @@ def test_turbofit_list_contains_only_exact_evidence_backed_hardware_winners() ->
 
     assert payload["schema"] == "turbofit.list/v1"
     assert payload["name"] == "TurboFit List"
-    assert [item["hardware_level_gb"] for item in payload["levels"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["hardware_level_gb"] for item in payload["levels"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert next(item for item in payload["levels"] if item["hardware_level_gb"] == 48)["winner"]["configuration_id"] == "qwen--ornith--128k"
     assert next(item for item in payload["levels"] if item["hardware_level_gb"] == 8)["status"] == "pending-benchmarks"
 

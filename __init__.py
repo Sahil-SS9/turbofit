@@ -114,7 +114,7 @@ def register(ctx) -> None:
 
         activate_slash_commands()
         # Fresh-profile heal — ensures every home (including newly created
-        # ones like turbosovth/sirvir) has providers.turbofit so
+        # ones like turbosovth/turbosouth) has providers.turbofit so
         # custom:turbofit never fails with Unknown provider on first use.
         try:
             ensure_provider_registered()

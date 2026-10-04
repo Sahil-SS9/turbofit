@@ -4,7 +4,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
-TIERS = (8, 16, 24, 48, 64, 96, 200, 300)
+TIERS = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
+# Legacy aliases for backwards compat — 200 maps to 192, 300 maps to 256
+TIERS_ALIASES = {200: 192, 300: 256}
 
 
 def _winner(tier: Mapping[str, Any]) -> dict[str, Any] | None:

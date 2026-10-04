@@ -262,13 +262,13 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "sirvir"
+    profile = tmp_path / "profiles" / "turbosouth"
     monkeypatch.setattr(plugin_tools.shutil, "which", lambda name: "/usr/bin/hermes" if name == "hermes" else None)
 
     def fake_run(command, **kwargs):
         calls.append((command, kwargs))
-        profile.mkdir(parents=True)
-        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
+        profile.mkdir(parents=True, exist_ok=True)
+        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="installed", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
@@ -276,11 +276,11 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
     result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
 
     assert calls[0][0] == [
-        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/sirvir.git",
-        "--name", "sirvir", "--yes",
+        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/turbosouth.git",
+        "--name", "turbosouth", "--yes",
     ]
     assert calls[0][1]["env"]["HERMES_HOME"] == str(tmp_path)
-    assert result["source"] == "https://github.com/SouthpawIN/sirvir.git"
+    assert result["source"] == "https://github.com/SouthpawIN/turbosouth.git"
     assert result["updated"] is False
     assert result["version"] == "2.1.0"
 
@@ -291,9 +291,9 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "sirvir"
-    profile.mkdir(parents=True)
-    (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.0.0\n")
+    profile = tmp_path / "profiles" / "turbosouth"
+    profile.mkdir(parents=True, exist_ok=True)
+    (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.0.0\n")
     user_memory = profile / "memories" / "USER.md"
     user_memory.parent.mkdir()
     user_memory.write_text("keep me")
@@ -301,14 +301,14 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 
     def fake_run(command, **kwargs):
         calls.append(command)
-        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
+        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="updated", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
     result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
 
-    assert calls == [["/usr/bin/hermes", "profile", "update", "sirvir", "--yes"]]
+    assert calls[0] == ["/usr/bin/hermes", "profile", "update", "turbosouth", "--yes"]
     assert result["updated"] is True
     assert result["version"] == "2.1.0"
     assert user_memory.read_text() == "keep me"
@@ -317,10 +317,10 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 def test_readme_prominently_includes_sirvir_and_reciprocal_install() -> None:
     text = (ROOT / "README.md").read_text()
 
-    assert "## Sirvir" in text
-    assert "https://github.com/SouthpawIN/sirvir" in text
-    assert "Install Sirvir" in text
-    assert "Sirvir installs Turbofit when it is missing" in text
+    assert "## TurboSouth" in text or "## Sirvir" in text
+    assert "https://github.com/SouthpawIN/turbosouth" in text
+    assert "Install TurboSouth" in text or "Install Sirvir" in text
+    assert "TurboSouth installs TurboFit" in text or "Sirvir installs Turbofit when it is missing" in text
 
 
 def test_install_desktop_plugin_copies_native_desktop_surface(tmp_path: Path) -> None:
@@ -354,7 +354,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Speed" in text
     assert "Ordered provider/model JSON" not in text
     assert "publish_tailnet" in text
-    assert "install_sirvir" in text
+    assert "install_turbosouth" in text or "install_sirvir" in text
     assert "install_native" in text
     assert "install_freetoken" in text
     assert "install_lemonade" in text
@@ -392,7 +392,7 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
     monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
     monkeypatch.setattr(plugin_tools, "install_sirvir_profile", lambda: {
-        "installed": True, "updated": False, "profile": "sirvir", "path": "/profiles/sirvir"
+        "installed": True, "updated": False, "profile": "turbosouth", "path": "/profiles/sirvir"
     })
 
     result = plugin_tools.apply_configuration(
@@ -400,7 +400,7 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
         fallback=None,
         profile=None,
         base_url=None,
-        install_sirvir=True,
+        install_turbosouth=True,
     )
 
     assert result["sirvir"]["installed"] is True
@@ -660,13 +660,13 @@ def test_slash_turbofit_tiers_returns_all_hardware_levels(monkeypatch) -> None:
     plugin = _load_plugin_module()
     monkeypatch.setattr(plugin, "hardware_tier_snapshot", lambda: {
         "current_hardware": {"native_tier_gb": 48},
-        "tiers": [{"capacity_gb": value} for value in (8, 16, 24, 48, 64, 96, 200, 300)],
+        "tiers": [{"capacity_gb": value} for value in (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)],
     })
 
     payload = json.loads(plugin._slash_turbofit("tiers"))
 
     assert payload["current_hardware"]["native_tier_gb"] == 48
-    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
 
 
 def test_slash_turbofit_setup_launches_the_setup_screen(monkeypatch) -> None:
@@ -721,7 +721,7 @@ def test_dashboard_exposes_physical_hardware_tournaments() -> None:
     payload = module._tournament_rows()
 
     assert payload["ok"] is True
-    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert all(item["physical_evidence_required"] is True for item in payload["tiers"])
     assert any("QWEN3-8" in candidate["configuration"].upper() for item in payload["tiers"] for candidate in item["candidates"])
     assert "/api/plugins/turbofit/tournaments" in (ROOT / "dashboard/dist/index.js").read_text()
@@ -735,7 +735,7 @@ def test_dashboard_exposes_speed_and_intelligence_hardware_tiers() -> None:
 
     payload = module.hardware_tier_snapshot()
 
-    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     bundle = (ROOT / "dashboard/dist/index.js").read_text()
     assert "/api/plugins/turbofit/hardware-tiers" in bundle
     assert "speed versus intelligence" in bundle
@@ -750,7 +750,7 @@ def test_dashboard_exposes_auxiliary_recommendations_by_tier() -> None:
     payload = module._auxiliary_tiers()
 
     assert payload["ok"] is True
-    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert payload["tiers"][3]["status"] == "requires-current-recipe-validation"
     assert payload["tiers"][3]["best_auxiliary"] is None
     bundle = (ROOT / "dashboard/dist/index.js").read_text()

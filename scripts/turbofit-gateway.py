@@ -59,6 +59,10 @@ RUNTIME_CLI = os.environ.get("TURBOFIT_RUNTIME_CLI", str(SCRIPT_DIR / "turbofit-
 RECOMMENDER = os.environ.get("TURBOFIT_RECOMMENDER", str(SCRIPT_DIR / "turbofit-runtime-recommend"))
 SELF_PORT = int(os.environ.get("TURBOFIT_GATEWAY_PORT", "8091"))  # never pick a model on our own port
 ALLOW_API = os.environ.get("TURBOFIT_ALLOW_API", "").strip().lower() in {"1", "true", "yes"}
+FALLBACK_MANIFEST = os.environ.get(
+    "TURBOFIT_FALLBACK_MANIFEST",
+    f"{HOME}/.config/turbofit/fallback-models.yaml",
+)
 
 _activation_lock = threading.Lock()
 _inflight_lock = threading.Lock()
@@ -151,6 +155,22 @@ def provider_models():
             "context_length": context_length,
         },
     ]
+    # Include local catalog entries so they show up in /models selection
+    try:
+        catalog = load_yaml(CATALOG)
+        catalog_models = catalog.get("models", {}) or {}
+        for alias, m in catalog_models.items():
+            role = (m.get("role") or "either").lower()
+            if alias not in ("auto", "active:main", "active:aux"):
+                models.append({
+                    "id": alias,
+                    "object": "model",
+                    "owned_by": "turbofit",
+                    "description": f"Local model: {alias} (role={role})",
+                    "context_length": context_length,
+                })
+    except Exception:
+        pass
     return models
 
 
@@ -312,6 +332,23 @@ def resolve_requested_profile(model):
     elif requested in profiles:
         target = requested
     else:
+        # Check if it's a catalog alias
+        try:
+            catalog = load_yaml(CATALOG)
+            catalog_models = catalog.get("models", {}) or {}
+            if requested in catalog_models:
+                m = catalog_models[requested]
+                port = m.get("port", 0)
+                if port and backend_state(port, requested) in ("ready", "loading"):
+                    target = active_profile()
+                    if target:
+                        return target
+        except Exception:
+            pass
+        # Fall back to active profile for any unknown model name
+        target = active_profile()
+        if target:
+            return target
         return None
     if not target:
         return None
@@ -538,6 +575,33 @@ def _get_api_key(provider):
         return None
 
 
+def _fallback_from_manifest():
+    """Read the scanned fallback manifest and return the first available free model.
+
+    The manifest is written by ``turbofit-model-scan.py`` (run on app start).
+    Returns None if the manifest is missing or empty.
+    """
+    manifest = load_yaml(FALLBACK_MANIFEST)
+    if not manifest or manifest.get("schema") != "turbofit.fallback-manifest/v1":
+        return None
+    models = manifest.get("models") or {}
+    if not models:
+        return None
+    # Return first model (they're sorted in the manifest)
+    model_id = next(iter(models))
+    meta = models[model_id]
+    return {
+        "alias": f"fallback:{model_id}",
+        "base_url": "https://inference-api.nousresearch.com",
+        "port": 0,
+        "is_api": True,
+        "model_id": model_id,
+        "provider": "nous",
+        "source": os.path.relpath(FALLBACK_MANIFEST, HOME),
+        "context_length": meta.get("context_length", 131072),
+    }
+
+
 def _find_api_fallback_in_profiles():
     """Resolve the explicit Turbofit fallback, then search Hermes profiles.
 
@@ -545,6 +609,11 @@ def _find_api_fallback_in_profiles():
     explicit ``preferences.yaml`` route wins so a profile's current interactive
     provider cannot accidentally become the runtime safety net.
     """
+    # First: try the scanned manifest (written on app start, always fresh)
+    manifest_fallback = _fallback_from_manifest()
+    if manifest_fallback:
+        return manifest_fallback
+
     prefs = load_yaml(PREFS)
     configured = prefs.get("api_fallback", {}) or {}
     url = str(configured.get("base_url") or "").strip()
@@ -697,6 +766,22 @@ def resolve_main():
             _cache["main"] = result
             _cache["ts"] = now
             return result
+
+    # 3.5. Remote backend (e.g. Omarchy llama.cpp server) — explicit opt-in via env.
+    remote_url = os.environ.get("TURBOFIT_REMOTE_BACKEND_URL")
+    if remote_url:
+        result = {
+            "alias": "omarchy-27b",
+            "base_url": remote_url.rstrip("/"),
+            "api": "/v1/chat/completions",
+            "source": "remote",
+            "state": "ready",
+            "is_api": True,
+            "model_id": "Qwen3.8-27B-Unleashed-UD-Q3_K_XL",
+        }
+        _cache["main"] = result
+        _cache["ts"] = now
+        return result
 
     # 4. No local backend is available — caller returns a clear 503.
     _cache["main"] = None

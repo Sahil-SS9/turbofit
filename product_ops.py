@@ -24,7 +24,7 @@ PREFERENCE_ALIASES = {
 
 
 def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
-    """Pull latest Turbofit + Sirvir onto this machine and refresh Desktop."""
+    """Pull latest Turbofit + TurboSouth onto this machine and refresh Desktop."""
     executable = shutil.which("hermes")
     if not executable:
         raise FileNotFoundError("hermes executable is not available")
@@ -51,7 +51,7 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
         if plugin.returncode:
             raise RuntimeError((plugin.stderr or plugin.stdout or "Turbofit plugin update failed").strip())
     desktop = plugin_tools.install_desktop_plugin(hermes_home=hermes_home)
-    sirvir = plugin_tools.install_sirvir_profile(hermes_home=hermes_home)
+    turbosouth = plugin_tools.install_turbosouth_profile(hermes_home=hermes_home)
     models = plugin_tools.ensure_recommended_models()
     slash = plugin_tools.activate_slash_commands(hermes_home=hermes_home)
     return {
@@ -62,11 +62,12 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
             "output": (plugin.stdout or plugin.stderr or "").strip(),
         },
         "desktop": desktop,
-        "sirvir": sirvir,
+        "turbosouth": turbosouth,
+        "sirvir": turbosouth,  # legacy key
         "models": models,
         "slash_commands": slash,
         "message": (
-            "Turbofit plugin, Desktop surface, and Sirvir updated. "
+            "Turbofit plugin, Desktop surface, and TurboSouth (TurboFit Customer Service) updated. "
             "Reload Desktop plugins and open Turbofit. Start a new session for provider changes."
         ),
     }

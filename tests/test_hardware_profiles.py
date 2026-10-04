@@ -10,16 +10,19 @@ from turbofit_runtime.recommend import hardware_satisfies
 
 
 ROOT = Path(__file__).parents[1]
-CLASSES = (8, 16, 24, 48, 64, 96, 200, 300)
+CLASSES = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
 TOPOLOGIES = {
     8: "1x8",
     16: "1x16",
     24: "1x24",
+    32: "1x32",
     48: "2x24",
     64: "2x32",
     96: "4x24",
-    200: "2x100",
-    300: "3x100",
+    128: "4x32",
+    192: "4x48",
+    256: "8x32",
+    384: "8x48",
 }
 
 

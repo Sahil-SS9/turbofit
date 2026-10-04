@@ -44,6 +44,17 @@
     },
     {
       "candidates": [
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--64k",
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--128k"
+      ],
+      "id": "hardware-32gb",
+      "physical_evidence_required": true,
+      "vram_gb": 32,
+      "winner": null
+    },
+    {
+      "candidates": [
         "qwen3-8-27b-q4-dflash2--auto--64k",
         "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--128k",
         "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
@@ -82,13 +93,24 @@
     },
     {
       "candidates": [
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
+        "qwen3-8-27b-bf16--ornith-1-5-35a3b--262k"
+      ],
+      "id": "hardware-128gb",
+      "physical_evidence_required": true,
+      "vram_gb": 128,
+      "winner": null
+    },
+    {
+      "candidates": [
         "qwen3-8-27b-bf16--ornith-1-5-35a3b--1m",
         "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
         "qwen3-8-27b-bf16--auto--1m"
       ],
-      "id": "hardware-200gb",
+      "id": "hardware-192gb",
       "physical_evidence_required": true,
-      "vram_gb": 200,
+      "vram_gb": 192,
       "winner": null
     },
     {
@@ -97,9 +119,20 @@
         "qwen3-8-27b-bf16-mtp--ornith-1-5-35a3b--1m",
         "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m"
       ],
-      "id": "hardware-300gb",
+      "id": "hardware-256gb",
       "physical_evidence_required": true,
-      "vram_gb": 300,
+      "vram_gb": 256,
+      "winner": null
+    },
+    {
+      "candidates": [
+        "qwen3-8-27b-bf16--ornith-1-5-35a3b--1m",
+        "qwen3-8-27b-bf16-mtp--ornith-1-5-35a3b--1m",
+        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m"
+      ],
+      "id": "hardware-384gb",
+      "physical_evidence_required": true,
+      "vram_gb": 384,
       "winner": null
     }
   ]

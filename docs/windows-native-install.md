@@ -66,7 +66,7 @@ On the **other** Hermes machine (not the Windows GPU box):
 /turbofit serve
 ```
 
-or `turbofit_configure` with `base_url=http://192.168.1.101:8091/v1`. The Windows Sirvir profile stays on `http://127.0.0.1:8091/v1`.
+or `turbofit_configure` with `base_url=http://192.168.1.101:8091/v1`. The Windows TurboSouth profile stays on `http://127.0.0.1:8091/v1`.
 
 ## Uninstall services
 

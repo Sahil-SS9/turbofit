@@ -81,24 +81,80 @@ RUNTIME_STATE_PATH = Path(
 _CONFIG_LOCK = threading.RLock()
 
 
-def install_sirvir_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
-    """Install or update Sirvir from its canonical GitHub distribution."""
+TURBOSOUTH_PROFILE = "turbosouth"
+TURBOSOUTH_GIT = "https://github.com/SouthpawIN/turbosouth.git"
+TURBOSOUTH_PET_SLUG = "s0uthpaw"  # Sovthpaw — auburn hair + sunglasses — user's TurboSouth skin (alias: turbofit)
+TURBOSOUTH_PET_ALIASES = ("s0uthpaw", "turbofit", "sovthpaw")
+
+
+def _install_turbosouth_pet(*, hermes_home: Path | None = None) -> dict[str, Any]:
+    """Install the TurboSouth mascot pet (s0uthpaw/turbofit) and select it."""
+    executable = shutil.which("hermes")
+    if not executable:
+        return {"installed": False, "reason": "hermes not found"}
+    root = Path(hermes_home or os.getenv("HERMES_HOME") or Path.home() / ".hermes")
+    # Try s0uthpaw first, turbofit alias second — petdex slug is s0uthpaw
+    last_error = None
+    for slug in (TURBOSOUTH_PET_SLUG, "turbofit"):
+        result = subprocess.run(
+            [executable, "pets", "install", slug, "--select"],
+            text=True,
+            capture_output=True,
+            timeout=120,
+            check=False,
+            env={**os.environ, "HERMES_HOME": str(root)},
+        )
+        if result.returncode == 0:
+            return {"installed": True, "slug": slug, "selected": True, "home": str(root)}
+        last_error = (result.stderr or result.stdout or "").strip()
+        # if slug not found, try next alias
+        if "not found" in last_error.lower() or "no pet" in last_error.lower():
+            continue
+        # otherwise still try alias, but keep error
+        continue
+    # Also ensure the TurboSouth profile home has the pet selected
+    turbosouth_home = root / "profiles" / TURBOSOUTH_PROFILE
+    if turbosouth_home.is_dir():
+        for slug in (TURBOSOUTH_PET_SLUG, "turbofit"):
+            result = subprocess.run(
+                [executable, "pets", "install", slug, "--select"],
+                text=True,
+                capture_output=True,
+                timeout=120,
+                check=False,
+                env={**os.environ, "HERMES_HOME": str(turbosouth_home)},
+            )
+            if result.returncode == 0:
+                return {"installed": True, "slug": slug, "selected": True, "home": str(turbosouth_home)}
+    return {"installed": False, "reason": last_error or "pet install failed", "attempted": list(TURBOSOUTH_PET_ALIASES)}
+
+
+def install_turbosouth_profile(*, hermes_home: Path | None = None, with_pet: bool = True) -> dict[str, Any]:
+    """Install or update TurboSouth — TurboFit Customer Service (formerly Sirvir)."""
     executable = shutil.which("hermes")
     if not executable:
         raise FileNotFoundError("hermes executable is not available")
     root = Path(hermes_home or os.getenv("HERMES_HOME") or Path.home() / ".hermes")
-    target = root / "profiles" / "sirvir"
+    target = root / "profiles" / TURBOSOUTH_PROFILE
     updated = (target / "distribution.yaml").is_file()
+    # Migrate legacy sirvir profile if turbosouth missing but sirvir exists
+    legacy = root / "profiles" / "sirvir"
+    if not target.exists() and legacy.exists():
+        try:
+            shutil.copytree(legacy, target)
+            updated = True
+        except OSError:
+            pass
     command = (
-        [executable, "profile", "update", "sirvir", "--yes"]
+        [executable, "profile", "update", TURBOSOUTH_PROFILE, "--yes"]
         if updated else
         [
             executable,
             "profile",
             "install",
-            "https://github.com/SouthpawIN/sirvir.git",
+            TURBOSOUTH_GIT,
             "--name",
-            "sirvir",
+            TURBOSOUTH_PROFILE,
             "--yes",
         ]
     )
@@ -112,22 +168,37 @@ def install_sirvir_profile(*, hermes_home: Path | None = None) -> dict[str, Any]
         env=environment,
     )
     if result.returncode:
-        raise RuntimeError((result.stderr or result.stdout or "Sirvir profile installation failed").strip())
+        raise RuntimeError((result.stderr or result.stdout or "TurboSouth profile installation failed").strip())
     manifest_path = target / "distribution.yaml"
     if not manifest_path.is_file():
-        raise RuntimeError("Hermes reported success but the Sirvir profile was not installed")
+        raise RuntimeError("Hermes reported success but the TurboSouth profile was not installed")
     try:
         manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
     except (OSError, ValueError) as exc:
-        raise RuntimeError("installed Sirvir distribution manifest is invalid") from exc
+        raise RuntimeError("installed TurboSouth distribution manifest is invalid") from exc
+    pet = _install_turbosouth_pet(hermes_home=root) if with_pet else {"installed": False, "reason": "skipped"}
+    # Also ensure pet for the profile home itself
+    if with_pet and (target / "config.yaml").is_file():
+        _install_turbosouth_pet(hermes_home=target)
     return {
         "installed": True,
         "updated": updated,
-        "profile": "sirvir",
+        "profile": TURBOSOUTH_PROFILE,
         "path": str(target),
-        "source": "https://github.com/SouthpawIN/sirvir.git",
+        "source": TURBOSOUTH_GIT,
         "version": str(manifest.get("version") or "unknown"),
+        "pet": pet,
+        "display_name": "TurboSouth — TurboFit Customer Service",
     }
+
+
+def install_sirvir_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
+    """Legacy alias: install Sirvir (now TurboSouth)."""
+    result = install_turbosouth_profile(hermes_home=hermes_home)
+    # Keep sirvir key for backward compat callers/tests
+    result["legacy_alias"] = "sirvir"
+    result["profile_legacy"] = "sirvir"
+    return result
 
 
 def install_desktop_plugin(*, hermes_home: Path | None = None) -> dict[str, Any]:
@@ -223,11 +294,11 @@ def activate_slash_commands(
     hermes_home: Path | None = None,
     plugin_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Enable /turbofit in every Hermes home, including Sirvir.
+    """Enable /turbofit in every Hermes home, including TurboSouth.
 
     Desktop profile sessions only scan that profile's plugins/ and
     plugins.enabled. Installing into ~/.hermes alone leaves /turbofit
-    unknown in Sirvir with 'not a quick/plugin/bundle/skill command'.
+    unknown in TurboSouth with 'not a quick/plugin/bundle/skill command'.
     """
     source = Path(plugin_root or PLUGIN_ROOT).resolve()
     skill = PLUGIN_ROOT / "skills" / "turbofit"
@@ -258,7 +329,7 @@ def launch_setup_screen() -> dict[str, Any]:
         "desktop": desktop,
         "models": models,
         "slash_commands": slash,
-        "message": "Recommended models are downloading or verified. Open Hermes Desktop → Turbofit, or ask Sirvir to finish setup.",
+        "message": "Recommended models are downloading or verified. Open Hermes Desktop → Turbofit, or ask TurboSouth to finish setup.",
     }
 
 
@@ -1163,6 +1234,7 @@ def apply_configuration(
     profile: str | None,
     base_url: str | None,
     install_sirvir: bool = False,
+    install_turbosouth: bool = False,
     install_desktop: bool = False,
     install_lemonade: bool = False,
     install_native: bool = False,
@@ -1176,7 +1248,7 @@ def apply_configuration(
     from hermes_cli.config import load_config
 
     with _CONFIG_LOCK:
-        sirvir = install_sirvir_profile() if install_sirvir else None
+        turbosouth = install_turbosouth_profile() if (install_turbosouth or install_sirvir) else None
         desktop = install_desktop_plugin() if install_desktop else None
         lemonade = install_lemonade_runtime() if install_lemonade else None
         native = install_native_runtime() if install_native else None
@@ -1223,7 +1295,8 @@ def apply_configuration(
         "homes": homes_saved,
         "selection": selected,
         "tailnet": publication,
-        "sirvir": sirvir,
+        "turbosouth": turbosouth,
+        "sirvir": turbosouth,  # legacy key
         "desktop_plugin": desktop,
         "lemonade": lemonade,
         "native_runtime": native,
@@ -1248,6 +1321,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
         fallback = args.get("fallback") if "fallback" in args else None
         publish_routes = args.get("publish_tailnet", False)
         install_sirvir = args.get("install_sirvir", False)
+        install_turbosouth = args.get("install_turbosouth", False)
         install_desktop = args.get("install_desktop", False)
         install_lemonade = args.get("install_lemonade", False)
         install_native = args.get("install_native", False)
@@ -1257,6 +1331,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
             or (fallback is not None and not isinstance(fallback, bool))
             or not isinstance(publish_routes, bool)
             or not isinstance(install_sirvir, bool)
+            or not isinstance(install_turbosouth, bool)
             or not isinstance(install_desktop, bool)
             or not isinstance(install_lemonade, bool)
             or not isinstance(install_native, bool)
@@ -1295,6 +1370,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
             base_url=base_url,
             publish_tailnet_routes=publish_routes,
             install_sirvir=install_sirvir,
+            install_turbosouth=install_turbosouth,
             install_desktop=install_desktop,
             install_lemonade=install_lemonade,
             install_native=install_native,

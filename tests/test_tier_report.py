@@ -41,18 +41,18 @@ def test_exact_physical_topology_is_strict_except_for_300_plus() -> None:
                 backend="cuda", memory_total_mb=102400, compute_capability="9.0",
                 bus_id=f"{index:02d}",
             )
-            for index in range(4)
+            for index in range(8)
         ),
     )
     assert _exact_physical_topology(larger, {
-        "total_vram_gb": 300, "min_devices": 3, "per_device_min_gb": 100,
+        "total_vram_gb": 384, "min_devices": 8, "per_device_min_gb": 48,
     })
 
 
 def test_tier_report_covers_exact_project_tiers_and_current_machine() -> None:
     report = build_tier_report(ROOT, host())
 
-    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert report["current_hardware"]["native_tier_gb"] == 48
     assert report["current_hardware"]["system_ram_mb"] == 393216
     assert report["current_hardware"]["memory_pool_kind"] == "dedicated"

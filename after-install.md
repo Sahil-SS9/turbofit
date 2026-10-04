@@ -1,6 +1,6 @@
 # After install
 
-`/turbofit` is a plugin command. Hermes Desktop profile sessions (Sirvir included) only load plugins from that profile.
+`/turbofit` is a plugin command. Hermes Desktop profile sessions (TurboSouth included) only load plugins from that profile.
 
 This install now:
 
@@ -17,7 +17,7 @@ Then:
 If a session still says `not a quick/plugin/bundle/skill command: turbofit`, that profile has not reloaded plugins. From a terminal in that profile:
 
 ```bash
-hermes -p sirvir plugins install --enable https://github.com/SouthpawIN/turbofit.git
+hermes -p turbosouth plugins install --enable https://github.com/SouthpawIN/turbofit.git
 ```
 
 This is not Windows-specific. Any profile-isolated Desktop or CLI session has the same gap.

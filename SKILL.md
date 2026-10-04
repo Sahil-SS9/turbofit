@@ -22,7 +22,7 @@ Use this bundled plugin skill when configuring or inspecting Turbofit for Hermes
 3. Set `primary: true` to use `custom:turbofit` with model `auto` as the main Hermes provider.
 4. Set `fallback: true` to append Turbofit to the canonical `fallback_providers` chain; set it false to remove only Turbofit while preserving other fallbacks.
 5. Set `publish_tailnet: true` to create private Tailscale Serve routes for the provider and dashboard; the returned HTTPS provider URL is registered automatically.
-6. Set `install_sirvir: true` to install or update the canonical `SouthpawIN/sirvir` GitHub profile without replacing its memories or user state.
+6. Set `install_sirvir: true` (alias `install_turbosouth: true`) to install or update the canonical `SouthpawIN/turbosouth` GitHub-current profile without replacing its memories or user state — TurboSouth sends tested pull requests upstream to TurboFit.
 7. Set `install_freetoken: true` only on Linux x86_64 + NVIDIA driver 580+ + CUDA toolkit 13+ to install pinned FreeToken 0.1.2 as a text-only MoE **candidate**. It never changes Auto until exact on-box campaigns promote a supported model recipe.
 8. Start a new Hermes session after provider changes.
 
@@ -36,7 +36,7 @@ The same controls are available in Hermes Desktop under **Turbofit** and through
 - `scripts/turbofit-intelligence-campaign` runs the exact successful quantized production recipe through pinned DeepSWE and the Turbofit agentic main/auxiliary pair harness.
 - Use `status`, `run-one`, or `run --limit N`; state is resumable in `references/intelligence-campaign-state.json`.
 - Scores require both benchmark suites and immutable raw evidence. Never replace missing scores with catalog tiers, parameter counts, or vendor benchmark claims.
-- `/turbofit tiers` and `scripts/turbofit-hardware-tiers` show every 8/16/24/48/64/96/200/300 GB class with pending versus measured intelligence and TPS.
+- `/turbofit tiers` and `scripts/turbofit-hardware-tiers` show every 8/16/24/32/48/64/96/128/192/256/384 GB class with pending versus measured intelligence and TPS.
 - `scripts/turbofit-intelligence-campaign` benchmarks only the current machine's TurboFit List tournament candidates. `rebuild-scores` recomputes derived composites from raw suite counts; zero-call/token trials remain invalid infrastructure.
 - `scripts/turbofit-promote-list-winner` promotes only an exact-tier candidate with current physical evidence, positive intelligence/TPS/balanced values, and matching recipe hashes. `scripts/turbofit-list` renders the global evidence-only List.
 - Qwen 3.8 DFlash2 is a separate candidate runtime/artifact pair (`dflash2-llama.cpp`, `Qwen3.8-27B-DFlash2-Q4_K_M.gguf`). Never attach that drafter to Bonsai. Bonsai uses its own released DSpark sidecar and Prism runtime until a dedicated Bonsai DFlash checkpoint exists.

@@ -19,20 +19,23 @@ def test_turbofit_points_to_canonical_github_sirvir() -> None:
         for path in ("README.md", "SKILL.md")
     )
 
-    assert "https://github.com/SouthpawIN/sirvir" in text
+    assert "https://github.com/SouthpawIN/turbosouth" in text
     assert "GitHub-current" in text
     assert "tested pull requests" in text
 
 
 def test_sirvir_install_tool_is_github_current() -> None:
     schema = __import__("schemas").TURBOFIT_CONFIGURE
-    description = schema["parameters"]["properties"]["install_sirvir"]["description"]
+    # canonical property is now install_turbosouth, install_sirvir remains as legacy alias
+    props = schema["parameters"]["properties"]
+    key = "install_turbosouth" if "install_turbosouth" in props else "install_sirvir"
+    description = props[key]["description"]
 
-    assert "SouthpawIN/sirvir" in description
+    assert "SouthpawIN/turbosouth" in description
     assert "bundled" not in description.lower()
 
 
 def test_sirvir_github_install_uses_full_git_url() -> None:
     source = (ROOT / "plugin_tools.py").read_text()
-    assert '"https://github.com/SouthpawIN/sirvir.git"' in source
+    assert '"https://github.com/SouthpawIN/turbosouth.git"' in source
     assert '"SouthpawIN/sirvir"' not in source

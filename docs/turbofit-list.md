@@ -7,10 +7,14 @@ The **TurboFit List** is made only from benchmark winners at each physical hardw
 | 8 GB | — | — | — | — | — | pending benchmarks |
 | 16 GB | — | — | — | — | — | pending benchmarks |
 | 24 GB | — | — | — | — | — | pending benchmarks |
+| 32 GB | — | — | — | — | — | pending benchmarks |
 | 48 GB | `Qwen 3.8 27B Unleashed UD-Q3_K_XL + Route auxiliary tasks to main` | 262144 | 46.875 | 39.39215795117914 | 58.778 | winner |
 | 64 GB | — | — | — | — | — | pending benchmarks |
 | 96 GB | — | — | — | — | — | pending benchmarks |
-| 200 GB | — | — | — | — | — | pending benchmarks |
-| 300 GB | — | — | — | — | — | pending benchmarks |
+| 128 GB | — | — | — | — | — | pending benchmarks |
+| 192 GB | — | — | — | — | — | pending benchmarks |
+| 256 GB | — | — | — | — | — | pending benchmarks |
+| 384 GB | — | — | — | — | — | pending benchmarks |
 
-A blank level is honest: no current-recipe winner has completed the exact physical and intelligence campaigns for that hardware class yet.
+A blank level is honest: no current-recipe winner has completed the exact physical and intelligence campaigns for that hardware class yet. Legacy aliases: 200 GB → 192 GB, 300 GB → 256 GB.
+

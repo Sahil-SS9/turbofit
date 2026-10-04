@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T05:47:39.321368+00:00",
+  "generated_at": "2026-08-31T00:00:00+00:00",
   "levels": [
     {
       "hardware_level_gb": 8,
@@ -17,6 +17,12 @@
       "hardware_level_gb": 24,
       "status": "pending-benchmarks",
       "tier_id": "hardware-24gb",
+      "winner": null
+    },
+    {
+      "hardware_level_gb": 32,
+      "status": "pending-benchmarks",
+      "tier_id": "hardware-32gb",
       "winner": null
     },
     {
@@ -48,15 +54,27 @@
       "winner": null
     },
     {
-      "hardware_level_gb": 200,
+      "hardware_level_gb": 128,
       "status": "pending-benchmarks",
-      "tier_id": "hardware-200gb",
+      "tier_id": "hardware-128gb",
       "winner": null
     },
     {
-      "hardware_level_gb": 300,
+      "hardware_level_gb": 192,
       "status": "pending-benchmarks",
-      "tier_id": "hardware-300gb",
+      "tier_id": "hardware-192gb",
+      "winner": null
+    },
+    {
+      "hardware_level_gb": 256,
+      "status": "pending-benchmarks",
+      "tier_id": "hardware-256gb",
+      "winner": null
+    },
+    {
+      "hardware_level_gb": 384,
+      "status": "pending-benchmarks",
+      "tier_id": "hardware-384gb",
       "winner": null
     }
   ],

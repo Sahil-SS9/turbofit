@@ -69,6 +69,18 @@ _SPECS = (
         "905b4506883313b17e1d4e0480a8e6ca6c63399b",
         True,
     ),
+    EngineSpec(
+        "strata",
+        "Strata",
+        8082,
+        "Install Niko1221/Strata for Qwen3.8-Flash-Next on consumer NVIDIA/AMD GPUs.",
+        ("strata", "strata-server"),
+        ("strata",),
+        "https://github.com/Niko1221/Strata",
+        "0.1.39",
+        "",
+        True,
+    ),
 )
 
 
@@ -232,6 +244,17 @@ def _compatibility(
         else:
             compatible = True
             reason = "MrTrenchTrucker Turbohaul Manager on Linux NVIDIA CUDA"
+    elif spec.engine_id == "strata":
+        mode = "wsl" if is_wsl else ("wsl" if os_name == "windows" else "native")
+        if os_name != "linux":
+            reason = "Strata currently requires Linux/WSL"
+        elif architecture not in {"x86_64", "amd64"}:
+            reason = "Strata currently requires Linux x86_64"
+        elif not backends & {"cuda", "rocm"}:
+            reason = "Strata currently requires an NVIDIA or AMD GPU"
+        else:
+            compatible = True
+            reason = "Niko1221 Strata on Linux NVIDIA/AMD (expert tiering)"
 
     return EngineCompatibility(
         engine_id=spec.engine_id,

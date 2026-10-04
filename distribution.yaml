@@ -60,6 +60,8 @@ distribution_owned:
   - scripts/download-models.py
   - scripts/download-artifacts
   - scripts/install-dspark-runtime
+  - scripts/install-strata.sh
+  - scripts/test-turbofit-pipeline.sh
   - scripts/install-lemonade-runtime
   - scripts/install-macos-native-service
   - scripts/install-windows-native-service.ps1

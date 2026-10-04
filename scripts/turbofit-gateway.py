@@ -783,6 +783,22 @@ def resolve_main():
         _cache["ts"] = now
         return result
 
+    # 3.6. Strata remote backend (Qwen3.8 Flash Next on Omarchy) — explicit opt-in.
+    strata_url = os.environ.get("TURBOFIT_STRATA_BACKEND_URL")
+    if strata_url:
+        result = {
+            "alias": "strata-flash-next",
+            "base_url": strata_url.rstrip("/"),
+            "api": "/v1/chat/completions",
+            "source": "strata",
+            "state": "ready",
+            "is_api": True,
+            "model_id": "qwen3.8-flash-next-iq2_xs",
+        }
+        _cache["main"] = result
+        _cache["ts"] = now
+        return result
+
     # 4. No local backend is available — caller returns a clear 503.
     _cache["main"] = None
     _cache["ts"] = now

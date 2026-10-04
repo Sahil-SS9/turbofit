@@ -44,11 +44,15 @@ def _tier(tier_id: str, memory_class: str, min_gb: int, max_gb: int | None, *tok
 SHARED_TIERS: tuple[TierProfile, ...] = (
     _tier("maple-8gb", "shared", 8, 15, "maple"),
     _tier("ornith-16gb", "shared", 16, 23, "ornith"),
+    _tier("gsq-rco-iq3xxs-16gb", "shared", 16, 23, "gsq-rco", "iq3-xxs"),
+    _tier("gsq-rco-iq3s-16gb", "shared", 16, 23, "gsq-rco", "iq3-s"),
     _tier("unleashed-ud-q3-k-xl-24gb", "shared", 24, None, "unleashed"),
 )
 DEDICATED_TIERS: tuple[TierProfile, ...] = (
     _tier("maple-tq2-8gb", "dedicated", 8, 15, "maple", "tq2"),
     _tier("unleashed-ud-iq3-xxs-16gb", "dedicated", 16, 23, "unleashed", "iq3-xxs"),
+    _tier("gsq-rco-iq3xxs-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-xxs"),
+    _tier("gsq-rco-iq3s-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-s"),
     _tier("unleashed-ud-q3-k-xl-24gb", "dedicated", 24, 95, "unleashed", "q3-k-xl"),
     _tier("bf16-96gb", "dedicated", 96, None, "bf16"),
 )

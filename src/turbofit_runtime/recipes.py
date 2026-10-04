@@ -313,6 +313,18 @@ class RecipeBook:
                 command.extend(["-mla", "1", "-dsa", "-fidx"])
             if spec.get("worst_graph_tokens") is not None:
                 command.extend(["-wgt", str(spec["worst_graph_tokens"])])
+        elif runtime_flavor == "prism":
+            # PrismML llama.cpp fork for Ternary Bonsai 2 (CUDA, Metal, CPU)
+            # Ternary models need the prism fork — mainline llama.cpp cannot load them
+            command = [
+                binary, "-m", model,
+                "--host", "127.0.0.1", "--port", str(port), "--alias", alias,
+                "-c", str(context), "-ngl", str(gpu_layers),
+                "-fa", "on", "--jinja", "-b", str(batch_size), "-ub", str(ubatch_size),
+                "--parallel", "1", "--cache-type-k", "q4_0", "--cache-type-v", "q4_0",
+            ]
+            if fit == "on":
+                command.append("--fit")
         elif runtime_flavor == "mainline":
             command = [
                 binary, "-m", model,

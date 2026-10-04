@@ -81,6 +81,18 @@ _SPECS = (
         "",
         True,
     ),
+    EngineSpec(
+        "prism-llama.cpp",
+        "Prism llama.cpp",
+        8083,
+        "Install PrismML-Eng/llama.cpp fork for Ternary Bonsai 2 (CUDA, Metal, CPU).",
+        ("llama-server",),
+        (),
+        "https://github.com/PrismML-Eng/llama.cpp",
+        "",
+        "",
+        True,
+    ),
 )
 
 
@@ -255,6 +267,9 @@ def _compatibility(
         else:
             compatible = True
             reason = "Niko1221 Strata on Linux NVIDIA/AMD (expert tiering)"
+    elif spec.engine_id == "prism-llama.cpp":
+        compatible = os_name in {"linux", "windows", "darwin"}
+        reason = "PrismML llama.cpp fork (CUDA, Metal, CPU)" if compatible else "Prism llama.cpp requires Linux, Windows, or macOS"
 
     return EngineCompatibility(
         engine_id=spec.engine_id,

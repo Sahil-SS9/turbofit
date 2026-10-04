@@ -5,7 +5,21 @@
       "hardware_level_gb": 8,
       "status": "pending-benchmarks",
       "tier_id": "hardware-8gb",
-      "winner": null
+      "winner": null,
+      "candidates": [
+        {
+          "model": "Ternary Bonsai 2 27B PTQ1_0",
+          "size_gb": 5.95,
+          "quant": "PTQ1_0",
+          "note": "Ternary g128; 98.2% of FP16 intelligence; needs Prism llama.cpp fork"
+        },
+        {
+          "model": "Ternary Bonsai 2 27B PQ2_0",
+          "size_gb": 7.21,
+          "quant": "PQ2_0",
+          "note": "2-bit slots; cheaper unpacking; needs Prism llama.cpp fork"
+        }
+      ]
     },
     {
       "hardware_level_gb": 16,
@@ -13,6 +27,18 @@
       "tier_id": "hardware-16gb",
       "winner": null,
       "candidates": [
+        {
+          "model": "Ternary Bonsai 2 27B PTQ1_0",
+          "size_gb": 5.95,
+          "quant": "PTQ1_0",
+          "note": "Ternary g128; 98.2% of FP16 intelligence; needs Prism llama.cpp fork"
+        },
+        {
+          "model": "Ternary Bonsai 2 27B PQ2_0",
+          "size_gb": 7.21,
+          "quant": "PQ2_0",
+          "note": "2-bit slots; cheaper unpacking; needs Prism llama.cpp fork"
+        },
         {
           "model": "Qwen 3.8 27B GSQ-RCO IQ3_XXS",
           "size_gb": 10.1,

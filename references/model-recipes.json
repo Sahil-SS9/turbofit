@@ -1022,5 +1022,30 @@
       "131072": "baseline",
       "262144": "baseline"
     }
+  },
+  "Ternary Bonsai 2 27B": {
+    "alias": "ternary-bonsai-2-27b",
+    "kind": "process",
+    "binary": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+    "native_binaries": {
+      "cuda": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+      "rocm": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-rocm/bin/llama-server",
+      "metal": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-metal/bin/llama-server",
+      "cpu": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cpu/bin/llama-server",
+      "vulkan": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-vulkan/bin/llama-server"
+    },
+    "model_root": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B",
+    "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+    "port": 11605,
+    "large": false,
+    "native_context": 262144,
+    "max_context": 262144,
+    "methods": {
+      "65536": "baseline",
+      "131072": "baseline",
+      "262144": "baseline"
+    },
+    "runtime_flavor": "prism"
   }
 }

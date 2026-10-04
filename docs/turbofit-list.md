@@ -4,8 +4,8 @@ The **TurboFit List** is made only from benchmark winners at each physical hardw
 
 | Hardware level | Winner | Context | Intelligence | TPS | Balanced | Status |
 |---:|---|---:|---:|---:|---:|---|
-| 8 GB | — | — | — | — | — | pending benchmarks |
-| 16 GB | — | — | — | — | — | pending benchmarks |
+| 8 GB | — | — | — | — | — | pending benchmarks (Bonsai 2 candidates) |
+| 16 GB | — | — | — | — | — | pending benchmarks (Bonsai 2 + GSQ-RCO candidates) |
 | 24 GB | — | — | — | — | — | pending benchmarks |
 | 32 GB | — | — | — | — | — | pending benchmarks |
 | 48 GB | `Qwen 3.8 27B Unleashed UD-Q3_K_XL + Route auxiliary tasks to main` | 262144 | 46.875 | 39.39215795117914 | 58.778 | winner |
@@ -45,5 +45,6 @@ A blank level is honest: no current-recipe winner has completed the exact physic
 
 | Engine | Model | Requirements | Note |
 |---|---|---|---|
-| Strata | Qwen 3.8 Flash Next (125B MoE) | 12-24 GB VRAM + 64 GB RAM | Expert tiering: hot experts on GPU, all in RAM, n-gram on SSD. 60-95 tok/s on RTX 5070. IQ2_XS recommended. |
+| Strata | Qwen 3.8 Flash Next (125B MoE) | 12-24 GB VRAM + 64 GB RAM | Expert tiering: hot experts on GPU, all in RAM, n-gram on SSD. 60-95 tok/s on RTX 5070. IQ2_XS recommended. Linux only. |
+| Prism llama.cpp | Ternary Bonsai 2 27B | 5.95 GB (PTQ1_0) or 7.21 GB (PQ2_0) | Ternary g128 weights, 98.2% of FP16 intelligence. Cross-platform: CUDA, Metal, CPU. Needs PrismML fork. |
 

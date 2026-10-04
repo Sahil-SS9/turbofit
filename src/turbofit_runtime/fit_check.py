@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-DEFAULT_BAN_LIST = frozenset({"bonsai", "9b"})
+DEFAULT_BAN_LIST = frozenset({"9b"})
 _TOKEN_SPLIT = re.compile(r"[^a-z0-9.]+")
 
 
@@ -46,6 +46,10 @@ SHARED_TIERS: tuple[TierProfile, ...] = (
     _tier("ornith-16gb", "shared", 16, 23, "ornith"),
     _tier("gsq-rco-iq3xxs-16gb", "shared", 16, 23, "gsq-rco", "iq3-xxs"),
     _tier("gsq-rco-iq3s-16gb", "shared", 16, 23, "gsq-rco", "iq3-s"),
+    _tier("bonsai-2-ptq1-8gb", "shared", 8, 15, "bonsai-2", "ptq1"),
+    _tier("bonsai-2-pq2-8gb", "shared", 8, 15, "bonsai-2", "pq2"),
+    _tier("bonsai-2-ptq1-16gb", "shared", 16, 23, "bonsai-2", "ptq1"),
+    _tier("bonsai-2-pq2-16gb", "shared", 16, 23, "bonsai-2", "pq2"),
     _tier("unleashed-ud-q3-k-xl-24gb", "shared", 24, None, "unleashed"),
 )
 DEDICATED_TIERS: tuple[TierProfile, ...] = (
@@ -53,6 +57,10 @@ DEDICATED_TIERS: tuple[TierProfile, ...] = (
     _tier("unleashed-ud-iq3-xxs-16gb", "dedicated", 16, 23, "unleashed", "iq3-xxs"),
     _tier("gsq-rco-iq3xxs-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-xxs"),
     _tier("gsq-rco-iq3s-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-s"),
+    _tier("bonsai-2-ptq1-8gb", "dedicated", 8, 15, "bonsai-2", "ptq1"),
+    _tier("bonsai-2-pq2-8gb", "dedicated", 8, 15, "bonsai-2", "pq2"),
+    _tier("bonsai-2-ptq1-16gb", "dedicated", 16, 23, "bonsai-2", "ptq1"),
+    _tier("bonsai-2-pq2-16gb", "dedicated", 16, 23, "bonsai-2", "pq2"),
     _tier("unleashed-ud-q3-k-xl-24gb", "dedicated", 24, 95, "unleashed", "q3-k-xl"),
     _tier("bf16-96gb", "dedicated", 96, None, "bf16"),
 )

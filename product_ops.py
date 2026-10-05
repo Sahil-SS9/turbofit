@@ -24,7 +24,7 @@ PREFERENCE_ALIASES = {
 
 
 def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
-    """Pull latest Turbofit + Sirvir onto this machine and refresh Desktop."""
+    """Pull latest Turbofit + TurboSouth onto this machine and refresh Desktop."""
     executable = shutil.which("hermes")
     if not executable:
         raise FileNotFoundError("hermes executable is not available")
@@ -51,7 +51,7 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
         if plugin.returncode:
             raise RuntimeError((plugin.stderr or plugin.stdout or "Turbofit plugin update failed").strip())
     desktop = plugin_tools.install_desktop_plugin(hermes_home=hermes_home)
-    sirvir = plugin_tools.install_sirvir_profile(hermes_home=hermes_home)
+    turbosouth = plugin_tools.install_turbosouth_profile(hermes_home=hermes_home)
     models = plugin_tools.ensure_recommended_models()
     slash = plugin_tools.activate_slash_commands(hermes_home=hermes_home)
     return {
@@ -62,11 +62,12 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
             "output": (plugin.stdout or plugin.stderr or "").strip(),
         },
         "desktop": desktop,
-        "sirvir": sirvir,
+        "turbosouth": turbosouth,
+        "sirvir": turbosouth,  # legacy key
         "models": models,
         "slash_commands": slash,
         "message": (
-            "Turbofit plugin, Desktop surface, and Sirvir updated. "
+            "Turbofit plugin, Desktop surface, and TurboSouth (TurboFit Customer Service) updated. "
             "Reload Desktop plugins and open Turbofit. Start a new session for provider changes."
         ),
     }
@@ -204,7 +205,7 @@ def serve_tailnet(
     provider_https_port: int = 9443,
 ) -> dict[str, Any]:
     """Publish the local Turbofit /v1 gateway on the private tailnet."""
-    from hermes_cli.config import load_config, save_config
+    from hermes_cli.config import load_config
 
     publication = plugin_tools.publish_tailnet(
         dashboard_local_port=dashboard_local_port,
@@ -213,11 +214,16 @@ def serve_tailnet(
         provider_https_port=provider_https_port,
     )
     with plugin_tools._CONFIG_LOCK:
-        updated = plugin_tools.configure_hermes(
+        canonical = plugin_tools.configure_hermes(
             load_config(),
             base_url=publication["provider_base_url"],
         )
-        save_config(updated, merge_existing=False)
+        # Fan the tailnet URL to every profile home (same fix as
+        # plugin_tools.apply_configuration — see _save_configuration_to_all_homes).
+        plugin_tools._save_configuration_to_all_homes(
+            canonical,
+            base_url=publication["provider_base_url"],
+        )
     return {
         "ok": True,
         "served": True,

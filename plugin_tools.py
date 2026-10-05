@@ -26,7 +26,7 @@ SRC_ROOT = PLUGIN_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from turbofit_runtime.tailnet import publish_tailnet, tailnet_status
+from turbofit_runtime.tailnet import ensure_tailnet, publish_tailnet, tailnet_status
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8091/v1"
@@ -1187,7 +1187,7 @@ def apply_configuration(
         models = ensure_recommended_models(families=families) if families else ensure_recommended_models()
         mlx_runtime = install_mlx_runtime() if apple_mlx else None
         publication = (
-            publish_tailnet(
+            ensure_tailnet(
                 dashboard_local_port=dashboard_local_port,
                 provider_local_port=provider_local_port,
                 dashboard_https_port=dashboard_https_port,

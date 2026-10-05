@@ -63,6 +63,8 @@ distribution_owned:
   - scripts/turbofit-gateway-runtime
   - scripts/turbofit-mlx-runtime
   - scripts/install-dspark-runtime
+  - scripts/install-strata.sh
+  - scripts/test-turbofit-pipeline.sh
   - scripts/install-lemonade-runtime
   - scripts/install-macos-native-service
   - scripts/install-windows-native-service.ps1

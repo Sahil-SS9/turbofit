@@ -383,7 +383,7 @@ def rank_profiles(args: argparse.Namespace) -> list[Recommendation]:
             continue
         if main and not is_allowed_main(main):
             continue
-        if main and not main_matches_recommendable(main, recommendable):
+        if not portable_fit and main and not main_matches_recommendable(main, recommendable):
             continue
         if aux and aux != "auto" and not is_allowed_aux(aux):
             continue

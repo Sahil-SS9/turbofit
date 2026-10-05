@@ -63,6 +63,30 @@
       "maple_gguf": "only if the managed llama.cpp binary is the Maple fork",
       "qwen38_gguf": "preferred manager over pinned mainline llama.cpp",
       "ornith_gguf": "preferred manager over pinned mainline llama.cpp"
+    },
+    "strata": {
+      "serves": "Qwen3.8 Flash Next (125B MoE) via expert tiering: hot experts on GPU, all in RAM, n-gram on SSD",
+      "os": ["linux"],
+      "backends": ["cuda", "rocm"],
+      "source": "https://github.com/Niko1221/Strata",
+      "ref": "0.1.39",
+      "revision": "",
+      "maple_gguf": "incompatible",
+      "qwen38_gguf": "incompatible; Strata serves Flash Next, not Qwen 3.8 27B",
+      "ornith_gguf": "incompatible",
+      "flash_next": "IQ2_XS recommended; 12-24 GB VRAM + 64 GB RAM; 60-95 tok/s on RTX 5070"
+    },
+    "prism-llama.cpp": {
+      "serves": "Ternary Bonsai 2 27B via PrismML llama.cpp fork (CUDA, Metal, CPU)",
+      "os": ["linux", "windows", "darwin"],
+      "backends": ["cuda", "rocm", "metal", "vulkan", "cpu"],
+      "source": "https://github.com/PrismML-Eng/llama.cpp",
+      "ref": "",
+      "revision": "",
+      "maple_gguf": "incompatible",
+      "qwen38_gguf": "incompatible; Prism fork serves Ternary Bonsai 2, not Qwen 3.8 27B",
+      "ornith_gguf": "incompatible",
+      "bonsai2_gguf": "PTQ1_0 (5.95 GB) or PQ2_0 (7.21 GB); 262K context; ~47 tok/s on M5 Max"
     }
   },
   "pairs": {
@@ -88,6 +112,33 @@
       "artifact": "GGUF MoE",
       "eligible_engines": ["turbohaul-manager", "llama.cpp"],
       "ineligible_engines": ["mlx"]
+    },
+    "qwen3-8-27b-gsq-rco-iq3s": {
+      "artifact": "GGUF GSQ-RCO",
+      "eligible_engines": ["turbohaul-manager", "llama.cpp"],
+      "apple_alternate": "mlx",
+      "hf_engines": ["vllm", "sglang"]
+    },
+    "qwen3-8-27b-gsq-rco-iq3xxs": {
+      "artifact": "GGUF GSQ-RCO",
+      "eligible_engines": ["turbohaul-manager", "llama.cpp"],
+      "apple_alternate": "mlx",
+      "hf_engines": ["vllm", "sglang"]
+    },
+    "qwen3-8-flash-next-strata": {
+      "artifact": "Strata engine (expert tiering)",
+      "eligible_engines": ["strata"],
+      "ineligible_engines": ["llama.cpp", "mlx", "sglang", "vllm", "freetoken", "turbohaul-manager"]
+    },
+    "ternary-bonsai-2-27b-ptq1": {
+      "artifact": "GGUF Ternary PTQ1_0",
+      "eligible_engines": ["prism-llama.cpp"],
+      "ineligible_engines": ["llama.cpp", "mlx", "sglang", "vllm", "freetoken", "turbohaul-manager", "strata"]
+    },
+    "ternary-bonsai-2-27b-pq2": {
+      "artifact": "GGUF Ternary PQ2_0",
+      "eligible_engines": ["prism-llama.cpp"],
+      "ineligible_engines": ["llama.cpp", "mlx", "sglang", "vllm", "freetoken", "turbohaul-manager", "strata"]
     }
   }
 }

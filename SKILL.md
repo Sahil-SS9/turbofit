@@ -23,6 +23,14 @@ Fit List keeps dedicated VRAM separate from integrated/RAM-only total memory. De
 - Updating candidate intelligence or generated wiki views
 
 ## Canonical workflow
+1. Call `turbofit_status` to inspect provider registration, gateway health, selected hardware profile, active rung, and stable routes.
+2. Call `turbofit_configure` with `profile: auto` for hardware selection. Manual `hardware-*gb` profiles are accepted only when physical topology fits.
+3. Set `primary: true` to use `custom:turbofit` with model `auto` as the main Hermes provider.
+4. Set `fallback: true` to append Turbofit to the canonical `fallback_providers` chain; set it false to remove only Turbofit while preserving other fallbacks.
+5. Set `publish_tailnet: true` to create private Tailscale Serve routes for the provider and dashboard; the returned HTTPS provider URL is registered automatically.
+6. Set `install_sirvir: true` (alias `install_turbosouth: true`) to install or update the canonical `SouthpawIN/turbosouth` GitHub-current profile without replacing its memories or user state — TurboSouth sends tested pull requests upstream to TurboFit.
+7. Set `install_freetoken: true` only on Linux x86_64 + NVIDIA driver 580+ + CUDA toolkit 13+ to install pinned FreeToken 0.1.2 as a text-only MoE **candidate**. It never changes Auto until exact on-box campaigns promote a supported model recipe.
+8. Start a new Hermes session after provider changes.
 
 Work from the Git repository, not an installed copy.
 
@@ -40,21 +48,14 @@ curl -fsS http://127.0.0.1:8091/v1/models
 Both begin at API safety and use the same adaptive controller to contract and
 heal; manual selection changes only the healing ceiling.
 
-Use only stable provider IDs: `auto`, `active:main`, and `active:aux`.
-
-FreeToken 0.1.2 at revision `0ab982f10905fa775962a4eddcb44caa50065251` is an optional NVIDIA/CUDA-13 text-only MoE candidate. Install or probe with `scripts/install-freetoken-runtime`; never expose it as an Auto rung, inherit its published TPS, or replace active Qwen 3.8/Ornith authority until an exact supported model recipe passes the full physical and intelligence campaigns.
-
-## Runtime authorities
-
-1. Turbofile: portable recommendation and ordered rung policy.
-2. Hardware fingerprint: physical topology, total usable memory, and per-device capacity; never transient free memory.
-3. Pressure snapshot: ownership-aware transient capacity.
-4. Pure policy: dwell/hysteresis/cooldown/flap decision.
-5. Native runtime backend: sole local residency authority for owned processes.
-6. Reconciler: drain, activate, verify, publish, rollback.
-7. Gateway route state: backing targets for stable IDs.
-
-Legacy `serve`, direct launchers, and scaling watcher are compatibility tools, not adaptive authorities.
+- `scripts/turbofit-catalog-campaign` proves native runtime fit and TPS; it does not produce intelligence scores.
+- `scripts/turbofit-intelligence-campaign` runs the exact successful quantized production recipe through pinned DeepSWE and the Turbofit agentic main/auxiliary pair harness.
+- Use `status`, `run-one`, or `run --limit N`; state is resumable in `references/intelligence-campaign-state.json`.
+- Scores require both benchmark suites and immutable raw evidence. Never replace missing scores with catalog tiers, parameter counts, or vendor benchmark claims.
+- `/turbofit tiers` and `scripts/turbofit-hardware-tiers` show every 8/16/24/32/48/64/96/128/192/256/384 GB class with pending versus measured intelligence and TPS.
+- `scripts/turbofit-intelligence-campaign` benchmarks only the current machine's TurboFit List tournament candidates. `rebuild-scores` recomputes derived composites from raw suite counts; zero-call/token trials remain invalid infrastructure.
+- `scripts/turbofit-promote-list-winner` promotes only an exact-tier candidate with current physical evidence, positive intelligence/TPS/balanced values, and matching recipe hashes. `scripts/turbofit-list` renders the global evidence-only List.
+- Qwen 3.8 DFlash2 is a separate candidate runtime/artifact pair (`dflash2-llama.cpp`, `Qwen3.8-27B-DFlash2-Q4_K_M.gguf`). Never attach that drafter to Bonsai. Bonsai uses its own released DSpark sidecar and Prism runtime until a dedicated Bonsai DFlash checkpoint exists.
 
 ## Portable memory allocation
 

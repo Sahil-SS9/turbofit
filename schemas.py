@@ -68,7 +68,11 @@ TURBOFIT_CONFIGURE = {
             },
             "install_sirvir": {
                 "type": "boolean",
-                "description": "Install or update the current SouthpawIN/sirvir GitHub profile while preserving its user data.",
+                "description": "Legacy name for install_turbosouth. Installs TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current, formerly Sirvir) — with tested pull requests upstream.",
+            },
+            "install_turbosouth": {
+                "type": "boolean",
+                "description": "Install or update TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current, formerly Sirvir) — plus its Sovthpaw mascot pet (auburn hair, sunglasses), with tested pull requests upstream, while preserving user data.",
             },
             "install_desktop": {
                 "type": "boolean",

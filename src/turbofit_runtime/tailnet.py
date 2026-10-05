@@ -125,3 +125,73 @@ def publish_tailnet(
         "provider_base_url": f"https://{dns_name}:{provider_https_port}/v1",
         "commands": [list(command) for command in commands],
     }
+
+
+def ensure_tailnet(
+    *,
+    dashboard_local_port: int = 9127,
+    provider_local_port: int = 8091,
+    dashboard_https_port: int = 9444,
+    provider_https_port: int = 9443,
+    command_runner: CommandRunner | None = None,
+) -> dict[str, Any]:
+    """Auto-configure Tailscale Serve if available.
+
+    Returns a dict with:
+    - available: bool — tailscale binary found
+    - connected: bool — tailscale backend running
+    - published: bool — serve routes were published
+    - dns_name: str | None — tailnet DNS name
+    - dashboard_url: str | None — HTTPS dashboard URL
+    - provider_base_url: str | None — HTTPS provider URL
+    - error: str | None — error message if not available/connected
+    """
+    runner = command_runner or _run
+    status = tailnet_status(command_runner=runner)
+    if not status["available"]:
+        return {
+            "available": False,
+            "connected": False,
+            "published": False,
+            "dns_name": None,
+            "dashboard_url": None,
+            "provider_base_url": None,
+            "error": status.get("error") or "Tailscale is not installed",
+        }
+    if not status["connected"]:
+        return {
+            "available": True,
+            "connected": False,
+            "published": False,
+            "dns_name": None,
+            "dashboard_url": None,
+            "provider_base_url": None,
+            "error": "Tailscale is not connected (run: tailscale up)",
+        }
+    try:
+        publication = publish_tailnet(
+            dashboard_local_port=dashboard_local_port,
+            provider_local_port=provider_local_port,
+            dashboard_https_port=dashboard_https_port,
+            provider_https_port=provider_https_port,
+            command_runner=runner,
+        )
+        return {
+            "available": True,
+            "connected": True,
+            "published": True,
+            "dns_name": publication["dns_name"],
+            "dashboard_url": publication["dashboard_url"],
+            "provider_base_url": publication["provider_base_url"],
+            "error": None,
+        }
+    except Exception as exc:
+        return {
+            "available": True,
+            "connected": True,
+            "published": False,
+            "dns_name": status.get("dns_name"),
+            "dashboard_url": None,
+            "provider_base_url": None,
+            "error": str(exc),
+        }

@@ -34,7 +34,7 @@
           "tasks_total": 16
         }
       ],
-      "production_recipe_sha256": "sha256:7762ba9f4fc7d9379ff19e0263b7e26cb26f7df721ff667d6cfa7ff5a7163fe7",
+      "production_recipe_sha256": "sha256:2175ca09445736c9b74867bce5a7e7eee1c594245af5e2aa4da1a1510435b1e3",
       "quantizations": [
         "UD-Q3_K_XL",
         "route-to-main"

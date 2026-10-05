@@ -1,13 +1,13 @@
 schema: turbofit.runtime/v1
-id: hardware-64gb
+id: hardware-384gb
 revision: 4
 hardware:
-  class_vram_gb: 64
-  min_devices: 2
-  total_vram_gb: 64
-  per_device_min_gb: 32
+  class_vram_gb: 384
+  min_devices: 8
+  total_vram_gb: 384
+  per_device_min_gb: 48
   accelerator: llama.cpp-local
-  topology: 2x32
+  topology: 8x48
 policy:
   recommendation: evidence-gated
   external_gpu_priority: absolute
@@ -26,7 +26,7 @@ rungs:
 # Evidence: references/successful-runtime-profiles.json key
 # qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k (37.99 tok/s baseline,
 # gpu_peak_mb[1] = 19391 -> required_mb_per_card 19391).
-# Retired Bonsai rungs were never re-validated as the 64 GB default after
+# Retired Bonsai rungs were never re-validated as the 384 GB default after
 # Bonsai's retirement in v2.4.
 - id: local-unleashed-q3kxl-262144
   context: 262144

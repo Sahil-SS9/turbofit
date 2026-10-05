@@ -14,7 +14,7 @@ from .intelligence import canonical_intelligence_recipe
 from .recipes import RecipeBook
 from .schema import MatrixRow
 
-TIERS = (8, 16, 24, 48, 64, 96, 200, 300)
+TIERS = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
 
 
 def _artifact_bytes(manifest: dict[str, Any], model_ids: tuple[str, ...]) -> int:
@@ -96,7 +96,7 @@ def _exact_physical_topology(hardware: HardwareFingerprint, constraint: dict[str
     )
     required_total = int(constraint["total_vram_gb"])
     actual_total = round(total_mb / 1024)
-    is_open_ended = required_total == 300
+    is_open_ended = required_total == 384
     if actual_total < required_total or (not is_open_ended and actual_total != required_total):
         return False
     required_devices = int(constraint["min_devices"])

@@ -23,7 +23,7 @@ def test_hardware_tournaments_cover_every_physical_tier_and_valid_configuration(
     build_selected_campaign_matrix(configurations, catalog, output, selected)
     matrix = load_matrix(output)
 
-    assert [item["vram_gb"] for item in tournaments["tiers"]] == [8, 16, 24, 48, 64, 96, 200, 300]
+    assert [item["vram_gb"] for item in tournaments["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert len(matrix.rows) == len(selected)
     winners = {item["id"]: item["winner"] for item in tournaments["tiers"]}
     assert winners["hardware-48gb"]["configuration"] == "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k"
@@ -64,7 +64,7 @@ def test_200_and_300gb_tiers_use_qwen_not_deepseek() -> None:
     tournaments = load_tournaments(ROOT / "references/hardware-tier-tournaments.json", configurations)
     by_tier = {item["vram_gb"]: item for item in tournaments["tiers"]}
 
-    for vram in (200, 300):
+    for vram in (192, 256, 384):
         assert all("deepseek" not in item for item in by_tier[vram]["candidates"])
         assert any("qwen3-8-27b" in item for item in by_tier[vram]["candidates"])
 

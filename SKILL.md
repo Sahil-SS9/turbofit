@@ -1,5 +1,5 @@
 ---
-name: turbofit
+name: turbofit-runtime
 description: "Hardware-aware adaptive Hermes runtime using portable Turbofiles, total usable memory, owned native llama.cpp residency, stable auto/active:main/active:aux routes, and evidence-backed promotion. Use for recommending, activating, inspecting, testing, or troubleshooting Turbofit runtimes."
 version: 2.3.1
 author: SouthpawIN + Nous Girl

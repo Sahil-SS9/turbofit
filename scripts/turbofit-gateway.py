@@ -1132,12 +1132,28 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 # TF4: streaming requests without a caller preference ask the
                 # backend for a final usage frame; explicit false survives.
                 payload = apply_stream_usage_default(payload)
+                # Structured output on the pinned llama.cpp runtime: a bare
+                # json_object gets no grammar unless a schema is attached, and
+                # with reasoning_format "none" the output grammar rejects the
+                # template's pre-filled empty <think></think> block, so sampler
+                # init fails (HTTP 400). Structured requests therefore keep the
+                # backend's reasoning_format, and local backends get an object
+                # schema for a bare json_object. API providers get it unchanged.
+                response_format = payload.get("response_format")
+                if not isinstance(response_format, dict):
+                    response_format = {}
+                response_type = response_format.get("type")
+                structured_output = response_type in ("json_object", "json_schema")
+                if (response_type == "json_object" and not response_format.get("schema")
+                        and not backend.get("is_api")):
+                    payload["response_format"] = {**response_format, "schema": {"type": "object"}}
                 if role == "main":
                     if not MAIN_ENABLE_THINKING and not caller_controls_reasoning(payload):
                         template_kwargs = dict(payload.get("chat_template_kwargs") or {})
                         template_kwargs.update(enable_thinking=False, thinking_mode="disabled")
                         payload["chat_template_kwargs"] = template_kwargs
-                        payload["reasoning_format"] = "none"
+                        if not structured_output:
+                            payload["reasoning_format"] = "none"
                         payload["think"] = False
                     # TF3: backend-aware finite reasoning budget. Only the
                     # configured affected backend is normalised: explicit
@@ -1169,7 +1185,8 @@ class GatewayHandler(BaseHTTPRequestHandler):
                     template_kwargs.setdefault("enable_thinking", AUX_ENABLE_THINKING)
                     template_kwargs.setdefault("thinking_mode", "enabled" if AUX_ENABLE_THINKING else "disabled")
                     payload["chat_template_kwargs"] = template_kwargs
-                    payload.setdefault("reasoning_format", "none")
+                    if not structured_output:
+                        payload.setdefault("reasoning_format", "none")
                 payload["model"] = (
                     backend.get("model_id") or backend.get("alias")
                 ) or payload.get("model")

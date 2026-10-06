@@ -595,3 +595,30 @@ def test_api_backend_json_object_is_forwarded_unchanged(structured_stack, monkey
         _request("active:main", response_format={"type": "json_object"})
     )
     assert forwarded["response_format"] == {"type": "json_object"}
+
+
+# Review findings L1 and L2: request shapes that the object-schema injection
+# would break are forwarded exactly as before the fix.
+
+def test_aux_json_object_with_tools_is_forwarded_as_before(structured_stack):
+    # An injected schema would replace tool calling on llama.cpp.
+    forwarded = structured_stack.send(_request(
+        "active:aux", response_format={"type": "json_object"}, tools=[PING_TOOL],
+    ))
+    assert forwarded["response_format"] == {"type": "json_object"}
+    assert forwarded["reasoning_format"] == "none"
+
+
+def test_aux_json_object_with_caller_reasoning_none_is_forwarded_as_before(structured_stack):
+    # With the caller's "none", an injected schema would fail sampler init.
+    forwarded = structured_stack.send(_request(
+        "active:aux", response_format={"type": "json_object"}, reasoning_format="none",
+    ))
+    assert forwarded["response_format"] == {"type": "json_object"}
+    assert forwarded["reasoning_format"] == "none"
+
+
+def test_aux_non_dict_response_format_is_forwarded_as_before(structured_stack):
+    forwarded = structured_stack.send(_request("active:aux", response_format="json_object"))
+    assert forwarded["response_format"] == "json_object"
+    assert forwarded["reasoning_format"] == "none"

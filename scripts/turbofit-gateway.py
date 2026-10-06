@@ -1138,13 +1138,22 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 # template's pre-filled empty <think></think> block, so sampler
                 # init fails (HTTP 400). Structured requests therefore keep the
                 # backend's reasoning_format, and local backends get an object
-                # schema for a bare json_object. API providers get it unchanged.
+                # schema for a bare json_object; API backends get the caller's
+                # response_format unchanged. Requests with tools, or with the
+                # caller's own reasoning_format "none", are forwarded as before:
+                # an injected schema would replace tool calling, or fail sampler
+                # init because "none" leaves the grammar no reasoning slot.
                 response_format = payload.get("response_format")
                 if not isinstance(response_format, dict):
                     response_format = {}
                 response_type = response_format.get("type")
-                structured_output = response_type in ("json_object", "json_schema")
-                if (response_type == "json_object" and not response_format.get("schema")
+                structured_output = (
+                    response_type in ("json_object", "json_schema")
+                    and not payload.get("tools")
+                )
+                if (structured_output and response_type == "json_object"
+                        and not response_format.get("schema")
+                        and payload.get("reasoning_format") != "none"
                         and not backend.get("is_api")):
                     payload["response_format"] = {**response_format, "schema": {"type": "object"}}
                 if role == "main":

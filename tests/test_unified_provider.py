@@ -9,6 +9,9 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -409,3 +412,213 @@ def _wait_until(predicate, timeout):
             return True
         time.sleep(0.02)
     return predicate()
+
+
+# Structured output. A capturing upstream records exactly what the gateway
+# forwards: these prove the forwarded payload shape, not model behaviour.
+# Live behaviour is covered by the post-deploy smoke test.
+
+SMALL_SCHEMA = {
+    "type": "object",
+    "properties": {"a": {"type": "string"}},
+    "required": ["a"],
+}
+SCHEMA_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {"name": "t", "strict": True, "schema": SMALL_SCHEMA},
+}
+PING_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "ping",
+        "description": "ping",
+        "parameters": {
+            "type": "object",
+            "properties": {"x": {"type": "integer"}},
+            "required": ["x"],
+        },
+    },
+}
+
+
+@pytest.fixture()
+def structured_stack(monkeypatch):
+    forwarded = []
+
+    class CaptureUpstream(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", "0"))
+            forwarded.append(json.loads(self.rfile.read(length) or b"{}"))
+            body = json.dumps({
+                "object": "chat.completion",
+                "choices": [{
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {"role": "assistant", "content": "{}"},
+                }],
+            }).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format, *args):
+            pass
+
+    upstream = ThreadingHTTPServer(("127.0.0.1", 0), CaptureUpstream)
+    gateway = ThreadingHTTPServer(("127.0.0.1", 0), GATEWAY.GatewayHandler)
+    base_url = f"http://127.0.0.1:{upstream.server_port}"
+    monkeypatch.delenv("TURBOFIT_LIFECYCLE_REQUIRED", raising=False)
+    monkeypatch.delenv("TURBOFIT_NATIVE_STATE", raising=False)
+    monkeypatch.setattr(GATEWAY, "resolve_requested_profile", lambda _model: "active")
+    monkeypatch.setattr(
+        GATEWAY, "resolve_main",
+        lambda: {"base_url": base_url, "alias": "test-main", "state": "ready"},
+    )
+    monkeypatch.setattr(
+        GATEWAY, "resolve_aux",
+        lambda: {"base_url": base_url, "alias": "test-aux", "state": "ready"},
+    )
+    monkeypatch.setattr(GATEWAY, "reasoning_policy_for", lambda _backend: None)
+    monkeypatch.setattr(GATEWAY, "AUX_ENABLE_THINKING", False)
+    monkeypatch.setattr(GATEWAY, "MAIN_ENABLE_THINKING", True)
+    GATEWAY._inflight_requests.clear()
+    threading.Thread(target=upstream.serve_forever, daemon=True).start()
+    threading.Thread(target=gateway.serve_forever, daemon=True).start()
+
+    def send(payload):
+        client = http.client.HTTPConnection("127.0.0.1", gateway.server_port, timeout=5)
+        try:
+            client.request(
+                "POST", "/v1/chat/completions", body=json.dumps(payload),
+                headers={"Content-Type": "application/json"},
+            )
+            response = client.getresponse()
+            response.read()
+            assert response.status == 200
+        finally:
+            client.close()
+        assert len(forwarded) == 1
+        return forwarded.pop()
+
+    try:
+        yield SimpleNamespace(send=send, base_url=base_url)
+    finally:
+        gateway.shutdown()
+        upstream.shutdown()
+        gateway.server_close()
+        upstream.server_close()
+
+
+def _request(model, **extra):
+    return {
+        "model": model,
+        "messages": [{"role": "user", "content": "Return JSON with key a."}],
+        "max_tokens": 32,
+        **extra,
+    }
+
+
+def test_aux_json_schema_is_not_sent_reasoning_format_none(structured_stack):
+    forwarded = structured_stack.send(_request("active:aux", response_format=SCHEMA_FORMAT))
+    assert "reasoning_format" not in forwarded
+    assert forwarded["chat_template_kwargs"] == {
+        "enable_thinking": False,
+        "thinking_mode": "disabled",
+    }
+    assert forwarded["response_format"] == SCHEMA_FORMAT
+
+
+def test_aux_bare_json_object_gets_object_schema(structured_stack):
+    forwarded = structured_stack.send(
+        _request("active:aux", response_format={"type": "json_object"})
+    )
+    assert forwarded["response_format"] == {"type": "json_object", "schema": {"type": "object"}}
+    assert "reasoning_format" not in forwarded
+
+
+def test_aux_json_object_keeps_caller_schema(structured_stack):
+    response_format = {"type": "json_object", "schema": SMALL_SCHEMA}
+    forwarded = structured_stack.send(_request("active:aux", response_format=response_format))
+    assert forwarded["response_format"] == response_format
+    assert "reasoning_format" not in forwarded
+
+
+def test_main_bare_json_object_gets_object_schema(structured_stack):
+    forwarded = structured_stack.send(
+        _request("active:main", response_format={"type": "json_object"})
+    )
+    assert forwarded["response_format"] == {"type": "json_object", "schema": {"type": "object"}}
+
+
+def test_main_thinking_off_json_schema_is_not_sent_reasoning_format_none(
+    structured_stack, monkeypatch
+):
+    monkeypatch.setattr(GATEWAY, "MAIN_ENABLE_THINKING", False)
+    forwarded = structured_stack.send(_request("active:main", response_format=SCHEMA_FORMAT))
+    assert "reasoning_format" not in forwarded
+    assert forwarded["think"] is False
+    assert forwarded["chat_template_kwargs"] == {
+        "enable_thinking": False,
+        "thinking_mode": "disabled",
+    }
+    assert forwarded["response_format"] == SCHEMA_FORMAT
+
+
+def test_aux_forced_tool_call_keeps_reasoning_format_none(structured_stack):
+    forwarded = structured_stack.send(_request(
+        "active:aux",
+        tools=[PING_TOOL],
+        tool_choice={"type": "function", "function": {"name": "ping"}},
+    ))
+    assert forwarded["reasoning_format"] == "none"
+    assert "response_format" not in forwarded
+
+
+def test_api_backend_json_object_is_forwarded_unchanged(structured_stack, monkeypatch):
+    # The object-schema injection works around llama.cpp; API providers get
+    # the caller's response_format exactly as sent.
+    monkeypatch.setattr(
+        GATEWAY, "resolve_main",
+        lambda: {
+            "base_url": structured_stack.base_url,
+            "alias": "test-api",
+            "source": "test-api",
+            "provider": "test-api",
+            "state": "ready",
+            "is_api": True,
+        },
+    )
+    monkeypatch.setattr(GATEWAY, "_get_api_key", lambda _provider: None)
+    forwarded = structured_stack.send(
+        _request("active:main", response_format={"type": "json_object"})
+    )
+    assert forwarded["response_format"] == {"type": "json_object"}
+
+
+# Review findings L1 and L2: request shapes that the object-schema injection
+# would break are forwarded exactly as before the fix.
+
+def test_aux_json_object_with_tools_is_forwarded_as_before(structured_stack):
+    # An injected schema would replace tool calling on llama.cpp.
+    forwarded = structured_stack.send(_request(
+        "active:aux", response_format={"type": "json_object"}, tools=[PING_TOOL],
+    ))
+    assert forwarded["response_format"] == {"type": "json_object"}
+    assert forwarded["reasoning_format"] == "none"
+
+
+def test_aux_json_object_with_caller_reasoning_none_is_forwarded_as_before(structured_stack):
+    # With the caller's "none", an injected schema would fail sampler init.
+    forwarded = structured_stack.send(_request(
+        "active:aux", response_format={"type": "json_object"}, reasoning_format="none",
+    ))
+    assert forwarded["response_format"] == {"type": "json_object"}
+    assert forwarded["reasoning_format"] == "none"
+
+
+def test_aux_non_dict_response_format_is_forwarded_as_before(structured_stack):
+    forwarded = structured_stack.send(_request("active:aux", response_format="json_object"))
+    assert forwarded["response_format"] == "json_object"
+    assert forwarded["reasoning_format"] == "none"

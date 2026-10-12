@@ -280,13 +280,13 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "turbosouth"
+    profile = tmp_path / "profiles" / "sirvir"
     monkeypatch.setattr(plugin_tools.shutil, "which", lambda name: "/usr/bin/hermes" if name == "hermes" else None)
 
     def fake_run(command, **kwargs):
         calls.append((command, kwargs))
         profile.mkdir(parents=True, exist_ok=True)
-        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
+        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="installed", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
@@ -294,11 +294,11 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
     result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
 
     assert calls[0][0] == [
-        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/turbosouth.git",
-        "--name", "turbosouth", "--yes",
+        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/sirvir.git",
+        "--name", "sirvir", "--yes",
     ]
     assert calls[0][1]["env"]["HERMES_HOME"] == str(tmp_path)
-    assert result["source"] == "https://github.com/SouthpawIN/turbosouth.git"
+    assert result["source"] == "https://github.com/SouthpawIN/sirvir.git"
     assert result["updated"] is False
     assert result["version"] == "2.1.0"
 
@@ -309,9 +309,9 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "turbosouth"
+    profile = tmp_path / "profiles" / "sirvir"
     profile.mkdir(parents=True, exist_ok=True)
-    (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.0.0\n")
+    (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.0.0\n")
     user_memory = profile / "memories" / "USER.md"
     user_memory.parent.mkdir()
     user_memory.write_text("keep me")
@@ -319,14 +319,14 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 
     def fake_run(command, **kwargs):
         calls.append(command)
-        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
+        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="updated", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
     result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
 
-    assert calls[0] == ["/usr/bin/hermes", "profile", "update", "turbosouth", "--yes"]
+    assert calls[0] == ["/usr/bin/hermes", "profile", "update", "sirvir", "--yes"]
     assert result["updated"] is True
     assert result["version"] == "2.1.0"
     assert user_memory.read_text() == "keep me"
@@ -335,10 +335,10 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 def test_readme_prominently_includes_sirvir_and_reciprocal_install() -> None:
     text = (ROOT / "README.md").read_text()
 
-    assert "## TurboSouth" in text or "## Sirvir" in text
-    assert "https://github.com/SouthpawIN/turbosouth" in text
-    assert "Install TurboSouth" in text or "Install Sirvir" in text
-    assert "TurboSouth installs TurboFit" in text or "Sirvir installs Turbofit when it is missing" in text
+    assert "## Sirvir" in text or "## Sirvir" in text
+    assert "https://github.com/SouthpawIN/sirvir" in text
+    assert "Install Sirvir" in text or "Install Sirvir" in text
+    assert "Sirvir installs TurboFit" in text or "Sirvir installs Turbofit when it is missing" in text
 
 
 def test_install_desktop_plugin_copies_native_desktop_surface(tmp_path: Path) -> None:
@@ -372,7 +372,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Speed" in text
     assert "Ordered provider/model JSON" not in text
     assert "publish_tailnet" in text
-    assert "install_turbosouth" in text or "install_sirvir" in text
+    assert "install_sirvir" in text or "install_sirvir" in text
     assert "install_native" in text
     assert "install_freetoken" in text
     assert "install_lemonade" in text
@@ -410,7 +410,7 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
     monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
     monkeypatch.setattr(plugin_tools, "install_sirvir_profile", lambda: {
-        "installed": True, "updated": False, "profile": "turbosouth", "path": "/profiles/sirvir"
+        "installed": True, "updated": False, "profile": "sirvir", "path": "/profiles/sirvir"
     })
 
     result = plugin_tools.apply_configuration(
@@ -418,7 +418,7 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
         fallback=None,
         profile=None,
         base_url=None,
-        install_turbosouth=True,
+        install_sirvir=True,
     )
 
     assert result["sirvir"]["installed"] is True
@@ -490,6 +490,12 @@ def test_apply_configuration_activates_managed_apple_mlx_stack(monkeypatch) -> N
     )
     monkeypatch.setattr(
         plugin_tools,
+        "install_native_runtime",
+        lambda **kwargs: {"status": "verified"},
+        raising=False,
+    )
+    monkeypatch.setattr(
+        plugin_tools,
         "activate_apple_mlx_stack",
         lambda: {"ok": True, "engine": "mlx", "gateway": "ready"},
         raising=False,
@@ -508,7 +514,7 @@ def test_apply_configuration_activates_managed_apple_mlx_stack(monkeypatch) -> N
         install_native=True,
     )
 
-    assert result["models"]["families"] == ["qwen3-8-27b-uncensored-mlx-8bit"]
+    assert result["models"]["families"] == ["qwen3-8-27b-gsq-rco-iq3s"]
     assert result["mlx_runtime"]["status"] == "verified"
     assert result["selection"]["engine"] == "mlx"
 
@@ -1061,5 +1067,5 @@ def test_recommended_artifacts_follow_apple_mlx_lane() -> None:
     )
 
     assert plugin_tools.recommended_artifact_families(hardware=hardware) == [
-        "qwen3-8-27b-uncensored-mlx-8bit"
+        "qwen3-8-27b-gsq-rco-iq3s"
     ]

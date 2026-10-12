@@ -1169,7 +1169,7 @@ def apply_configuration(
         apple_hardware = profile == "auto" and _apple_mlx_hardware(hardware)
         families = recommended_artifact_families(hardware=hardware) if apple_hardware else None
         apple_family = families[0] if families else None
-        apple_mlx = apple_family == "qwen3-8-27b-uncensored-mlx-8bit"
+        apple_mlx = apple_family in ("qwen3-8-27b-gsq-rco-iq3s", "qwen3-8-27b-gsq-rco-iq3xxs")
         if apple_family and "-mlx-" in apple_family and not apple_mlx:
             raise RuntimeError(
                 f"managed Apple MLX artifact is not pinned for {apple_family}; setup is blocked"

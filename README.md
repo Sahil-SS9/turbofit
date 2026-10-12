@@ -137,3 +137,7 @@ MIT
 - **MiniMax Music 3**
 - **NVIDIA Parakeet TDT 0.6B v3**
 - **Soprano TTS**
+
+## Sirvir
+
+Sirvir installs TurboFit when it is missing. Install Sirvir — reciprocal install: `hermes profile install https://github.com/SouthpawIN/sirvir.git`

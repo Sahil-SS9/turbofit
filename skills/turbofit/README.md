@@ -31,7 +31,7 @@ Restart Hermes Desktop or start a fresh **default-profile** CLI session so plugi
 /turbofit setup
 ```
 
-Finish Apply on the Turbofit page, then verify `http://127.0.0.1:8091/v1/models` before opening Sirvir. Do not diagnose a refused 8091 from inside Sirvir, and do not restart the Hermes messaging gateway expecting the model endpoint to appear.
+Finish Apply on the Turbofit page, then verify `http://127.0.0.1:8091/v1/models` before opening TurboSouth. Do not diagnose a refused 8091 from inside TurboSouth, and do not restart the Hermes messaging gateway expecting the model endpoint to appear.
 
 When Dashboard/slash is unavailable on Windows, use [`docs/windows-native-install.md`](../../docs/windows-native-install.md).
 
@@ -39,7 +39,7 @@ When Dashboard/slash is unavailable on Windows, use [`docs/windows-native-instal
 
 ```text
 /turbofit                 # rescan + intelligence/balanced/speed recommendations
-/turbofit update          # update Turbofit plugin + Sirvir on this device
+/turbofit update          # update Turbofit plugin + TurboSouth on this device
 /turbofit shift up        # next smarter measured configuration
 /turbofit shift down      # next lighter measured configuration
 /turbofit shift <model>   # recommended combination for that model

@@ -15,7 +15,7 @@
 - Dedicated 8 GB main candidate is Maple Preview 20B-A1B TQ2_0. Ornith remains the alternative when host RAM can hold offloaded experts. Bonsai stays in the catalog but is no longer the 8 GB default.
 - Shared total memory: Maple at 8–15 GB, Ornith 1.5 35A3B at 16–23 GB, Unleashed UD-Q3_K_XL at 24 GB+.
 - Maple is native 64K/128K only and needs the Maple llama.cpp fork. Auto on 8 GB is Maple 128K → 64K.
-- README is the whole-product 2.4 surface: Check, List, Desktop, slash, Sirvir, Tailscale, engines, multimodal. Campaign depth stays in `docs/`.
+- README is the whole-product 2.4 surface: Check, List, Desktop, slash, TurboSouth, Tailscale, engines, multimodal. Campaign depth stays in `docs/`.
 - Posters use the existing gold/mint starfield language.
 - Desktop shows a gold **New model recommended** card when Check suggests a replacement and the old weights are still installed: Keep both, Archive old model, or Delete old model.
 - Auto on `hardware-8gb` is Maple TQ2_0 at 128K, contracting to Maple 64K. Bonsai is no longer the 8 GB Auto floor.
@@ -29,18 +29,18 @@
 
 ### Setup / troubleshooting
 
-- `/turbofit` now enables itself in every Hermes profile home (including Sirvir). Desktop was reporting `not a quick/plugin/bundle/skill command: turbofit` because standalone plugins are opt-in and profile sessions do not see `~/.hermes/plugins`.
-- `/turbofit update` pulls the plugin and Sirvir onto the current device and refreshes the Desktop surface.
+- `/turbofit` now enables itself in every Hermes profile home (including TurboSouth). Desktop was reporting `not a quick/plugin/bundle/skill command: turbofit` because standalone plugins are opt-in and profile sessions do not see `~/.hermes/plugins`.
+- `/turbofit update` pulls the plugin and TurboSouth onto the current device and refreshes the Desktop surface.
 - `/turbofit shift up|down|<model>|intelligence|balanced|speed` walks the same measured ladder the healer uses.
 - `/turbofit serve` publishes `:8091` on Tailscale Serve so other tailnet devices can use the same local model server. Funnel is never used.
-- Setup downloads the Auto-chain artifacts for this machine if they are missing. Sirvir owns install and setup, with a bootstrap fallback only until `:8091` answers.
+- Setup downloads the Auto-chain artifacts for this machine if they are missing. TurboSouth owns install and setup, with a bootstrap fallback only until `:8091` answers.
 - Private-LAN HTTP (`192.168.x`) is a valid Turbofit provider URL. Windows scheduled tasks accept Vulkan and `-GatewayHost 0.0.0.0` for remote Hermes.
 
 
 - Documented the three gateways: Hermes messaging vs Turbofit `:8091` vs native model server. Plugin install and messaging-gateway restart do not start `:8091`.
 - `/turbofit setup` refreshes Hermes Desktop. Headless Windows path is linked from README to `docs/windows-native-install.md`.
-- Sirvir GitHub install now uses `https://github.com/SouthpawIN/sirvir.git` so Hermes 0.20.0 on Windows can resolve it.
-- Support text now forbids diagnosing a dead `:8091` from inside Sirvir.
+- TurboSouth GitHub install now uses `https://github.com/SouthpawIN/turbosouth.git` so Hermes 0.20.0 on Windows can resolve it.
+- Support text now forbids diagnosing a dead `:8091` from inside TurboSouth.
 
 ### Recommendations
 
@@ -60,7 +60,7 @@
 
 - Repaired the discovery/benchmark/List pipeline: current-hardware tournament priority, non-collapsing real-suite intelligence composites, model-call/token/route evidence gates, discovery-to-onboarding queue, exact-tier winner promotion, generated TurboFit List, and TurboFit Check scan-to-configuration terminology.
 - Added pinned FreeToken 0.1.2 (`0ab982f…`) as an optional Linux x86_64 / NVIDIA driver 580+ / CUDA toolkit 13+ text-only MoE candidate, with setup controls, loopback command/client contracts, compatibility gating, and no Auto promotion before exact physical evidence.
-- Turbofit's Sirvir setup option now installs or updates the canonical `SouthpawIN/sirvir` GitHub profile instead of copying a bundled snapshot; Sirvir's bootstrap reciprocally installs Turbofit first when it is missing.
+- Turbofit's TurboSouth setup option now installs or updates the canonical `SouthpawIN/turbosouth` GitHub profile instead of copying a bundled snapshot; TurboSouth's bootstrap reciprocally installs Turbofit first when it is missing.
 - Slimmed `distribution.yaml` so plugin install no longer ships benchmark result dumps as payload.
 
 ## 2.2 — Qwen 3.8 27B day-zero release
@@ -106,8 +106,8 @@
 
 - Added first-class Hermes plugin tools and `/turbofit` plus `/turbofit setup` behavior.
 - Added guided Dashboard and native Hermes Desktop management.
-- Added primary provider, ordered credential-free fallback-chain, private Tailscale Serve, Sirvir, native runtime, Lemonade, and multimodal setup controls.
-- Rewrote Sirvir as Turbofit customer service and PR-suggestion support.
+- Added primary provider, ordered credential-free fallback-chain, private Tailscale Serve, TurboSouth, native runtime, Lemonade, and multimodal setup controls.
+- Rewrote TurboSouth as Turbofit customer service and PR-suggestion support.
 
 ### Multimodal
 

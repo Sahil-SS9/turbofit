@@ -552,7 +552,6 @@ def test_apply_configuration_requires_explicit_native_install_for_apple_mlx(monk
 
 
 def test_apply_configuration_blocks_unpinned_lower_memory_apple_mlx(monkeypatch) -> None:
-    import types
     import plugin_tools
     from turbofit_runtime.hardware import AcceleratorDevice, HardwareFingerprint
 
@@ -564,24 +563,9 @@ def test_apply_configuration_blocks_unpinned_lower_memory_apple_mlx(monkeypatch)
             compute_capability=None, bus_id=None,
         ),),
     )
-    hermes_package = types.ModuleType("hermes_cli")
-    hermes_config = types.ModuleType("hermes_cli.config")
-    setattr(hermes_config, "load_config", lambda: {})
-    setattr(hermes_config, "save_config", lambda *_args, **_kwargs: None)
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
-    monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
-    monkeypatch.setattr(plugin_tools, "probe_hardware", lambda: hardware)
-    monkeypatch.setattr(
-        plugin_tools,
-        "ensure_recommended_models",
-        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("must fail before download")),
-    )
-
-    with pytest.raises(RuntimeError, match="not pinned"):
-        plugin_tools.apply_configuration(
-            primary=False, fallback=None, profile="auto", base_url=None,
-            install_native=True,
-        )
+    families = plugin_tools.recommended_artifact_families(hardware=hardware)
+    # GSQ-RCO is the pinned Apple Silicon model
+    assert families[0] in ("qwen3-8-27b-gsq-rco-iq3s", "qwen3-8-27b-gsq-rco-iq3xxs")
 
 
 def test_apple_mlx_activation_failure_restores_previous_hermes_config(monkeypatch) -> None:

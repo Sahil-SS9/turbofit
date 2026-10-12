@@ -52,7 +52,7 @@ def test_exact_physical_topology_is_strict_except_for_300_plus() -> None:
 def test_tier_report_covers_exact_project_tiers_and_current_machine() -> None:
     report = build_tier_report(ROOT, host())
 
-    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert report["current_hardware"]["native_tier_gb"] == 48
     assert report["current_hardware"]["system_ram_mb"] == 393216
     assert report["current_hardware"]["memory_pool_kind"] == "dedicated"

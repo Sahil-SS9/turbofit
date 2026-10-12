@@ -141,3 +141,11 @@ MIT
 ## Sirvir
 
 Sirvir installs TurboFit when it is missing. Install Sirvir — reciprocal install: `hermes profile install https://github.com/SouthpawIN/sirvir.git`
+
+## Hermes messaging gateway
+
+TurboFit integrates with the Hermes messaging gateway on 127.0.0.1:8091. On Windows, a connection refused (WinError 10061) means the gateway is not running. See docs/windows-native-install.md for details.
+
+## Tailscale
+
+Expose your local TurboFit gateway over Tailscale for remote access. Run `/turbofit serve` to start, `/turbofit smoke` to verify. Funnel is never used — Tailscale Serve only. Sirvir handles install of missing components.

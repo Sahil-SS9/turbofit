@@ -1143,6 +1143,17 @@ def multimodal_snapshot(config: Mapping[str, Any] | None = None) -> dict[str, An
     return payload
 
 
+def _save_configuration_to_all_homes(config: dict, *, base_url: str | None = None) -> None:
+    """Fan a configuration out to every Hermes profile home."""
+    from hermes_cli.config import save_config
+    hermes_home = Path(os.getenv("HERMES_HOME") or Path.home() / ".hermes")
+    profiles_dir = hermes_home / "profiles"
+    if profiles_dir.is_dir():
+        for profile_dir in profiles_dir.iterdir():
+            if profile_dir.is_dir():
+                save_config(config, merge_existing=False)
+
+
 def apply_configuration(
     *,
     primary: bool,

@@ -184,7 +184,7 @@ def test_every_offered_manual_local_combination_uses_the_same_contract_and_heal_
         "hardware-24gb", "hardware-8gb", "hardware-16gb", "hardware-32gb",
         "hardware-48gb", "hardware-64gb", "hardware-96gb", "hardware-128gb",
         "hardware-192gb", "hardware-256gb", "hardware-384gb",
-        "hardware-200gb", "hardware-300gb", "apple-32gb",
+        "hardware-200gb", "hardware-300gb", "apple-32gb", "hardware-12gb",
     ):
         # hardware-24gb/8gb: same model at different contexts, both fit
         # at 7000 MB so there is no smaller memory rung to contract into.

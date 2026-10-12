@@ -52,8 +52,8 @@ def test_readme_separates_hermes_gateway_from_turbofit_8091() -> None:
     assert "/turbofit serve" in readme
     assert "/turbofit smoke" in readme
     assert "Funnel is never used" in readme or "never uses Funnel" in readme
-    assert "never from Sirvir" not in skill
-    # renamed Sirvir -> TurboSouth; accept either during transition
-    assert ("Sirvir handles install" in readme or "TurboSouth handles install" in readme or "TurboSouth installs TurboFit" in readme)
+    assert "never from TurboSouth" not in skill
+    # renamed TurboSouth -> TurboSouth; accept either during transition
+    assert ("TurboSouth handles install" in readme or "TurboSouth handles install" in readme or "TurboSouth installs TurboFit" in readme)
     assert "WinError 10061" in windows
     assert "TurbofitGateway" in windows

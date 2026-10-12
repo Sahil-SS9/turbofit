@@ -81,24 +81,24 @@ RUNTIME_STATE_PATH = Path(
 _CONFIG_LOCK = threading.RLock()
 
 
-def install_sirvir_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
-    """Install or update Sirvir from its canonical GitHub distribution."""
+def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
+    """Install or update TurboSouth from its canonical GitHub distribution."""
     executable = shutil.which("hermes")
     if not executable:
         raise FileNotFoundError("hermes executable is not available")
     root = Path(hermes_home or os.getenv("HERMES_HOME") or Path.home() / ".hermes")
-    target = root / "profiles" / "sirvir"
+    target = root / "profiles" / "turbosouth"
     updated = (target / "distribution.yaml").is_file()
     command = (
-        [executable, "profile", "update", "sirvir", "--yes"]
+        [executable, "profile", "update", "turbosouth", "--yes"]
         if updated else
         [
             executable,
             "profile",
             "install",
-            "https://github.com/SouthpawIN/sirvir.git",
+            "https://github.com/SouthpawIN/turbosouth.git",
             "--name",
-            "sirvir",
+            "turbosouth",
             "--yes",
         ]
     )
@@ -112,20 +112,20 @@ def install_sirvir_profile(*, hermes_home: Path | None = None) -> dict[str, Any]
         env=environment,
     )
     if result.returncode:
-        raise RuntimeError((result.stderr or result.stdout or "Sirvir profile installation failed").strip())
+        raise RuntimeError((result.stderr or result.stdout or "TurboSouth profile installation failed").strip())
     manifest_path = target / "distribution.yaml"
     if not manifest_path.is_file():
-        raise RuntimeError("Hermes reported success but the Sirvir profile was not installed")
+        raise RuntimeError("Hermes reported success but the TurboSouth profile was not installed")
     try:
         manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
     except (OSError, ValueError) as exc:
-        raise RuntimeError("installed Sirvir distribution manifest is invalid") from exc
+        raise RuntimeError("installed TurboSouth distribution manifest is invalid") from exc
     return {
         "installed": True,
         "updated": updated,
-        "profile": "sirvir",
+        "profile": "turbosouth",
         "path": str(target),
-        "source": "https://github.com/SouthpawIN/sirvir.git",
+        "source": "https://github.com/SouthpawIN/turbosouth.git",
         "version": str(manifest.get("version") or "unknown"),
     }
 
@@ -223,11 +223,11 @@ def activate_slash_commands(
     hermes_home: Path | None = None,
     plugin_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Enable /turbofit in every Hermes home, including Sirvir.
+    """Enable /turbofit in every Hermes home, including TurboSouth.
 
     Desktop profile sessions only scan that profile's plugins/ and
     plugins.enabled. Installing into ~/.hermes alone leaves /turbofit
-    unknown in Sirvir with 'not a quick/plugin/bundle/skill command'.
+    unknown in TurboSouth with 'not a quick/plugin/bundle/skill command'.
     """
     source = Path(plugin_root or PLUGIN_ROOT).resolve()
     skill = PLUGIN_ROOT / "skills" / "turbofit"
@@ -258,7 +258,7 @@ def launch_setup_screen() -> dict[str, Any]:
         "desktop": desktop,
         "models": models,
         "slash_commands": slash,
-        "message": "Recommended models are downloading or verified. Open Hermes Desktop → Turbofit, or ask Sirvir to finish setup.",
+        "message": "Recommended models are downloading or verified. Open Hermes Desktop → Turbofit, or ask TurboSouth to finish setup.",
     }
 
 
@@ -1162,7 +1162,7 @@ def apply_configuration(
     multimodal: Mapping[str, str] | None = None,
     profile: str | None,
     base_url: str | None,
-    install_sirvir: bool = False,
+    install_turbosouth: bool = False,
     install_desktop: bool = False,
     install_lemonade: bool = False,
     install_native: bool = False,
@@ -1190,7 +1190,7 @@ def apply_configuration(
                 "Apple MLX auto activation requires install_native=true because it installs "
                 "the pinned runtime and starts loopback model and gateway processes"
             )
-        sirvir = install_sirvir_profile() if install_sirvir else None
+        turbosouth = install_turbosouth_profile() if install_turbosouth else None
         desktop = install_desktop_plugin() if install_desktop else None
         lemonade = install_lemonade_runtime() if install_lemonade else None
         native = install_native_runtime() if install_native and not apple_mlx else None
@@ -1239,7 +1239,7 @@ def apply_configuration(
         "configured": True,
         "selection": selected,
         "tailnet": publication,
-        "sirvir": sirvir,
+        "turbosouth": turbosouth,
         "desktop_plugin": desktop,
         "lemonade": lemonade,
         "native_runtime": native,
@@ -1264,7 +1264,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
         primary = args.get("primary", False)
         fallback = args.get("fallback") if "fallback" in args else None
         publish_routes = args.get("publish_tailnet", False)
-        install_sirvir = args.get("install_sirvir", False)
+        install_turbosouth = args.get("install_turbosouth", False)
         install_desktop = args.get("install_desktop", False)
         install_lemonade = args.get("install_lemonade", False)
         install_native = args.get("install_native", False)
@@ -1273,7 +1273,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
             not isinstance(primary, bool)
             or (fallback is not None and not isinstance(fallback, bool))
             or not isinstance(publish_routes, bool)
-            or not isinstance(install_sirvir, bool)
+            or not isinstance(install_turbosouth, bool)
             or not isinstance(install_desktop, bool)
             or not isinstance(install_lemonade, bool)
             or not isinstance(install_native, bool)
@@ -1311,7 +1311,7 @@ def handle_configure(args: dict[str, Any], **_: Any) -> str:
             profile=profile,
             base_url=base_url,
             publish_tailnet_routes=publish_routes,
-            install_sirvir=install_sirvir,
+            install_turbosouth=install_turbosouth,
             install_desktop=install_desktop,
             install_lemonade=install_lemonade,
             install_native=install_native,

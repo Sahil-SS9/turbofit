@@ -22,13 +22,13 @@ Use this bundled plugin skill when configuring or inspecting Turbofit for Hermes
 3. Set `primary: true` to use `custom:turbofit` with model `auto` as the main Hermes provider.
 4. Set `fallback: true` to append Turbofit to the canonical `fallback_providers` chain; set it false to remove only Turbofit while preserving other fallbacks.
 5. Set `publish_tailnet: true` to create private Tailscale Serve routes for the provider and dashboard; the returned HTTPS provider URL is registered automatically.
-6. Set `install_sirvir: true` (alias `install_turbosouth: true`) to install or update the canonical `SouthpawIN/turbosouth` GitHub-current profile without replacing its memories or user state — TurboSouth sends tested pull requests upstream to TurboFit.
+6. Set `install_turbosouth: true` (alias `install_turbosouth: true`) to install or update the canonical `SouthpawIN/turbosouth` GitHub-current profile without replacing its memories or user state — TurboSouth sends tested pull requests upstream to TurboFit.
 7. Set `install_freetoken: true` only on Linux x86_64 + NVIDIA driver 580+ + CUDA toolkit 13+ to install pinned FreeToken 0.1.2 as a text-only MoE **candidate**. It never changes Auto until exact on-box campaigns promote a supported model recipe.
 8. Start a new Hermes session after provider changes.
 
 The same controls are available in Hermes Desktop under **Turbofit** and through `/turbofit status|update|shift|serve|tiers|setup`.
 
-`/turbofit setup` refreshes Hermes Desktop. A refused `http://127.0.0.1:8091/v1/models` means the Turbofit runtime is down — not the Hermes messaging gateway. Diagnose that from Sirvir or Desktop with `turbofit_status`. Setup downloads recommended models if they are missing.
+`/turbofit setup` refreshes Hermes Desktop. A refused `http://127.0.0.1:8091/v1/models` means the Turbofit runtime is down — not the Hermes messaging gateway. Diagnose that from TurboSouth or Desktop with `turbofit_status`. Setup downloads recommended models if they are missing.
 
 ## Intelligence benchmarks
 

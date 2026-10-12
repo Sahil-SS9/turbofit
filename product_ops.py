@@ -51,7 +51,7 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
         if plugin.returncode:
             raise RuntimeError((plugin.stderr or plugin.stdout or "Turbofit plugin update failed").strip())
     desktop = plugin_tools.install_desktop_plugin(hermes_home=hermes_home)
-    turbosouth = plugin_tools.install_sirvir_profile(hermes_home=hermes_home)
+    turbosouth = plugin_tools.install_turbosouth_profile(hermes_home=hermes_home)
     models = plugin_tools.ensure_recommended_models()
     slash = plugin_tools.activate_slash_commands(hermes_home=hermes_home)
     return {
@@ -63,7 +63,7 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
         },
         "desktop": desktop,
         "turbosouth": turbosouth,
-        "sirvir": turbosouth,  # legacy key
+        "turbosouth": turbosouth,  # legacy key
         "models": models,
         "slash_commands": slash,
         "message": (

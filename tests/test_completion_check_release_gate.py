@@ -76,8 +76,8 @@ def test_release_gate_derives_current_matrix_candidate_and_version() -> None:
     assert checks["hermes_plugin_and_setup_command"]["version"] == "2.3.1"
     assert "deepseek_artifacts" not in checks
     assert checks["production_floor_artifacts"]["ok"] is True
-    assert "bundled_sirvir_customer_service" not in checks
-    assert checks["github_sirvir_customer_service"]["ok"] is True
+    assert "bundled_turbosouth_customer_service" not in checks
+    assert checks["github_turbosouth_customer_service"]["ok"] is True
     assert "dspark_live_tool_call" not in checks
     assert checks["speculative_runtime_evidence"]["ok"] is True
     assert checks["speculative_runtime_evidence"]["schema"] == "turbofit.dflash2-ab/v2"

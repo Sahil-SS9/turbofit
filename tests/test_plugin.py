@@ -274,44 +274,44 @@ def test_apply_configuration_can_publish_tailnet_and_use_remote_provider_url(mon
     assert not any("nvidia" in str(item).lower() or "nim" in str(item).lower() for item in chain)
 
 
-def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tmp_path: Path) -> None:
+def test_install_turbosouth_profile_uses_current_github_distribution(monkeypatch, tmp_path: Path) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "sirvir"
+    profile = tmp_path / "profiles" / "turbosouth"
     monkeypatch.setattr(plugin_tools.shutil, "which", lambda name: "/usr/bin/hermes" if name == "hermes" else None)
 
     def fake_run(command, **kwargs):
         calls.append((command, kwargs))
         profile.mkdir(parents=True, exist_ok=True)
-        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
+        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="installed", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
-    result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
+    result = plugin_tools.install_turbosouth_profile(hermes_home=tmp_path)
 
     assert calls[0][0] == [
-        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/sirvir.git",
-        "--name", "sirvir", "--yes",
+        "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/turbosouth.git",
+        "--name", "turbosouth", "--yes",
     ]
     assert calls[0][1]["env"]["HERMES_HOME"] == str(tmp_path)
-    assert result["source"] == "https://github.com/SouthpawIN/sirvir.git"
+    assert result["source"] == "https://github.com/SouthpawIN/turbosouth.git"
     assert result["updated"] is False
     assert result["version"] == "2.1.0"
 
 
-def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_state(monkeypatch, tmp_path: Path) -> None:
+def test_install_turbosouth_profile_updates_github_distribution_and_preserves_user_state(monkeypatch, tmp_path: Path) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
 
     calls = []
-    profile = tmp_path / "profiles" / "sirvir"
+    profile = tmp_path / "profiles" / "turbosouth"
     profile.mkdir(parents=True, exist_ok=True)
-    (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.0.0\n")
+    (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.0.0\n")
     user_memory = profile / "memories" / "USER.md"
     user_memory.parent.mkdir()
     user_memory.write_text("keep me")
@@ -319,26 +319,26 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 
     def fake_run(command, **kwargs):
         calls.append(command)
-        (profile / "distribution.yaml").write_text("name: sirvir\nversion: 2.1.0\n")
+        (profile / "distribution.yaml").write_text("name: turbosouth\nversion: 2.1.0\n")
         return types.SimpleNamespace(returncode=0, stdout="updated", stderr="")
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
-    result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
+    result = plugin_tools.install_turbosouth_profile(hermes_home=tmp_path)
 
-    assert calls[0] == ["/usr/bin/hermes", "profile", "update", "sirvir", "--yes"]
+    assert calls[0] == ["/usr/bin/hermes", "profile", "update", "turbosouth", "--yes"]
     assert result["updated"] is True
     assert result["version"] == "2.1.0"
     assert user_memory.read_text() == "keep me"
 
 
-def test_readme_prominently_includes_sirvir_and_reciprocal_install() -> None:
+def test_readme_prominently_includes_turbosouth_and_reciprocal_install() -> None:
     text = (ROOT / "README.md").read_text()
 
-    assert "## Sirvir" in text or "## Sirvir" in text
-    assert "https://github.com/SouthpawIN/sirvir" in text
-    assert "Install Sirvir" in text or "Install Sirvir" in text
-    assert "Sirvir installs TurboFit" in text or "Sirvir installs Turbofit when it is missing" in text
+    assert "## TurboSouth" in text or "## TurboSouth" in text
+    assert "https://github.com/SouthpawIN/turbosouth" in text
+    assert "Install TurboSouth" in text or "Install TurboSouth" in text
+    assert "TurboSouth installs TurboFit" in text or "TurboSouth installs Turbofit when it is missing" in text
 
 
 def test_install_desktop_plugin_copies_native_desktop_surface(tmp_path: Path) -> None:
@@ -372,7 +372,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Speed" in text
     assert "Ordered provider/model JSON" not in text
     assert "publish_tailnet" in text
-    assert "install_sirvir" in text or "install_sirvir" in text
+    assert "install_turbosouth" in text or "install_turbosouth" in text
     assert "install_native" in text
     assert "install_freetoken" in text
     assert "install_lemonade" in text
@@ -398,7 +398,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Engine audition" in text
 
 
-def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
+def test_apply_configuration_can_install_bundled_turbosouth(monkeypatch) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
@@ -409,8 +409,8 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
     setattr(hermes_config, "save_config", lambda *_args, **_kwargs: None)
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
     monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
-    monkeypatch.setattr(plugin_tools, "install_sirvir_profile", lambda: {
-        "installed": True, "updated": False, "profile": "sirvir", "path": "/profiles/sirvir"
+    monkeypatch.setattr(plugin_tools, "install_turbosouth_profile", lambda: {
+        "installed": True, "updated": False, "profile": "turbosouth", "path": "/profiles/turbosouth"
     })
 
     result = plugin_tools.apply_configuration(
@@ -418,10 +418,10 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
         fallback=None,
         profile=None,
         base_url=None,
-        install_sirvir=True,
+        install_turbosouth=True,
     )
 
-    assert result["sirvir"]["installed"] is True
+    assert result["turbosouth"]["installed"] is True
 
 
 def test_apply_configuration_can_install_lemonade_runtime(monkeypatch) -> None:
@@ -718,25 +718,25 @@ def test_plugin_registers_status_configure_and_slash_command() -> None:
     assert ctx.skills == [("turbofit", ROOT / "SKILL.md")]
 
 
-def test_slash_commands_are_enabled_in_sirvir_and_default_homes(tmp_path: Path) -> None:
+def test_slash_commands_are_enabled_in_turbosouth_and_default_homes(tmp_path: Path) -> None:
     import plugin_tools
     import yaml
 
     default = tmp_path / ".hermes"
-    sirvir = default / "profiles" / "sirvir"
+    turbosouth = default / "profiles" / "turbosouth"
     (default / "plugins" / "turbofit").mkdir(parents=True)
-    sirvir.mkdir(parents=True)
-    (sirvir / "config.yaml").write_text("model:\n  provider: custom:turbofit\n", encoding="utf-8")
+    turbosouth.mkdir(parents=True)
+    (turbosouth / "config.yaml").write_text("model:\n  provider: custom:turbofit\n", encoding="utf-8")
     (default / "plugins" / "turbofit" / "plugin.yaml").write_text("name: turbofit\n", encoding="utf-8")
 
-    result = plugin_tools.activate_slash_commands(hermes_home=sirvir, plugin_root=default / "plugins" / "turbofit")
+    result = plugin_tools.activate_slash_commands(hermes_home=turbosouth, plugin_root=default / "plugins" / "turbofit")
 
     default_config = yaml.safe_load((default / "config.yaml").read_text(encoding="utf-8"))
-    sirvir_config = yaml.safe_load((sirvir / "config.yaml").read_text(encoding="utf-8"))
+    turbosouth_config = yaml.safe_load((turbosouth / "config.yaml").read_text(encoding="utf-8"))
     assert "turbofit" in default_config["plugins"]["enabled"]
-    assert "turbofit" in sirvir_config["plugins"]["enabled"]
-    assert (sirvir / "plugins" / "turbofit" / "plugin.yaml").is_file()
-    assert (sirvir / "skills" / "turbofit" / "SKILL.md").is_file()
+    assert "turbofit" in turbosouth_config["plugins"]["enabled"]
+    assert (turbosouth / "plugins" / "turbofit" / "plugin.yaml").is_file()
+    assert (turbosouth / "skills" / "turbofit" / "SKILL.md").is_file()
     assert result["homes"] >= 2
 
 
@@ -936,7 +936,7 @@ def test_dashboard_exposes_auxiliary_recommendations_by_tier() -> None:
     assert "Auxiliary candidates by hardware tier" in bundle
 
 
-def test_sirvir_references_are_customer_service_not_autonomous_manager() -> None:
+def test_turbosouth_references_are_customer_service_not_autonomous_manager() -> None:
     for path in (
         ROOT / "references" / "SOUL.md",
         ROOT / "skills" / "turbofit" / "references" / "SOUL.md",
@@ -946,11 +946,11 @@ def test_sirvir_references_are_customer_service_not_autonomous_manager() -> None
         assert "autonomous model lifecycle manager" not in text
 
 
-def test_dashboard_exposes_bundled_sirvir_install_option() -> None:
+def test_dashboard_exposes_bundled_turbosouth_install_option() -> None:
     bundle = (ROOT / "dashboard" / "dist" / "index.js").read_text()
 
-    assert 'install_sirvir: installSirvir' in bundle
-    assert "Install or update GitHub-current Sirvir customer service" in bundle
+    assert 'install_turbosouth: installTurboSouth' in bundle
+    assert "Install or update GitHub-current TurboSouth customer service" in bundle
 
 
 def test_plugin_manifest_declares_registered_tools() -> None:

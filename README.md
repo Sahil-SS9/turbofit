@@ -138,9 +138,9 @@ MIT
 - **NVIDIA Parakeet TDT 0.6B v3**
 - **Soprano TTS**
 
-## Sirvir
+## TurboSouth
 
-Sirvir installs TurboFit when it is missing. Install Sirvir — reciprocal install: `hermes profile install https://github.com/SouthpawIN/sirvir.git`
+TurboSouth installs TurboFit when it is missing. Install TurboSouth — reciprocal install: `hermes profile install https://github.com/SouthpawIN/turbosouth.git`
 
 ## Hermes messaging gateway
 
@@ -148,4 +148,4 @@ TurboFit integrates with the Hermes messaging gateway on 127.0.0.1:8091. On Wind
 
 ## Tailscale
 
-Expose your local TurboFit gateway over Tailscale for remote access. Run `/turbofit serve` to start, `/turbofit smoke` to verify. Funnel is never used — Tailscale Serve only. Sirvir handles install of missing components.
+Expose your local TurboFit gateway over Tailscale for remote access. Run `/turbofit serve` to start, `/turbofit smoke` to verify. Funnel is never used — Tailscale Serve only. TurboSouth handles install of missing components.

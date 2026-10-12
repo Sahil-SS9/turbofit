@@ -312,7 +312,7 @@ function TurbofitPage() {
   const [fallbackChain, setFallbackChain] = useState([])
   const [usageHistory, setUsageHistory] = useState([])
   const [publishTailnet, setPublishTailnet] = useState(false)
-  const [installSirvir, setInstallSirvir] = useState(false)
+  const [installTurboSouth, setInstallTurboSouth] = useState(false)
   const [installNative, setInstallNative] = useState(false)
   const [installFreeToken, setInstallFreeToken] = useState(false)
   const [installLemonade, setInstallLemonade] = useState(false)
@@ -412,7 +412,7 @@ function TurbofitPage() {
           profile: selectionMode === 'auto' ? 'auto' : chosen.profile,
           base_url: baseUrl,
           publish_tailnet: publishTailnet,
-          install_sirvir: installSirvir,
+          install_turbosouth: installTurboSouth,
           install_native: installNative,
           install_freetoken: installFreeToken,
           install_lemonade: installLemonade,
@@ -484,7 +484,7 @@ function TurbofitPage() {
     setMessage('')
     try {
       const result = await api.rest('/update', { method: 'POST', body: {} })
-      setMessage(result.message || 'Updated Turbofit and Sirvir on this device.')
+      setMessage(result.message || 'Updated Turbofit and TurboSouth on this device.')
       await refresh()
     } catch (error) {
       setMessage(String(error && error.message || error))
@@ -617,7 +617,7 @@ function TurbofitPage() {
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: () => runShift('up'), children: 'Shift up' }),
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: () => runShift('down'), children: 'Shift down' }),
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: () => runShift(preference), children: `Shift ${preference}` }),
-          jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: runUpdate, children: 'Update Turbofit + Sirvir' }),
+          jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: runUpdate, children: 'Update Turbofit + TurboSouth' }),
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: runServe, children: 'Serve on Tailscale' }),
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: runSmoke, children: 'Smoke local runtime' }),
           jsx('button', { type: 'button', disabled: busy, style: buttonStyle, onClick: runAudition, children: 'Audition engines' }),
@@ -817,8 +817,8 @@ function TurbofitPage() {
           'Install or verify Lemonade support',
         ] }),
         jsxs('label', { className: 'flex items-center gap-2', children: [
-          jsx('input', { type: 'checkbox', checked: installSirvir, onChange: (event) => setInstallSirvir(event.target.checked) }),
-          'Install or update GitHub-current Sirvir customer service',
+          jsx('input', { type: 'checkbox', checked: installTurboSouth, onChange: (event) => setInstallTurboSouth(event.target.checked) }),
+          'Install or update GitHub-current TurboSouth customer service',
         ] }),
         jsxs('label', { className: 'flex items-center gap-2', children: [
           jsx('input', { type: 'checkbox', checked: publishTailnet, onChange: (event) => setPublishTailnet(event.target.checked) }),
@@ -991,7 +991,7 @@ export default {
         area: PALETTE_AREA,
         data: {
           id: 'turbofit.update',
-          label: 'Turbofit: update plugin and Sirvir',
+          label: 'Turbofit: update plugin and TurboSouth',
           run: () => host.navigate('/turbofit'),
         },
       },

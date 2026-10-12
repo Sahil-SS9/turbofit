@@ -66,13 +66,13 @@ TURBOFIT_CONFIGURE = {
                 "type": "boolean",
                 "description": "Publish the provider and Hermes dashboard privately with Tailscale Serve and use the resulting HTTPS provider URL.",
             },
-            "install_sirvir": {
+            "install_turbosouth": {
                 "type": "boolean",
-                "description": "Install Sirvir — TurboFit Customer Service (SouthpawIN/sirvir GitHub-current) — with tested pull requests upstream.",
+                "description": "Install TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current) — with tested pull requests upstream.",
             },
             "install_turbosouth": {
                 "type": "boolean",
-                "description": "Install or update TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current, formerly Sirvir) — plus its Sovthpaw mascot pet (auburn hair, sunglasses), with tested pull requests upstream, while preserving user data.",
+                "description": "Install or update TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current, formerly TurboSouth) — plus its Sovthpaw mascot pet (auburn hair, sunglasses), with tested pull requests upstream, while preserving user data.",
             },
             "install_desktop": {
                 "type": "boolean",

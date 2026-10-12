@@ -68,7 +68,7 @@ TURBOFIT_CONFIGURE = {
             },
             "install_sirvir": {
                 "type": "boolean",
-                "description": "Legacy name for install_turbosouth. Installs TurboSouth — TurboFit Customer Service (SouthpawIN/turbosouth GitHub-current, formerly Sirvir) — with tested pull requests upstream.",
+                "description": "Install Sirvir — TurboFit Customer Service (SouthpawIN/sirvir GitHub-current) — with tested pull requests upstream.",
             },
             "install_turbosouth": {
                 "type": "boolean",

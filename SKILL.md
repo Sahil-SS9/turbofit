@@ -151,6 +151,8 @@ No collector may modify runtime profiles, routes, or credentials. Live cron sche
 
 If `http://127.0.0.1:8091/v1/models` is connection-refused, the Turbofit provider gateway is not running. That is setup missing. Do not restart the Hermes messaging gateway, do not start with a firewall hunt when nothing listens, and do not invoke Sirvir until the endpoint answers.
 
+After a controller restart `/v1/models` reports `residency=unknown` until the first request loads the model (about 20-40 s). That is normal on a quiet service, not a fault: send one small chat request, then re-check residency before diagnosing.
+
 If the platform reports a driver/runtime mismatch, stop the real pressure test. Do not attempt blind driver reloads or disruptive accelerator work.
 
 Full architecture and schema: `README.md`.

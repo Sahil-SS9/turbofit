@@ -10,130 +10,236 @@
   "schema": "turbofit.hardware-tier-tournaments/v1",
   "tiers": [
     {
-      "candidates": [
-        "bonsai-27b--auto--64k",
-        "bonsai-27b--ornith-1-5-35a3b--64k",
-        "bonsai-27b--auto--128k"
-      ],
       "id": "hardware-8gb",
-      "physical_evidence_required": true,
       "vram_gb": 8,
-      "winner": null
-    },
-    {
-      "candidates": [
-        "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--64k",
-        "qwen3-8-27b-unleashed-ud-iq3-xxs--ornith-1-5-35a3b--64k",
-        "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--128k"
-      ],
-      "id": "hardware-16gb",
       "physical_evidence_required": true,
-      "vram_gb": 16,
-      "winner": null
-    },
-    {
       "candidates": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--128k"
+        "ternary-bonsai-2-27b-ptq1--auto--64k",
+        "ternary-bonsai-2-27b-ptq1--carwin-nano--64k",
+        "ternary-bonsai-2-27b-ptq1--ornith-1-5-35a3b--64k",
+        "ternary-bonsai-2-27b-ptq1--auto--128k",
+        "ternary-bonsai-2-27b-ptq1--carwin-nano--128k",
+        "ternary-bonsai-2-27b-ptq1--ornith-1-5-35a3b--128k",
+        "ternary-bonsai-2-27b-ptq1--auto--262k",
+        "ternary-bonsai-2-27b-ptq1--carwin-nano--262k",
+        "ternary-bonsai-2-27b-ptq1--ornith-1-5-35a3b--262k"
       ],
-      "id": "hardware-24gb",
-      "physical_evidence_required": true,
-      "vram_gb": 24,
-      "winner": null
-    },
-    {
-      "candidates": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--128k"
-      ],
-      "id": "hardware-32gb",
-      "physical_evidence_required": true,
-      "vram_gb": 32,
-      "winner": null
-    },
-    {
-      "candidates": [
-        "qwen3-8-27b-q4-dflash2--auto--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--128k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k"
-      ],
-      "id": "hardware-48gb",
-      "physical_evidence_required": true,
-      "vram_gb": 48,
       "winner": {
-        "configuration": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
-        "evidence": "sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f",
-        "hardware_fingerprint": "sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b"
+        "configuration": "ternary-bonsai-2-27b-ptq1--auto--64k",
+        "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
       }
     },
     {
+      "id": "hardware-12gb",
+      "vram_gb": 12,
+      "physical_evidence_required": true,
       "candidates": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
-        "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--262k"
+        "underdog-27b-pq2--auto--64k",
+        "underdog-27b-pq2--carwin-nano--64k",
+        "underdog-27b-pq2--ornith-1-5-35a3b--64k",
+        "underdog-27b-pq2--auto--128k",
+        "underdog-27b-pq2--carwin-nano--128k",
+        "underdog-27b-pq2--ornith-1-5-35a3b--128k",
+        "underdog-27b-pq2--auto--262k",
+        "underdog-27b-pq2--carwin-nano--262k",
+        "underdog-27b-pq2--ornith-1-5-35a3b--262k"
       ],
+      "winner": {
+        "configuration": "underdog-27b-pq2--auto--64k",
+        "evidence": "sha256:0323602de8a7f7aaca8e89535cd94fd82d1dfef2ca64656aae8c61762f947c74",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
+    },
+    {
+      "id": "hardware-16gb",
+      "vram_gb": 16,
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "evidence": "sha256:978fc4b08e91dc668dd5154025bebdcde924d95d6df415da2410281fcdbe6ea2",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
+    },
+    {
+      "id": "hardware-24gb",
+      "vram_gb": 24,
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--262k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "evidence": "sha256:2ee2a22ad8fb6ff8bd654e3fd44a02926746d8435c890d72deb9e127b0732700",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
+    },
+    {
+      "id": "hardware-32gb",
+      "vram_gb": 32,
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--262k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "evidence": "sha256:2ee2a22ad8fb6ff8bd654e3fd44a02926746d8435c890d72deb9e127b0732700",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
+    },
+    {
+      "id": "hardware-48gb",
+      "vram_gb": 48,
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--128k",
+        "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--carwin-nano--262k",
+        "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--262k",
+        "qwen3-8-27b-q4-dflash2--auto--64k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "evidence": "sha256:2ee2a22ad8fb6ff8bd654e3fd44a02926746d8435c890d72deb9e127b0732700",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
+    },
+    {
       "id": "hardware-64gb",
-      "physical_evidence_required": true,
       "vram_gb": 64,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     },
     {
-      "candidates": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-bf16--ornith-1-5-35a3b--262k"
-      ],
       "id": "hardware-96gb",
-      "physical_evidence_required": true,
       "vram_gb": 96,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     },
     {
-      "candidates": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-bf16--ornith-1-5-35a3b--262k"
-      ],
       "id": "hardware-128gb",
-      "physical_evidence_required": true,
       "vram_gb": 128,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     },
     {
-      "candidates": [
-        "qwen3-8-27b-bf16--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-bf16--auto--1m"
-      ],
       "id": "hardware-192gb",
-      "physical_evidence_required": true,
       "vram_gb": 192,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     },
     {
-      "candidates": [
-        "qwen3-8-27b-bf16--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-bf16-mtp--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m"
-      ],
       "id": "hardware-256gb",
-      "physical_evidence_required": true,
       "vram_gb": 256,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     },
     {
-      "candidates": [
-        "qwen3-8-27b-bf16--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-bf16-mtp--ornith-1-5-35a3b--1m",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m"
-      ],
       "id": "hardware-384gb",
-      "physical_evidence_required": true,
       "vram_gb": 384,
-      "winner": null
+      "physical_evidence_required": true,
+      "candidates": [
+        "qwen3-8-flash-next-strata--auto--64k",
+        "qwen3-8-flash-next-strata--carwin-nano--64k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--64k",
+        "qwen3-8-flash-next-strata--auto--128k",
+        "qwen3-8-flash-next-strata--carwin-nano--128k",
+        "qwen3-8-flash-next-strata--ornith-1-5-35a3b--128k"
+      ],
+      "winner": {
+        "configuration": "qwen3-8-flash-next-strata--auto--128k",
+        "evidence": "sha256:1cdc0dab9d7f9b4ff049bff52df685e325f170bc57e057ef4e1550192119c519",
+        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+      }
     }
   ]
 }

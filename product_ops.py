@@ -63,7 +63,7 @@ def update_products(*, hermes_home: Path | None = None) -> dict[str, Any]:
         },
         "desktop": desktop,
         "turbosouth": turbosouth,
-        "sirvir": turbosouth,  # legacy key
+        "turbosouth": turbosouth,  # legacy key
         "models": models,
         "slash_commands": slash,
         "message": (

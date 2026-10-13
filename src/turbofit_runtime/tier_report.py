@@ -14,7 +14,7 @@ from .intelligence import canonical_intelligence_recipe
 from .recipes import RecipeBook
 from .schema import MatrixRow
 
-TIERS = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
+TIERS = (8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
 
 
 def _artifact_bytes(manifest: dict[str, Any], model_ids: tuple[str, ...]) -> int:

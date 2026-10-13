@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Live llama-server TPS at Turbofit context limits: 64K, 128K, 262K, 1M YaRN.
 
-Uses Unleashed UD-Q3_K_XL / UD-IQ3_XXS, Bonsai Q1, and Carwin Nano.
+Uses GSQ-RCO IQ3_S / UD-IQ3_XXS, Bonsai Q1, and Carwin Nano.
 Does not substitute stock Qwen Q4_K_M.
 """
 from __future__ import annotations
@@ -39,15 +39,15 @@ MODELSPEC = [
     },
     {
         "band": "16GB",
-        "id": "unleashed-ud-iq3-xxs",
+        "id": "gsq-rco-iq3xxs",
         "binary": MAINLINE,
-        "model": MODELS / "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
+        "model": MODELS / "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-UD-IQ3_XXS.gguf",
     },
     {
         "band": "24-95GB",
-        "id": "unleashed-ud-q3-k-xl",
+        "id": "gsq-rco-iq3s",
         "binary": MAINLINE,
-        "model": MODELS / "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
+        "model": MODELS / "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-UD-Q3_K_XL.gguf",
     },
     {
         "band": "aux",
@@ -140,7 +140,7 @@ def write_out(payload):
         "Live `llama-server /completion` medians. Three 128-token generations after warmup.",
         "Contexts are Turbofit limits: **64K, 128K, 262K, 1M YaRN** (scale 4, orig 262144).",
         "Host: dual RTX 3090 (`2x24`). Not smaller-card proof.",
-        "Unleashed artifacts: pinned `UD-Q3_K_XL` and `UD-IQ3_XXS`. Stock Qwen Q4_K_M is not used.",
+        "GSQ-RCO artifacts: pinned `UD-Q3_K_XL` and `UD-IQ3_XXS`. Stock Qwen Q4_K_M is not used.",
         f"Captured: `{payload.get('generated_at')}`",
         "",
         "| Band | Model | Context | Decode tok/s | Prefill tok/s | GPU used MiB | Notes |",
@@ -227,7 +227,7 @@ def main() -> int:
                 snap = gpu_snap()
                 row["gpu"] = snap
                 row["gpu_used"] = "+".join(item["used"] for item in snap) if snap else None
-                row["notes"] = "live /completion; Unleashed Q3/IQ3; YaRN only at 1M"
+                row["notes"] = "live /completion; GSQ-RCO IQ3; YaRN only at 1M"
                 payload["rows"].append(row)
                 write_out(payload)
             finally:

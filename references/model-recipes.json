@@ -12,7 +12,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-q4": {
@@ -25,7 +26,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-q4-dflash2": {
@@ -41,7 +43,8 @@
         "65536": "dflash2",
         "131072": "dflash2",
         "262144": "dflash2",
-        "1048576": "dflash2"
+        "1048576": "dflash2",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-q8-mtp": {
@@ -54,7 +57,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-q8": {
@@ -67,7 +71,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-bf16-mtp": {
@@ -80,7 +85,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "qwen3-8-27b-bf16": {
@@ -93,7 +99,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "carwin-nano": {
@@ -103,7 +110,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "carwin-nano-no-mtp": {
@@ -113,7 +121,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b": {
@@ -126,7 +135,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-dspark-bf16": {
@@ -139,7 +149,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-dspark": {
@@ -152,7 +163,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-compact-vision-bf16": {
@@ -165,7 +177,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-compact-vision-bf16-dspark-bf16": {
@@ -178,7 +191,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-compact-vision-bf16-dspark-q4": {
@@ -191,7 +205,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16": {
@@ -204,7 +219,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16-dspark-bf16": {
@@ -217,7 +233,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16-dspark-q4": {
@@ -230,7 +247,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16-vision-bf16": {
@@ -243,7 +261,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16-vision-dspark": {
@@ -256,7 +275,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "ternary-bonsai-27b-fp16-vision-bf16-dspark-q4": {
@@ -269,7 +289,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b": {
@@ -282,7 +303,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-dspark-bf16": {
@@ -295,7 +317,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-dspark": {
@@ -308,7 +331,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-bf16": {
@@ -321,7 +345,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-bf16-dspark-bf16": {
@@ -334,7 +359,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-bf16-dspark-q4": {
@@ -347,7 +373,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-q8": {
@@ -360,7 +387,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-q8-dspark-bf16": {
@@ -373,7 +401,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-compact-vision-q8-dspark-q4": {
@@ -386,7 +415,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16": {
@@ -399,7 +429,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-dspark-bf16": {
@@ -412,7 +443,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-dspark-q4": {
@@ -425,7 +457,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-bf16": {
@@ -438,7 +471,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-dspark": {
@@ -451,7 +485,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-bf16-dspark-q4": {
@@ -464,7 +499,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-q8": {
@@ -477,7 +513,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-q8-dspark-bf16": {
@@ -490,7 +527,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "bonsai-27b-fp16-vision-q8-dspark-q4": {
@@ -503,57 +541,54 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "dspark",
-        "1048576": "dspark"
+        "1048576": "dspark",
+        "32768": "baseline"
       }
     },
     "glm-5-2-2-788bpw": {
       "family": "GLM 5.2",
-      "alias": "glm-5-2-2-788bpw"
+      "alias": "glm-5-2-2-788bpw",
+      "methods": {
+        "1048576": "baseline",
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
+      }
     },
     "minimax-m3-q4": {
       "family": "MiniMax M3",
       "alias": "minimax-m3-q4",
-      "model": "${TURBOFIT_MODEL_ROOT}/MiniMax-M3/UD-Q4_K_M/MiniMax-M3-UD-Q4_K_M-00001-of-00007.gguf"
+      "model": "${TURBOFIT_MODEL_ROOT}/MiniMax-M3/UD-Q4_K_M/MiniMax-M3-UD-Q4_K_M-00001-of-00007.gguf",
+      "methods": {
+        "1048576": "baseline",
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
+      }
     },
     "laguna-s2-1-fp16": {
       "family": "Laguna S2.1",
       "alias": "laguna-s2-1-fp16",
-      "model": "${TURBOFIT_MODEL_ROOT}/Laguna-S-2.1/laguna-s-2.1-F16.gguf"
+      "model": "${TURBOFIT_MODEL_ROOT}/Laguna-S-2.1/laguna-s-2.1-F16.gguf",
+      "methods": {
+        "1048576": "baseline",
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
+      }
     },
     "laguna-s2-1-q4": {
       "family": "Laguna S2.1",
-      "alias": "laguna-s2-1-q4"
-    },
-    "qwen3-8-27b-unleashed-ud-iq3-xxs": {
-      "family": "Qwen 3.8 27B Unleashed",
-      "alias": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-      "binary": "~/.local/share/turbofit/runtimes/dflash2-llama.cpp-1deefcca395743049c3820ab8f9b15043f3e9446/build-cuda/bin/llama-server",
-      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
-      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf",
-      "draft": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B/Qwen3.8-27B-DFlash2-Q4_K_M.gguf",
-      "dflash_target_family": "Qwen 3.8 27B Unleashed",
-      "draft_n_max": 7,
+      "alias": "laguna-s2-1-q4",
       "methods": {
-        "65536": "dflash2",
-        "131072": "dflash2",
-        "262144": "dflash2",
-        "1048576": "dflash2"
-      }
-    },
-    "qwen3-8-27b-unleashed-ud-q3-k-xl": {
-      "family": "Qwen 3.8 27B Unleashed",
-      "alias": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-      "binary": "~/.local/share/turbofit/runtimes/dflash2-llama.cpp-1deefcca395743049c3820ab8f9b15043f3e9446/build-cuda/bin/llama-server",
-      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf",
-      "draft": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B/Qwen3.8-27B-DFlash2-Q4_K_M.gguf",
-      "dflash_target_family": "Qwen 3.8 27B Unleashed",
-      "draft_n_max": 7,
-      "methods": {
-        "65536": "dflash2",
-        "131072": "dflash2",
-        "262144": "dflash2",
-        "1048576": "dflash2"
+        "1048576": "baseline",
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
       }
     },
     "ornith-1-5-35a3b": {
@@ -566,7 +601,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       },
       "cpu_moe": true
     },
@@ -581,7 +617,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "ornith-1-5-oq8e-mtp": {
@@ -595,7 +632,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "maple-preview-tq2": {
@@ -608,8 +646,211 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
+    },
+    "underdog-27b-pq2": {
+      "family": "Underdog 27B",
+      "alias": "underdog-27b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Underdog-27B/Underdog-PQ2_0.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "ternary-bonsai-2-27b-ptq1": {
+      "family": "Ternary Bonsai 2 27B",
+      "alias": "ternary-bonsai-2-27b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "qwen3-8-27b-gsq-rco-iq3s": {
+      "family": "Qwen 3.8 27B GSQ-RCO IQ3_S",
+      "alias": "qwen3-8-27b-gsq-rco-iq3s",
+      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/mmproj-Qwen3.8-27B-BF16.gguf",
+      "draft": "${TURBOFIT_MODEL_ROOT}/ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ3_S-mtp.gguf",
+      "methods": {
+        "65536": "mtp",
+        "131072": "mtp",
+        "262144": "mtp",
+        "1048576": "mtp",
+        "32768": "baseline"
+      }
+    },
+    "qwen3-8-flash-next-strata": {
+      "family": "Qwen 3.8 Flash Next (Strata)",
+      "alias": "qwen3-8-flash-next-strata",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "cyber-tiel-coder-35b-a3b-ud-iq3-xxs": {
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-IQ3_XXS.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "1048576": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
+      },
+      "cpu_moe": false
+    },
+    "qwen3-8-27b-gsq-rco-iq3xxs": {
+      "family": "Qwen 3.8 27B GSQ-RCO IQ3_XXS",
+      "alias": "qwen3-8-27b-gsq-rco-iq3xxs",
+      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/mmproj-Qwen3.8-27B-BF16.gguf",
+      "draft": "${TURBOFIT_MODEL_ROOT}/ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf",
+      "methods": {
+        "65536": "mtp",
+        "131072": "mtp",
+        "262144": "mtp",
+        "1048576": "mtp",
+        "32768": "baseline"
+      }
+    },
+    "qwen3-8-27b-gsq-rco-iq2s": {
+      "family": "Qwen 3.8 27B GSQ-RCO IQ2_S",
+      "alias": "qwen3-8-27b-gsq-rco-iq2s",
+      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_S.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/mmproj-Qwen3.8-27B-BF16.gguf",
+      "draft": "${TURBOFIT_MODEL_ROOT}/ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf",
+      "methods": {
+        "65536": "mtp",
+        "131072": "mtp",
+        "262144": "mtp",
+        "1048576": "mtp",
+        "32768": "baseline"
+      }
+    },
+    "qwen3-8-27b-gsq-rco-iq2xs": {
+      "family": "Qwen 3.8 27B GSQ-RCO IQ2_XS",
+      "alias": "qwen3-8-27b-gsq-rco-iq2xs",
+      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_XS.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-GSQ-RCO/mmproj-Qwen3.8-27B-BF16.gguf",
+      "draft": "${TURBOFIT_MODEL_ROOT}/ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ2_XS-mtp.gguf",
+      "methods": {
+        "65536": "mtp",
+        "131072": "mtp",
+        "262144": "mtp",
+        "1048576": "mtp",
+        "32768": "baseline"
+      }
+    },
+    "ternary-bonsai-2-27b-pq2": {
+      "family": "Ternary Bonsai 2 27B",
+      "alias": "ternary-bonsai-2-27b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "ternary-bonsai-2-27b-f16": {
+      "family": "Ternary Bonsai 2 27B",
+      "alias": "ternary-bonsai-2-27b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-F16.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "cyber-tiel-coder-35b-a3b-ud-q4-k-xl": {
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      },
+      "cpu_moe": true,
+      "no_mmap": false
+    },
+    "cyber-tiel-coder-35b-a3b-ud-q5-k-xl": {
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q5_K_XL.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      },
+      "cpu_moe": true,
+      "no_mmap": false
+    },
+    "cyber-tiel-coder-35b-a3b-ud-q6-k-xl": {
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q6_K_XL.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      },
+      "cpu_moe": true,
+      "no_mmap": false
+    },
+    "cyber-tiel-coder-35b-a3b-ud-q8-k-xl": {
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "model": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q8_K_XL.gguf",
+      "projector": "",
+      "draft": "",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      },
+      "cpu_moe": true,
+      "no_mmap": false
     }
   },
   "models": {
@@ -648,7 +889,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Ternary Bonsai": {
@@ -686,7 +928,8 @@
         "65536": "dspark",
         "131072": "dspark",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Carwin Nano": {
@@ -712,7 +955,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "Laguna S2.1": {
@@ -725,7 +969,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "MiniMax M3": {
@@ -738,7 +983,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "GLM 5.2": {
@@ -758,7 +1004,8 @@
         "65536": "mtp",
         "131072": "mtp",
         "262144": "mtp",
-        "1048576": "mtp"
+        "1048576": "mtp",
+        "32768": "baseline"
       }
     },
     "Qwen 3.8 27B": {
@@ -779,53 +1026,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
-      }
-    },
-    "Qwen 3.8 27B Unleashed": {
-      "alias": "qwen3-8-27b-unleashed",
-      "kind": "process",
-      "model": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "projector": "${TURBOFIT_MODEL_ROOT}/Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf",
-      "port": 11606,
-      "large": false,
-      "gpu_layers": 99,
-      "fit": "off",
-      "batch_size": 2048,
-      "ubatch_size": 512,
-      "native_context": 262144,
-      "max_context": 1048576,
-      "context_scaling": {
-        "method": "yarn",
-        "scale": 4,
-        "original_context": 262144
-      },
-      "context_overrides": {
-        "65536": {
-          "gpu_layers": 99,
-          "fit": "off"
-        },
-        "131072": {
-          "gpu_layers": 99,
-          "fit": "off"
-        },
-        "262144": {
-          "gpu_layers": 99,
-          "fit": "off"
-        },
-        "1048576": {
-          "gpu": "0,1",
-          "split_mode": "layer",
-          "tensor_split": "1,1",
-          "gpu_layers": 99,
-          "fit": "off"
-        }
-      },
-      "methods": {
-        "65536": "baseline",
-        "131072": "baseline",
-        "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Ornith 1.5 35A3B": {
@@ -843,7 +1045,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       },
       "context_overrides": {
         "65536": {
@@ -884,7 +1087,8 @@
         "65536": "baseline",
         "131072": "baseline",
         "262144": "baseline",
-        "1048576": "baseline"
+        "1048576": "baseline",
+        "32768": "baseline"
       },
       "context_overrides": {
         "65536": {
@@ -930,7 +1134,9 @@
       "methods": {
         "65536": "baseline",
         "131072": "baseline",
-        "262144": "baseline"
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Qwen 3.8 27B GSQ-RCO IQ3_XXS": {
@@ -954,7 +1160,9 @@
       "methods": {
         "65536": "baseline",
         "131072": "baseline",
-        "262144": "baseline"
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Qwen 3.8 27B GSQ-RCO IQ2_S": {
@@ -978,7 +1186,9 @@
       "methods": {
         "65536": "baseline",
         "131072": "baseline",
-        "262144": "baseline"
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
       }
     },
     "Qwen 3.8 27B GSQ-RCO IQ2_XS": {
@@ -1002,8 +1212,110 @@
       "methods": {
         "65536": "baseline",
         "131072": "baseline",
-        "262144": "baseline"
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
       }
+    },
+    "Underdog 27B": {
+      "alias": "underdog-27b",
+      "kind": "process",
+      "binary": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+      "native_binaries": {
+        "cuda": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+        "rocm": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-rocm/bin/llama-server",
+        "metal": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-metal/bin/llama-server",
+        "cpu": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cpu/bin/llama-server",
+        "vulkan": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-vulkan/bin/llama-server"
+      },
+      "model_root": "${TURBOFIT_MODEL_ROOT}/Underdog-27B",
+      "model": "Underdog-PQ2_0.gguf",
+      "port": 11605,
+      "large": false,
+      "native_context": 262144,
+      "max_context": 262144,
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      },
+      "runtime_flavor": "prism"
+    },
+    "Cyber-Tiel Coder 35B-A3B": {
+      "alias": "cyber-tiel-coder-35b-a3b",
+      "kind": "process",
+      "binary": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-cuda/bin/llama-server",
+      "native_binaries": {
+        "cuda": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-cuda/bin/llama-server",
+        "rocm": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-rocm/bin/llama-server",
+        "metal": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-metal/bin/llama-server",
+        "cpu": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-cpu/bin/llama-server",
+        "vulkan": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-vulkan/bin/llama-server"
+      },
+      "model_root": "${TURBOFIT_MODEL_ROOT}/Cyber-Tiel-Coder-35B-A3B",
+      "model": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "port": 11605,
+      "large": true,
+      "native_context": 262144,
+      "max_context": 262144,
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
+    },
+    "Qwen 3.8 Flash Next (Strata)": {
+      "alias": "qwen3-8-flash-next-strata",
+      "kind": "process",
+      "binary": "~/.local/share/turbofit/runtimes/strata/.venv/bin/python",
+      "binary_args": [
+        "setup.py",
+        "serve"
+      ],
+      "model_root": "${TURBOFIT_MODEL_ROOT}/flash-next-gsq",
+      "model": "Qwen3.8-Flash-Next-IQ2_XS.gguf",
+      "port": 8082,
+      "large": true,
+      "native_context": 131072,
+      "max_context": 131072,
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "32768": "baseline"
+      },
+      "runtime_flavor": "strata",
+      "working_dir": "~/.local/share/turbofit/runtimes/strata",
+      "data_dir": "~/.local/share/turbofit/strata-data"
+    },
+    "Ternary Bonsai 2 27B": {
+      "alias": "ternary-bonsai-2-27b",
+      "kind": "process",
+      "binary": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+      "native_binaries": {
+        "cuda": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+        "rocm": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-rocm/bin/llama-server",
+        "metal": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-metal/bin/llama-server",
+        "cpu": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cpu/bin/llama-server",
+        "vulkan": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-vulkan/bin/llama-server"
+      },
+      "model_root": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B",
+      "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "port": 11605,
+      "large": false,
+      "native_context": 262144,
+      "max_context": 262144,
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "32768": "baseline"
+      },
+      "runtime_flavor": "prism"
     }
   },
   "native_binaries": {
@@ -1037,6 +1349,30 @@
     "model_root": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B",
     "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
     "projector": "${TURBOFIT_MODEL_ROOT}/Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+    "port": 11605,
+    "large": false,
+    "native_context": 262144,
+    "max_context": 262144,
+    "methods": {
+      "65536": "baseline",
+      "131072": "baseline",
+      "262144": "baseline"
+    },
+    "runtime_flavor": "prism"
+  },
+  "Underdog 27B": {
+    "alias": "underdog-27b",
+    "kind": "process",
+    "binary": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+    "native_binaries": {
+      "cuda": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cuda/bin/llama-server",
+      "rocm": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-rocm/bin/llama-server",
+      "metal": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-metal/bin/llama-server",
+      "cpu": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-cpu/bin/llama-server",
+      "vulkan": "~/.local/share/turbofit/runtimes/prism-llama.cpp/build-vulkan/bin/llama-server"
+    },
+    "model_root": "${TURBOFIT_MODEL_ROOT}/Underdog-27B",
+    "model": "Underdog-PQ2_0.gguf",
     "port": 11605,
     "large": false,
     "native_context": 262144,

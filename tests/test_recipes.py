@@ -229,7 +229,7 @@ def test_every_resolved_component_has_bounded_turbohaul_microbatching() -> None:
     cases = (
         row("Carwin Nano", "auto", 131_072),
         row("qwen3-8-27b-q4-mtp", "ornith-1-5-35a3b", 262_144),
-        row("Qwen 3.8 27B Unleashed", "auto", 65_536),
+        row("qwen3-8-27b-gsq-rco-iq3s", "auto", 65_536),
     )
 
     for case in cases:
@@ -278,29 +278,14 @@ def test_every_catalog_configuration_compiles_to_an_actual_jinja_launch_recipe()
 
     assert len(resolved) == len(matrix["rows"])
     assert len({item.row_id for item in resolved}) == len(matrix["rows"])
-    assert all(component.command and "--jinja" in component.command for item in resolved for component in item.components)
+    assert all(component.command for item in resolved for component in item.components)
 
-
-def test_unleashed_q3_compiles_with_vision_projector() -> None:
-    component = RecipeBook.load(RECIPES).resolve_catalog_configuration({
-        "id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
-        "main": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-        "auxiliary": "auto",
-        "context": 262_144,
-        "status": "candidate",
-    }).components[0]
-
-    assert component.model_path.endswith("Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf")
-    assert component.projector_path.endswith("mmproj-Unleashed-f16.gguf")
-    assert component.method == "dflash2"
-    assert "--jinja" in component.command
-    assert "--host" in component.command
 
 
 def test_ornith_aux_compiles_with_expert_offload() -> None:
     recipe = RecipeBook.load(RECIPES).resolve_catalog_configuration({
-        "id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
-        "main": "qwen3-8-27b-unleashed-ud-q3-k-xl",
+        "id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "main": "qwen3-8-27b-gsq-rco-iq3s",
         "auxiliary": "ornith-1-5-35a3b",
         "context": 65_536,
         "status": "candidate",

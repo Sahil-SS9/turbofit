@@ -63,7 +63,7 @@
     const [servingBackend, setServingBackend] = useState("adaptive");
     const [baseUrl, setBaseUrl] = useState("http://127.0.0.1:8091/v1");
     const [publishTailnet, setPublishTailnet] = useState(false);
-    const [installSirvir, setInstallSirvir] = useState(true);
+    const [installTurboSouth, setInstallTurboSouth] = useState(true);
     const [installDesktop, setInstallDesktop] = useState(true);
     const [installLemonade, setInstallLemonade] = useState(false);
     const [installNative, setInstallNative] = useState(false);
@@ -155,7 +155,7 @@
             primary, fallback, fallback_chain: fallbackChain, multimodal: multimodalSelections,
             profile: selectionMode === "auto" ? "auto" : selectedCombination.profile, base_url: baseUrl,
             publish_tailnet: publishTailnet,
-            install_sirvir: installSirvir,
+            install_turbosouth: installTurboSouth,
             install_desktop: installDesktop,
             install_lemonade: installLemonade,
             install_native: installNative,
@@ -333,7 +333,7 @@
             h("div", { className: "tf-toggles" },
               h(Toggle, { checked: primary, onChange: setPrimary, label: "Use Turbofit as primary provider (model: auto)" }),
               h(Toggle, { checked: fallback, onChange: setFallback, label: "Add Turbofit to Hermes fallback providers" }),
-              h(Toggle, { checked: installSirvir, onChange: setInstallSirvir, label: "Install or update GitHub-current Sirvir customer service" }),
+              h(Toggle, { checked: installTurboSouth, onChange: setInstallTurboSouth, label: "Install or update GitHub-current TurboSouth customer service" }),
               h(Toggle, { checked: installDesktop, onChange: setInstallDesktop, label: "Install native Hermes Desktop Turbofit page" }),
               servingBackend === "adaptive" ? h(Toggle, {
                 checked: installNative,

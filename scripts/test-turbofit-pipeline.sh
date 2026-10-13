@@ -59,7 +59,7 @@ log "Test 3: Chat completion through Omarchy"
 RESPONSE=$(curl -s --max-time 30 "$OMARCHY_URL/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
+        "model": "Qwen3.8-27B-GSQ-RCO-UD-Q3_K_XL.gguf",
         "messages": [{"role": "user", "content": "Say hello in one sentence."}],
         "max_tokens": 64,
         "temperature": 0

@@ -325,6 +325,19 @@ class RecipeBook:
             ]
             if fit == "on":
                 command.append("--fit")
+        elif runtime_flavor == "strata":
+            # Strata engine: python setup.py serve --model <model> --port <port>
+            # Uses expert tiering: hot experts on GPU, all experts in RAM
+            command = [
+                binary, "setup.py", "serve",
+                "--family", "qwen", "--model", "IQ2_XS",
+                "--context", str(context),
+                "--port", str(port),
+                "--gpu", "0",
+                "--yes", "--no-browser",
+            ]
+            if spec.get("data_dir"):
+                command.extend(["--data-dir", spec["data_dir"]])
         elif runtime_flavor == "mainline":
             command = [
                 binary, "-m", model,

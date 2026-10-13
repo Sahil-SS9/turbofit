@@ -59,7 +59,53 @@
       "repository": "https://github.com/stamsam/llama.cpp.git",
       "revision": "9ee03eec62d088a117ab916bbe489e7a3872a21f",
       "purpose": "Maple architecture and TQ2_0 GPU kernels",
-      "cuda_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-cuda/bin/llama-server"
+      "cuda_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-cuda/bin/llama-server",
+      "metal_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-metal/bin/llama-server",
+      "cpu_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-cpu/bin/llama-server",
+      "rocm_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-rocm/bin/llama-server",
+      "vulkan_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-vulkan/bin/llama-server",
+      "windows_binary": "~/.local/share/turbofit/runtimes/maple-llama.cpp-9ee03eec62d088a117ab916bbe489e7a3872a21f/build-cuda/bin/Release/llama-server.exe"
+    },
+    {
+      "id": "strata",
+      "kind": "python-cli",
+      "repository": "https://github.com/Niko1221/Strata.git",
+      "revision": "main",
+      "purpose": "Qwen 3.8 Flash Next 125B MoE via expert tiering. 64+ GB RAM required.",
+      "executable": "~/.local/share/turbofit/runtimes/strata/.venv/bin/python",
+      "launch_command": "setup.py",
+      "port": 8082,
+      "requirements": {
+        "os": "linux",
+        "architecture": "x86_64",
+        "backend": "cuda",
+        "driver_min": 580,
+        "cuda_toolkit_min": "12.0",
+        "min_vram_gb": 12,
+        "min_system_ram_gb": 64,
+        "multimodal": false,
+        "model_format": "gguf"
+      },
+      "status": "production"
+    },
+    {
+      "id": "maple-flash-moe",
+      "kind": "python-cli",
+      "repository": "https://github.com/PUT-Request/maple-flash-moe.git",
+      "revision": "main",
+      "purpose": "Maple Preview with file-backed expert offload. Streams 256 experts from disk, keeps active 8 in DRAM. 9x RAM reduction (~0.63 GB resident vs 5.9 GB full).",
+      "executable": "~/.local/share/turbofit/runtimes/maple-flash-moe/.venv/bin/python",
+      "launch_command": "-m mlx_lm server",
+      "port": 8085,
+      "requirements": {
+        "os": "darwin",
+        "architecture": "arm64",
+        "backend": "metal",
+        "min_system_ram_gb": 4,
+        "multimodal": false,
+        "model_format": "mlx"
+      },
+      "status": "production"
     }
   ]
 }

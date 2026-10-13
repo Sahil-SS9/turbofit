@@ -52,7 +52,7 @@ def test_exact_physical_topology_is_strict_except_for_300_plus() -> None:
 def test_tier_report_covers_exact_project_tiers_and_current_machine() -> None:
     report = build_tier_report(ROOT, host())
 
-    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [tier["capacity_gb"] for tier in report["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert report["current_hardware"]["native_tier_gb"] == 48
     assert report["current_hardware"]["system_ram_mb"] == 393216
     assert report["current_hardware"]["memory_pool_kind"] == "dedicated"
@@ -100,7 +100,7 @@ def test_tier_candidates_publish_current_exact_winner_and_keep_requirements_sepa
     tier48 = next(tier for tier in report["tiers"] if tier["capacity_gb"] == 48)
     candidate = next(
         item for item in tier48["candidates"]
-        if item["configuration_id"] == "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k"
+        if item["configuration_id"] == "qwen3-8-27b-gsq-rco-iq3s--auto--262k"
     )
 
     assert tier48["recommendations"]["measured_winner"]["configuration_id"] == candidate["configuration_id"]

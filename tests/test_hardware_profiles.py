@@ -10,9 +10,10 @@ from turbofit_runtime.recommend import hardware_satisfies
 
 
 ROOT = Path(__file__).parents[1]
-CLASSES = (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
+CLASSES = (8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)
 TOPOLOGIES = {
     8: "1x8",
+    12: "1x12",
     16: "1x16",
     24: "1x24",
     32: "1x32",
@@ -167,8 +168,8 @@ def test_dedicated_8gb_tier_allows_only_the_windows_vulkan_reporting_delta() -> 
 
     assert hardware_satisfies(windows_vulkan, profile.hardware)
     assert not hardware_satisfies(undersized, profile.hardware)
-    assert [rung.id for rung in profile.rungs] == ["local-maple-131072", "local-maple-65536"]
-    assert [rung.context for rung in profile.rungs] == [131072, 65536]
+    assert [rung.id for rung in profile.rungs] == ["local-maple-65536", "local-maple-131072"]
+    assert [rung.context for rung in profile.rungs] == [65536, 131072]
 
 
 def test_large_shared_memory_pools_are_not_rejected_by_discrete_card_topology() -> None:

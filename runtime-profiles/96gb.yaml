@@ -22,24 +22,18 @@ roles:
   auxiliary: active:aux
   fallback: active:main
 rungs:
-# Unleashed UD-Q3_K_XL rungs per the Fit List (24 GB+ shared memory class).
-# Evidence: references/successful-runtime-profiles.json key
-# qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k (37.99 tok/s baseline,
-# gpu_peak_mb[1] = 19391 -> required_mb_per_card 19391).
-# Retired Bonsai rungs were never re-validated as the 96 GB default after
-# Bonsai's retirement in v2.4.
-- id: local-unleashed-q3kxl-262144
+- id: local-gsq-rco-iq3s-262144
   context: 262144
   aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
+  evidence: sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22
   main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b
-- id: local-unleashed-q3kxl-131072
+- id: local-gsq-rco-iq3s-131072
   context: 131072
   aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
+  evidence: sha256:4237fae3f8855344dbe203a12d97eda11b2a7bbec554b8c53b34c3c3ee9936f7
   main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b
-- id: local-unleashed-q3kxl-65536
+- id: local-gsq-rco-iq3s-65536
   context: 65536
   aux_mode: shared-main
-  evidence: sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f
+  evidence: sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22
   main_manifest: sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b

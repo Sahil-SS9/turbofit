@@ -29,7 +29,7 @@ def test_all_release_surfaces_use_release_version() -> None:
 def test_release_readmes_show_every_new_2_2_model() -> None:
     required = {
         "Maple Preview 20B-A1B",
-        "Qwen 3.8 27B Unleashed",
+        "Qwen 3.8 27B GSQ-RCO",
         "Ornith 1.5 35A3B",
         "MiniMax Music 3",
         "NVIDIA Parakeet TDT 0.6B v3",
@@ -43,11 +43,11 @@ def test_release_readmes_show_every_new_2_2_model() -> None:
 def test_readme_qwen_variants_match_active_catalog() -> None:
     catalog = json.loads((ROOT / "references/model-catalog.json").read_text())
     qwen = [row for row in catalog["models"] if row["id"].startswith("qwen3-8-27b-")]
-    unleashed = [row for row in qwen if "unleashed" in row["id"]]
-    assert len(unleashed) == 2
-    assert {row["quantization"] for row in unleashed} == {"UD-IQ3_XXS", "UD-Q3_K_XL"}
+    gsq_rco = [row for row in qwen if "gsq-rco" in row["id"]]
+    assert len(gsq_rco) == 4
+    assert len(gsq_rco) == 4
     readme = (ROOT / "README.md").read_text()
-    assert "Qwen 3.8 27B Unleashed" in readme
+    assert "Qwen 3.8 27B GSQ-RCO" in readme
     assert "Ornith 1.5 35A3B" in readme
 
 

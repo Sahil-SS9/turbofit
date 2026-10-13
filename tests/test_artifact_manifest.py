@@ -56,25 +56,9 @@ def test_artifact_manifest_covers_every_executable_matrix_file() -> None:
 def test_model_catalog_pins_every_source_revision() -> None:
     catalog = ModelCatalog.load(ROOT / "references/model-catalog.json")
 
-    assert len(catalog.models) == 46
+    assert len(catalog.models) == 61
     assert all(len(model.revision) == 40 for model in catalog.models)
 
-
-def test_unleashed_and_ornith_artifacts_are_pinned() -> None:
-    catalog = ModelCatalog.load(ROOT / "references/model-catalog.json")
-    unleashed = [model for model in catalog.models if "unleashed" in model.id]
-    ornith = [model for model in catalog.models if model.id.startswith("ornith-1-5-35a3b")]
-    manifest = json.loads((ROOT / "references/artifact-manifest.json").read_text())
-    unleashed_artifacts = [item for item in manifest["artifacts"] if item["repo_id"] == "outsourc-e/Qwen3.8-27B-Unleashed-GGUF"]
-    ornith_artifacts = [item for item in manifest["artifacts"] if item["repo_id"] == "ornith-ai/Ornith-1.5-35B-A3B-GGUF"]
-
-    assert len(unleashed) == 2
-    assert {model.revision for model in unleashed} == {"67a999218fd7002f11bf82bc81d6289beea60841"}
-    assert ornith and ornith[0].revision == "fbbaed45c2f0e200276ffa51701a24d45dc7f57e"
-    assert unleashed_artifacts
-    assert ornith_artifacts
-    assert any(item["path"] == "Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf" for item in unleashed_artifacts)
-    assert any(item["path"] == "Ornith-1.5-35B-Q4_K_M.gguf" for item in ornith_artifacts)
 
 
 def test_qwen_dflash2_drafter_is_immutable_and_bonsai_specific_drafters_stay_separate() -> None:

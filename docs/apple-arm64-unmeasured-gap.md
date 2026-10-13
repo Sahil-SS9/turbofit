@@ -12,10 +12,10 @@ Consequences:
   `[]`: no evidence entry matches an Apple fingerprint, and per spec the
   recommender must not claim measurements it does not have.
 - macOS (e.g. M1 Pro 32 GB) therefore gets its main-model identity from the
-  Fit List heuristic ladder (`allowed_lineup.py` → Unleashed UD-Q3_K_XL at
+  Fit List heuristic ladder (`allowed_lineup.py` → GSQ-RCO IQ3_S at
   24 GB+ shared memory) rather than from on-box evidence. The 24 GB runtime
   profile rungs cite the Linux 2x24 CUDA measurement
-  (`qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k`) as the closest proven
+  (`qwen-3-8-27b-gsq-rco-iq3s-auto-262k`) as the closest proven
   envelope; those throughput/VRAM numbers have **not** been reproduced on
   Metal.
 

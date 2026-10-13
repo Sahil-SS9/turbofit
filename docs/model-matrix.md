@@ -25,17 +25,17 @@ Current generated scope:
 
 `stamsam/maple-preview-gguf` `maple-tq2_0.gguf` is the dedicated 8 GB and RAM-only 8–15 GB Fit List candidate. It is a 20B-A1B ternary MoE with native 131,072 context and requires the Maple llama.cpp fork. It is not Auto-promoted until exact physical 8 GB-device evidence exists. Details: [`maple-small-device-validation.md`](maple-small-device-validation.md).
 
-#### Qwen 3.8 27B Unleashed
+#### Qwen 3.8 27B GSQ-RCO
 
-The Auto chain prefers Unleashed before stock Qwen 3.8 27B. Deployable artifacts come from [`outsourc-e/Qwen3.8-27B-Unleashed-GGUF`](https://huggingface.co/outsourc-e/Qwen3.8-27B-Unleashed-GGUF), pinned at commit `67a999218fd7002f11bf82bc81d6289beea60841`:
+The Auto chain prefers GSQ-RCO before stock Qwen 3.8 27B. Deployable artifacts come from [`outsourc-e/Qwen3.8-27B-GSQ-RCO-GGUF`](https://huggingface.co/outsourc-e/Qwen3.8-27B-GSQ-RCO-GGUF), pinned at commit `67a999218fd7002f11bf82bc81d6289beea60841`:
 
 - `UD-IQ3_XXS` for the 16 GB band
 - `UD-Q3_K_XL` for the 24–95 GB band
-- matching Unleashed F16 vision projector
+- matching GSQ-RCO F16 vision projector
 
-The 96 GB+ band stays on stock Qwen 3.8 27B 16-bit until an Unleashed FP16 GGUF is published. These rows remain catalog candidates until current-recipe physical evidence promotes them.
+The 96 GB+ band stays on stock Qwen 3.8 27B 16-bit until an GSQ-RCO FP16 GGUF is published. These rows remain catalog candidates until current-recipe physical evidence promotes them.
 
-![Turbofit 2.3 Unleashed + Qwen 3.8 27B lineup](assets/turbofit-2.3-unleashed-lineup.png)
+![Turbofit 2.3 GSQ-RCO + Qwen 3.8 27B lineup](assets/turbofit-2.3-gsq-rco-lineup.png)
 
 #### Qwen 3.8 27B
 

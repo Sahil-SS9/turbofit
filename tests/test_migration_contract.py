@@ -26,7 +26,7 @@ def test_role_context_metadata_round_trips_resolution_loader(tmp_path):
 
 def test_native_component_uses_role_context(tmp_path):
     runtime=backend(tmp_path)
-    item=dict(runtime._roles('local-bonsai-262144')['main'],context=131072)
+    item=dict(runtime._roles('local-gsq-rco-iq3s-262144')['main'],context=131072)
     cmd=runtime._component('main',item,262144).command
     assert cmd[cmd.index('-c')+1]=='131072'
 

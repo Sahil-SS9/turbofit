@@ -2,15 +2,15 @@
 
 A 9B must never be recommended. Routing:
 
-- Apple / Metal: Qwen 3.8 27B Unleashed UD-Q3_K_XL via llama.cpp at 24 GB+
+- Apple / Metal: Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL via llama.cpp at 24 GB+
   unified memory (Fit List winner, evidence
-  qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k); Ornith below 24 GB. The
+  qwen-3-8-27b-gsq-rco-iq3s-auto-262k); Ornith below 24 GB. The
   OrcaRouter Uncensored MLX band and the MLX 2-bit build (uploader: archival,
   quality collapse) are retired from the default Apple route.
 - Integrated / RAM-only (non-Apple): Maple at 8 GB total, Ornith at 16 GB,
-  and Qwen 3.8 27B Unleashed at 24 GB+.
+  and Qwen 3.8 27B GSQ-RCO at 24 GB+.
 - Dedicated 8 GB: Maple, plus Ornith when host RAM can hold offloaded experts.
-- Dedicated 16 GB+: Unleashed GGUF + Ornith aux.
+- Dedicated 16 GB+: GSQ-RCO GGUF + Ornith aux.
 
 The Asha/Escha mixed 2-bit (EschaLabs/Qwen3.8-27B-Escha-W2) is a research
 candidate only: custom SGLang kernels, no llama.cpp recipe, no TurboFit TPS.
@@ -28,9 +28,9 @@ ALLOWED_MAIN = (
     "ornith-1-5-35a3b",
     "ornith-1-5-oq4e-mtp",
     "ornith-1-5-oq8e-mtp",
-    "qwen3-8-27b-unleashed-ud-iq3-xxs",
-    "qwen3-8-27b-unleashed-ud-q3-k-xl",
-    "qwen3-8-27b-unleashed",
+    "qwen3-8-27b-gsq-rco-iq3xxs",
+    "qwen3-8-27b-gsq-rco-iq3s",
+    "qwen3-8-27b-gsq-rco",
     "qwen3-8-27b-bf16",
     "qwen3-8-27b-q8",
     "qwen3-8-27b-uncensored-mlx-4bit",
@@ -91,13 +91,13 @@ def expert_residency(*, host_ram_gb: float) -> dict[str, object]:
 def apple_mlx_main(*, unified_ram_gb: float) -> str:
     """Fit List route for Apple unified memory.
 
-    24 GB+ shared memory runs Qwen 3.8 27B Unleashed UD-Q3_K_XL
-    (evidence: qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k), not the
+    24 GB+ shared memory runs Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL
+    (evidence: qwen-3-8-27b-gsq-rco-iq3s-auto-262k), not the
     retired OrcaRouter Uncensored MLX band. Sub-24 GB Macs stay Ornith;
     the MLX 2-bit build is banned.
     """
     if unified_ram_gb >= 24:
-        return "qwen3-8-27b-unleashed-ud-q3-k-xl"
+        return "qwen3-8-27b-gsq-rco-iq3s"
     return "ornith-1-5-35a3b"
 
 
@@ -105,9 +105,9 @@ def local_main_for_vram_gb(vram_gb: float) -> str:
     if vram_gb < 16:
         return "maple-preview-tq2"
     if vram_gb < 24:
-        return "qwen3-8-27b-unleashed-ud-iq3-xxs"
+        return "qwen3-8-27b-gsq-rco-iq3xxs"
     if vram_gb < 96:
-        return "qwen3-8-27b-unleashed-ud-q3-k-xl"
+        return "qwen3-8-27b-gsq-rco-iq3s"
     return "qwen3-8-27b-bf16"
 
 
@@ -132,7 +132,7 @@ def speed_family_rank(alias: str) -> int:
         return 40
     if token.startswith("maple"):
         return 30
-    if "unleashed" in token or token.startswith("qwen3-8-27b"):
+    if "gsq-rco" in token or token.startswith("qwen3-8-27b"):
         return 5
     return 10
 
@@ -143,14 +143,14 @@ def shared_main_for_total_memory_gb(total_memory_gb: float) -> str:
         return "maple-preview-tq2"
     if total_memory_gb < 24:
         return "ornith-1-5-35a3b"
-    return "qwen3-8-27b-unleashed-ud-q3-k-xl"
+    return "qwen3-8-27b-gsq-rco-iq3s"
 
 
 def local_aux_for_host(*, vram_gb: float, host_ram_gb: float) -> str:
     """Default aux is MTP Ornith when the box can hold it next to main.
 
     oQ4e is 21.6 GB. oQ8e is 38.6 GB. A single 8/16/24 GB card cannot stack
-    either next to Unleashed, so those stay `auto`. Dual-24 / 40 GB+ gets oQ4e.
+    either next to GSQ-RCO, so those stay `auto`. Dual-24 / 40 GB+ gets oQ4e.
     64 GB+ gets oQ8e. GGUF Ornith remains in the catalog, not the default.
     """
     if vram_gb >= 64:
@@ -206,7 +206,7 @@ def check_local_options(
 
     if apple:
         main = apple_mlx_main(unified_ram_gb=host_ram_gb)
-        is_unleashed = main == "qwen3-8-27b-unleashed-ud-q3-k-xl"
+        is_gsq_rco = main == "qwen3-8-27b-gsq-rco-iq3s"
         return [
             {
                 "role": "main",
@@ -215,9 +215,9 @@ def check_local_options(
                 "repo": None,
                 "revision": None,
                 "why": (
-                    "Apple 24 GB+ unified: Unleashed UD-Q3_K_XL per the Fit List "
+                    "Apple 24 GB+ unified: GSQ-RCO IQ3_S per the Fit List "
                     "(OrcaRouter Uncensored MLX band is retired)."
-                    if is_unleashed
+                    if is_gsq_rco
                     else "Apple under 24 GB unified: Ornith 1.5, not MLX 2-bit."
                 ),
                 "residency": residency if main == "ornith-1-5-35a3b" else None,
@@ -232,7 +232,7 @@ def check_local_options(
                 "alias": main,
                 "why": (
                     "Integrated/unified memory uses total-memory bands: "
-                    "Maple at 8 GB, Ornith at 16 GB, Unleashed at 24 GB+."
+                    "Maple at 8 GB, Ornith at 16 GB, GSQ-RCO at 24 GB+."
                 ),
                 "residency": residency if main == "ornith-1-5-35a3b" else None,
             }
@@ -263,7 +263,7 @@ def check_local_options(
         {
             "role": "main",
             "alias": local_main_for_vram_gb(vram_gb),
-            "why": "Intelligence / balanced: Unleashed / Qwen band for this VRAM.",
+            "why": "Intelligence / balanced: GSQ-RCO / Qwen band for this VRAM.",
         },
         {
             "role": "main",

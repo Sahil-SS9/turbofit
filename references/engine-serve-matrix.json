@@ -41,7 +41,7 @@
       "backends": ["cuda", "rocm", "metal"],
       "windows": "WSL only",
       "maple_gguf": "incompatible; maple arch is not in vLLM",
-      "qwen38_gguf": "prefer Qwen/Qwen3.8-27B or NVFP4/FP8 recipes, not Unleashed GGUF",
+      "qwen38_gguf": "prefer Qwen/Qwen3.8-27B or NVFP4/FP8 recipes, not GSQ-RCO GGUF",
       "ornith_gguf": "unproven"
     },
     "freetoken": {
@@ -96,13 +96,13 @@
       "apple_alternate": "mlx",
       "ineligible_engines": ["sglang", "vllm", "freetoken"]
     },
-    "qwen3-8-27b-unleashed-ud-iq3-xxs": {
+    "qwen3-8-27b-gsq-rco-iq3xxs": {
       "artifact": "GGUF",
       "eligible_engines": ["turbohaul-manager", "llama.cpp"],
       "apple_alternate": "mlx",
       "hf_engines": ["vllm", "sglang"]
     },
-    "qwen3-8-27b-unleashed-ud-q3-k-xl": {
+    "qwen3-8-27b-gsq-rco-iq3s": {
       "artifact": "GGUF",
       "eligible_engines": ["turbohaul-manager", "llama.cpp"],
       "apple_alternate": "mlx",

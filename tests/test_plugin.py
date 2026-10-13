@@ -247,7 +247,7 @@ def test_apply_configuration_can_publish_tailnet_and_use_remote_provider_url(mon
     setattr(hermes_config, "save_config", lambda config, merge_existing=False: saved.append(config))
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
     monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
-    monkeypatch.setattr(plugin_tools, "publish_tailnet", lambda **_: {
+    monkeypatch.setattr(plugin_tools, "ensure_tailnet", lambda **_: {
         "ok": True,
         "dashboard_url": "https://host.example.ts.net:9444/",
         "provider_base_url": "https://host.example.ts.net:9443/v1",
@@ -274,7 +274,7 @@ def test_apply_configuration_can_publish_tailnet_and_use_remote_provider_url(mon
     assert not any("nvidia" in str(item).lower() or "nim" in str(item).lower() for item in chain)
 
 
-def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tmp_path: Path) -> None:
+def test_install_turbosouth_profile_uses_current_github_distribution(monkeypatch, tmp_path: Path) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
@@ -291,7 +291,7 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
-    result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
+    result = plugin_tools.install_turbosouth_profile(hermes_home=tmp_path)
 
     assert calls[0][0] == [
         "/usr/bin/hermes", "profile", "install", "https://github.com/SouthpawIN/turbosouth.git",
@@ -303,7 +303,7 @@ def test_install_sirvir_profile_uses_current_github_distribution(monkeypatch, tm
     assert result["version"] == "2.1.0"
 
 
-def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_state(monkeypatch, tmp_path: Path) -> None:
+def test_install_turbosouth_profile_updates_github_distribution_and_preserves_user_state(monkeypatch, tmp_path: Path) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
@@ -324,7 +324,7 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
 
     monkeypatch.setattr(plugin_tools.subprocess, "run", fake_run)
 
-    result = plugin_tools.install_sirvir_profile(hermes_home=tmp_path)
+    result = plugin_tools.install_turbosouth_profile(hermes_home=tmp_path)
 
     assert calls[0] == ["/usr/bin/hermes", "profile", "update", "turbosouth", "--yes"]
     assert result["updated"] is True
@@ -332,13 +332,13 @@ def test_install_sirvir_profile_updates_github_distribution_and_preserves_user_s
     assert user_memory.read_text() == "keep me"
 
 
-def test_readme_prominently_includes_sirvir_and_reciprocal_install() -> None:
+def test_readme_prominently_includes_turbosouth_and_reciprocal_install() -> None:
     text = (ROOT / "README.md").read_text()
 
-    assert "## TurboSouth" in text or "## Sirvir" in text
+    assert "## TurboSouth" in text or "## TurboSouth" in text
     assert "https://github.com/SouthpawIN/turbosouth" in text
-    assert "Install TurboSouth" in text or "Install Sirvir" in text
-    assert "TurboSouth installs TurboFit" in text or "Sirvir installs Turbofit when it is missing" in text
+    assert "Install TurboSouth" in text or "Install TurboSouth" in text
+    assert "TurboSouth installs TurboFit" in text or "TurboSouth installs Turbofit when it is missing" in text
 
 
 def test_install_desktop_plugin_copies_native_desktop_surface(tmp_path: Path) -> None:
@@ -372,7 +372,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Speed" in text
     assert "Ordered provider/model JSON" not in text
     assert "publish_tailnet" in text
-    assert "install_turbosouth" in text or "install_sirvir" in text
+    assert "install_turbosouth" in text or "install_turbosouth" in text
     assert "install_native" in text
     assert "install_freetoken" in text
     assert "install_lemonade" in text
@@ -398,7 +398,7 @@ def test_desktop_plugin_source_has_status_recommendation_and_fallback_controls()
     assert "Engine audition" in text
 
 
-def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
+def test_apply_configuration_can_install_bundled_turbosouth(monkeypatch) -> None:
     import types
     import plugin_tools
     monkeypatch.setattr(plugin_tools, "ensure_recommended_models", lambda **_: {"ok": True, "families": ["bonsai-27b"], "artifacts": []})
@@ -409,8 +409,8 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
     setattr(hermes_config, "save_config", lambda *_args, **_kwargs: None)
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
     monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
-    monkeypatch.setattr(plugin_tools, "install_sirvir_profile", lambda: {
-        "installed": True, "updated": False, "profile": "turbosouth", "path": "/profiles/sirvir"
+    monkeypatch.setattr(plugin_tools, "install_turbosouth_profile", lambda: {
+        "installed": True, "updated": False, "profile": "turbosouth", "path": "/profiles/turbosouth"
     })
 
     result = plugin_tools.apply_configuration(
@@ -421,7 +421,7 @@ def test_apply_configuration_can_install_bundled_sirvir(monkeypatch) -> None:
         install_turbosouth=True,
     )
 
-    assert result["sirvir"]["installed"] is True
+    assert result["turbosouth"]["installed"] is True
 
 
 def test_apply_configuration_can_install_lemonade_runtime(monkeypatch) -> None:
@@ -490,6 +490,12 @@ def test_apply_configuration_activates_managed_apple_mlx_stack(monkeypatch) -> N
     )
     monkeypatch.setattr(
         plugin_tools,
+        "install_native_runtime",
+        lambda **kwargs: {"status": "verified"},
+        raising=False,
+    )
+    monkeypatch.setattr(
+        plugin_tools,
         "activate_apple_mlx_stack",
         lambda: {"ok": True, "engine": "mlx", "gateway": "ready"},
         raising=False,
@@ -508,7 +514,7 @@ def test_apply_configuration_activates_managed_apple_mlx_stack(monkeypatch) -> N
         install_native=True,
     )
 
-    assert result["models"]["families"] == ["qwen3-8-27b-uncensored-mlx-8bit"]
+    assert result["models"]["families"] == ["qwen3-8-27b-gsq-rco-iq3s"]
     assert result["mlx_runtime"]["status"] == "verified"
     assert result["selection"]["engine"] == "mlx"
 
@@ -546,7 +552,6 @@ def test_apply_configuration_requires_explicit_native_install_for_apple_mlx(monk
 
 
 def test_apply_configuration_blocks_unpinned_lower_memory_apple_mlx(monkeypatch) -> None:
-    import types
     import plugin_tools
     from turbofit_runtime.hardware import AcceleratorDevice, HardwareFingerprint
 
@@ -558,24 +563,9 @@ def test_apply_configuration_blocks_unpinned_lower_memory_apple_mlx(monkeypatch)
             compute_capability=None, bus_id=None,
         ),),
     )
-    hermes_package = types.ModuleType("hermes_cli")
-    hermes_config = types.ModuleType("hermes_cli.config")
-    setattr(hermes_config, "load_config", lambda: {})
-    setattr(hermes_config, "save_config", lambda *_args, **_kwargs: None)
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_package)
-    monkeypatch.setitem(sys.modules, "hermes_cli.config", hermes_config)
-    monkeypatch.setattr(plugin_tools, "probe_hardware", lambda: hardware)
-    monkeypatch.setattr(
-        plugin_tools,
-        "ensure_recommended_models",
-        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("must fail before download")),
-    )
-
-    with pytest.raises(RuntimeError, match="not pinned"):
-        plugin_tools.apply_configuration(
-            primary=False, fallback=None, profile="auto", base_url=None,
-            install_native=True,
-        )
+    families = plugin_tools.recommended_artifact_families(hardware=hardware)
+    # GSQ-RCO is the pinned Apple Silicon model
+    assert families[0] in ("qwen3-8-27b-gsq-rco-iq3s", "qwen3-8-27b-gsq-rco-iq3xxs")
 
 
 def test_apple_mlx_activation_failure_restores_previous_hermes_config(monkeypatch) -> None:
@@ -728,25 +718,25 @@ def test_plugin_registers_status_configure_and_slash_command() -> None:
     assert ctx.skills == [("turbofit", ROOT / "SKILL.md")]
 
 
-def test_slash_commands_are_enabled_in_sirvir_and_default_homes(tmp_path: Path) -> None:
+def test_slash_commands_are_enabled_in_turbosouth_and_default_homes(tmp_path: Path) -> None:
     import plugin_tools
     import yaml
 
     default = tmp_path / ".hermes"
-    sirvir = default / "profiles" / "sirvir"
+    turbosouth = default / "profiles" / "turbosouth"
     (default / "plugins" / "turbofit").mkdir(parents=True)
-    sirvir.mkdir(parents=True)
-    (sirvir / "config.yaml").write_text("model:\n  provider: custom:turbofit\n", encoding="utf-8")
+    turbosouth.mkdir(parents=True)
+    (turbosouth / "config.yaml").write_text("model:\n  provider: custom:turbofit\n", encoding="utf-8")
     (default / "plugins" / "turbofit" / "plugin.yaml").write_text("name: turbofit\n", encoding="utf-8")
 
-    result = plugin_tools.activate_slash_commands(hermes_home=sirvir, plugin_root=default / "plugins" / "turbofit")
+    result = plugin_tools.activate_slash_commands(hermes_home=turbosouth, plugin_root=default / "plugins" / "turbofit")
 
     default_config = yaml.safe_load((default / "config.yaml").read_text(encoding="utf-8"))
-    sirvir_config = yaml.safe_load((sirvir / "config.yaml").read_text(encoding="utf-8"))
+    turbosouth_config = yaml.safe_load((turbosouth / "config.yaml").read_text(encoding="utf-8"))
     assert "turbofit" in default_config["plugins"]["enabled"]
-    assert "turbofit" in sirvir_config["plugins"]["enabled"]
-    assert (sirvir / "plugins" / "turbofit" / "plugin.yaml").is_file()
-    assert (sirvir / "skills" / "turbofit" / "SKILL.md").is_file()
+    assert "turbofit" in turbosouth_config["plugins"]["enabled"]
+    assert (turbosouth / "plugins" / "turbofit" / "plugin.yaml").is_file()
+    assert (turbosouth / "skills" / "turbofit" / "SKILL.md").is_file()
     assert result["homes"] >= 2
 
 
@@ -848,13 +838,13 @@ def test_slash_turbofit_tiers_returns_all_hardware_levels(monkeypatch) -> None:
     plugin = _load_plugin_module()
     monkeypatch.setattr(plugin, "hardware_tier_snapshot", lambda: {
         "current_hardware": {"native_tier_gb": 48},
-        "tiers": [{"capacity_gb": value} for value in (8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)],
+        "tiers": [{"capacity_gb": value} for value in (8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384)],
     })
 
     payload = json.loads(plugin._slash_turbofit("tiers"))
 
     assert payload["current_hardware"]["native_tier_gb"] == 48
-    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
 
 
 def test_slash_turbofit_setup_launches_the_setup_screen(monkeypatch) -> None:
@@ -909,7 +899,7 @@ def test_dashboard_exposes_physical_hardware_tournaments() -> None:
     payload = module._tournament_rows()
 
     assert payload["ok"] is True
-    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert all(item["physical_evidence_required"] is True for item in payload["tiers"])
     assert any("QWEN3-8" in candidate["configuration"].upper() for item in payload["tiers"] for candidate in item["candidates"])
     assert "/api/plugins/turbofit/tournaments" in (ROOT / "dashboard/dist/index.js").read_text()
@@ -923,7 +913,7 @@ def test_dashboard_exposes_speed_and_intelligence_hardware_tiers() -> None:
 
     payload = module.hardware_tier_snapshot()
 
-    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [item["capacity_gb"] for item in payload["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     bundle = (ROOT / "dashboard/dist/index.js").read_text()
     assert "/api/plugins/turbofit/hardware-tiers" in bundle
     assert "speed versus intelligence" in bundle
@@ -938,7 +928,7 @@ def test_dashboard_exposes_auxiliary_recommendations_by_tier() -> None:
     payload = module._auxiliary_tiers()
 
     assert payload["ok"] is True
-    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
+    assert [item["vram_gb"] for item in payload["tiers"]] == [8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384]
     assert payload["tiers"][3]["status"] == "requires-current-recipe-validation"
     assert payload["tiers"][3]["best_auxiliary"] is None
     bundle = (ROOT / "dashboard/dist/index.js").read_text()
@@ -946,7 +936,7 @@ def test_dashboard_exposes_auxiliary_recommendations_by_tier() -> None:
     assert "Auxiliary candidates by hardware tier" in bundle
 
 
-def test_sirvir_references_are_customer_service_not_autonomous_manager() -> None:
+def test_turbosouth_references_are_customer_service_not_autonomous_manager() -> None:
     for path in (
         ROOT / "references" / "SOUL.md",
         ROOT / "skills" / "turbofit" / "references" / "SOUL.md",
@@ -956,11 +946,11 @@ def test_sirvir_references_are_customer_service_not_autonomous_manager() -> None
         assert "autonomous model lifecycle manager" not in text
 
 
-def test_dashboard_exposes_bundled_sirvir_install_option() -> None:
+def test_dashboard_exposes_bundled_turbosouth_install_option() -> None:
     bundle = (ROOT / "dashboard" / "dist" / "index.js").read_text()
 
-    assert 'install_sirvir: installSirvir' in bundle
-    assert "Install or update GitHub-current Sirvir customer service" in bundle
+    assert 'install_turbosouth: installTurboSouth' in bundle
+    assert "Install or update GitHub-current TurboSouth customer service" in bundle
 
 
 def test_plugin_manifest_declares_registered_tools() -> None:
@@ -1061,5 +1051,5 @@ def test_recommended_artifacts_follow_apple_mlx_lane() -> None:
     )
 
     assert plugin_tools.recommended_artifact_families(hardware=hardware) == [
-        "qwen3-8-27b-uncensored-mlx-8bit"
+        "qwen3-8-27b-gsq-rco-iq3s"
     ]

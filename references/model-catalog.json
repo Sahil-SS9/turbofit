@@ -777,46 +777,6 @@
       "upstream_source": "https://huggingface.co/unsloth/Laguna-S-2.1-GGUF"
     },
     {
-      "id": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-      "name": "Qwen 3.8 27B Unleashed UD-IQ3_XXS",
-      "family": "Qwen 3.8 27B Unleashed",
-      "source": "https://huggingface.co/outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
-      "artifact": "Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
-      "quantization": "UD-IQ3_XXS",
-      "vision": true,
-      "moe": false,
-      "runtime_features": [
-        "vision-projector",
-        "dflash2"
-      ],
-      "roles": [
-        "main"
-      ],
-      "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "upstream_source": "https://huggingface.co/JonathanColetti/Qwen3.8-27B-Uncensored",
-      "upstream_revision": "5bb7aa90f0efef548e87005b1fb7658e522b6b7f"
-    },
-    {
-      "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-      "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
-      "family": "Qwen 3.8 27B Unleashed",
-      "source": "https://huggingface.co/outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
-      "artifact": "Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "quantization": "UD-Q3_K_XL",
-      "vision": true,
-      "moe": false,
-      "runtime_features": [
-        "vision-projector",
-        "dflash2"
-      ],
-      "roles": [
-        "main"
-      ],
-      "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "upstream_source": "https://huggingface.co/JonathanColetti/Qwen3.8-27B-Uncensored",
-      "upstream_revision": "5bb7aa90f0efef548e87005b1fb7658e522b6b7f"
-    },
-    {
       "id": "ornith-1-5-35a3b",
       "name": "Ornith 1.5 35B-A3B Q4_K_M",
       "family": "Ornith 1.5 35A3B",
@@ -973,7 +933,7 @@
       "id": "qwen3-8-flash-next-strata",
       "name": "Qwen 3.8 Flash Next (Strata)",
       "family": "Qwen 3.8 Flash Next",
-      "source": "https://github.com/Niko1221/Strata",
+      "source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next-GGUF",
       "artifact": "qwen3.8-flash-next-iq2_xs",
       "quantization": "IQ2_XS",
       "vision": true,
@@ -986,7 +946,7 @@
       "roles": [
         "main"
       ],
-      "revision": "0.1.39",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
     },
     {
@@ -1006,7 +966,7 @@
         "main",
         "aux"
       ],
-      "revision": "main",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
     },
     {
@@ -1026,7 +986,7 @@
         "main",
         "aux"
       ],
-      "revision": "main",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
     },
     {
@@ -1045,8 +1005,123 @@
       "roles": [
         "main"
       ],
-      "revision": "main",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
+    },
+    {
+      "id": "underdog-27b-pq2",
+      "name": "Underdog 27B PQ2_0",
+      "family": "Underdog 27B",
+      "source": "https://huggingface.co/ConwayResearch/Underdog-Ternary-1.1",
+      "artifact": "Underdog-PQ2_0.gguf",
+      "quantization": "PQ2_0",
+      "vision": true,
+      "moe": false,
+      "runtime_features": [
+        "ternary",
+        "vision-projector"
+      ],
+      "roles": [
+        "main",
+        "aux"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf"
+    },
+    {
+      "id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs",
+      "name": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-IQ3_XXS.gguf",
+      "quantization": "UD-IQ3_XXS",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "moe",
+        "expert-offload"
+      ],
+      "roles": [
+        "main"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "cyber-tiel-coder-35b-a3b-ud-q4-k-xl",
+      "name": "Cyber-Tiel Coder 35B-A3B UD-Q4_K_XL",
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "quantization": "UD-Q4_K_XL",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "moe",
+        "expert-offload"
+      ],
+      "roles": [
+        "main"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "cyber-tiel-coder-35b-a3b-ud-q5-k-xl",
+      "name": "Cyber-Tiel Coder 35B-A3B UD-Q5_K_XL",
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q5_K_XL.gguf",
+      "quantization": "UD-Q5_K_XL",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "moe",
+        "expert-offload"
+      ],
+      "roles": [
+        "main"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "cyber-tiel-coder-35b-a3b-ud-q6-k-xl",
+      "name": "Cyber-Tiel Coder 35B-A3B UD-Q6_K_XL",
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q6_K_XL.gguf",
+      "quantization": "UD-Q6_K_XL",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "moe",
+        "expert-offload"
+      ],
+      "roles": [
+        "main"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "cyber-tiel-coder-35b-a3b-ud-q8-k-xl",
+      "name": "Cyber-Tiel Coder 35B-A3B UD-Q8_K_XL",
+      "family": "Cyber-Tiel Coder 35B-A3B",
+      "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q8_K_XL.gguf",
+      "quantization": "UD-Q8_K_XL",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "moe",
+        "expert-offload"
+      ],
+      "roles": [
+        "main"
+      ],
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
     }
   ]
 }

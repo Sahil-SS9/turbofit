@@ -9,27 +9,27 @@
       "sha256": "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
       "size_bytes": 3803452480
     },
-    "qwen3-8-27b-unleashed-ud-iq3-xxs": {
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
+    "qwen3-8-27b-gsq-rco-iq3xxs": {
+      "repo_id": "outsourc-e/Qwen3.8-27B-GSQ-RCO-GGUF",
       "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
-      "destination": "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
+      "path": "Qwen3.8-27B-GSQ-RCO-UD-IQ3_XXS.gguf",
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-UD-IQ3_XXS.gguf",
       "sha256": "585267a0ba9bee47e3684f68e7991a61f48ef589982ef93cc0963ff344bc1fca",
       "size_bytes": 10968037216
     },
-    "qwen3-8-27b-unleashed-ud-q3-k-xl": {
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
+    "qwen3-8-27b-gsq-rco-iq3s": {
+      "repo_id": "outsourc-e/Qwen3.8-27B-GSQ-RCO-GGUF",
       "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "destination": "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
+      "path": "Qwen3.8-27B-GSQ-RCO-UD-Q3_K_XL.gguf",
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-UD-Q3_K_XL.gguf",
       "sha256": "b4c9721ab6ed1b7d1d1863b8f43e2fbce6a88dab39ea4333d2e74a7ad69580fe",
       "size_bytes": 13223069536
     },
-    "qwen3-8-27b-unleashed-mmproj": {
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
+    "qwen3-8-27b-gsq-rco-mmproj": {
+      "repo_id": "outsourc-e/Qwen3.8-27B-GSQ-RCO-GGUF",
       "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "mmproj-Unleashed-f16.gguf",
-      "destination": "Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf",
+      "path": "mmproj-GSQ-RCO-f16.gguf",
+      "destination": "Qwen3.8-27B-GSQ-RCO/mmproj-GSQ-RCO-f16.gguf",
       "sha256": "02b26e0e0e3f1b09be342f21cff7461f571ce491a2ce514a5e7c9880fc1cee2e",
       "size_bytes": 931145760
     },
@@ -127,10 +127,10 @@
       "bonsai-27b-q1",
       "qwen3-8-27b-qwen3.8-27b-q4-k-m"
     ],
-    "qwen3-8-27b-unleashed": [
-      "qwen3-8-27b-unleashed-ud-iq3-xxs",
-      "qwen3-8-27b-unleashed-ud-q3-k-xl",
-      "qwen3-8-27b-unleashed-mmproj"
+    "qwen3-8-27b-gsq-rco": [
+      "qwen3-8-27b-gsq-rco-iq3xxs",
+      "qwen3-8-27b-gsq-rco-iq3s",
+      "qwen3-8-27b-gsq-rco-mmproj"
     ],
     "qwen3-8-27b-q4-dflash2": [
       "qwen3-8-27b-qwen3.8-27b-q4-k-m",

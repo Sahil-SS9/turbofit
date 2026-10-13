@@ -50,9 +50,9 @@ Prompt reuse was observed with `255` cached prompt tokens.
 | Capacity | Fit List model |
 |---:|---|
 | 8 GB | Maple Preview TQ2_0 candidate; Ornith alternative when host RAM can hold offloaded experts |
-| 16 GB | Qwen 3.8 27B Unleashed UD-IQ3_XXS |
-| 24–95 GB | Qwen 3.8 27B Unleashed UD-Q3_K_XL |
-| 96 GB+ | Qwen 3.8 27B 16-bit until Unleashed FP16 exists |
+| 16 GB | Qwen 3.8 27B GSQ-RCO UD-IQ3_XXS |
+| 24–95 GB | Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL |
+| 96 GB+ | Qwen 3.8 27B 16-bit until GSQ-RCO FP16 exists |
 
 ### Integrated / RAM-only total memory
 
@@ -60,7 +60,7 @@ Prompt reuse was observed with `255` cached prompt tokens.
 |---:|---|
 | 8–15 GB | Maple Preview TQ2_0 candidate |
 | 16–23 GB | Ornith 1.5 35A3B |
-| 24 GB+ | Qwen 3.8 27B Unleashed UD-Q3_K_XL |
+| 24 GB+ | Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL |
 
 The Fit List defines eligible candidates. Live topology, free capacity, external pressure, engine compatibility, and exact current-recipe evidence still drive contraction and healing. Existing Auto profiles remain on their last physically proven rungs until Maple passes an exact 8 GB-device campaign.
 

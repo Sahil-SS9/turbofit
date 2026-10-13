@@ -11,9 +11,9 @@ ROOT = Path(__file__).parents[1]
 CATALOG = ROOT / "runtime-profiles" / "downloads.json"
 
 
-def test_download_catalog_contains_complete_pinned_unleashed_group() -> None:
+def test_download_catalog_contains_complete_pinned_gsq_rco_group() -> None:
     catalog = DownloadCatalog.load(CATALOG)
-    files = catalog.files_for_group("qwen3-8-27b-unleashed")
+    files = catalog.files_for_group("qwen3-8-27b-gsq-rco")
 
     assert len(files) == 3
     assert {item.revision for item in files} == {"67a999218fd7002f11bf82bc81d6289beea60841"}

@@ -27,7 +27,8 @@ model: auto
 |-------|-------|------|------------|---------------|------|--------|--------|---------|-------|-------|
 | 1 | **Maple Preview** | Ternary MoE | 20B-A1B | TQ2_0-head-Q4_K | 5.5 GiB | 87.5% | 73.5% | — | 75.1% | — |
 | 2 | **Cyber Tiel Coder** | Code LLM (MoE) | 35B-A3B | UD-Q4_K_XL | 22.4 GiB | — | — | — | — | — |
-| 3 | **Qwen 3.8 GSQ-RCO** | LLM (Quantized) | 27B | IQ3_S | 11.8 GiB | — | 89.2% | 42.2% | 90.3% | — |
+| 3 | **Qwen 3.8 27B GSQ-RCO** | LLM (Quantized) | 27B | IQ3_S | 11.8 GiB | — | 89.2% | 42.2% | 90.3% | — |
+| 4 | **Ornith 1.5 35A3B** | LLM (MoE) | 35B-A3B | Q4_K_M | ~11 GiB | — | — | — | — | — |
 | 4 | **Qwen 3.8 Flash Next** | MoE (Qwen4 Preview) | 180B / 6B | IQ3_XXS | 47 GiB | — | 91.7% | 58.7% | 91.9% | — |
 | 5 | **DeepSeek V4.1 Flash** | MoE | 763B / 16B | FP8 / UD-Q4_K_XL | 160 / ~40 GiB | — | 90.9% | 74.2% | — | 31.2% |
 
@@ -127,3 +128,24 @@ model: auto
 ## License
 
 MIT
+
+## Supported Models
+
+- **Maple Preview 20B-A1B**
+- **Qwen 3.8 27B GSQ-RCO**
+- **Ornith 1.5 35A3B**
+- **MiniMax Music 3**
+- **NVIDIA Parakeet TDT 0.6B v3**
+- **Soprano TTS**
+
+## TurboSouth
+
+TurboSouth installs TurboFit when it is missing. Install TurboSouth — reciprocal install: `hermes profile install https://github.com/SouthpawIN/turbosouth.git`
+
+## Hermes messaging gateway
+
+TurboFit integrates with the Hermes messaging gateway on 127.0.0.1:8091. On Windows, a connection refused (WinError 10061) means the gateway is not running. See docs/windows-native-install.md for details.
+
+## Tailscale
+
+Expose your local TurboFit gateway over Tailscale for remote access. Run `/turbofit serve` to start, `/turbofit smoke` to verify. Funnel is never used — Tailscale Serve only. TurboSouth handles install of missing components.

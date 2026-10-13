@@ -3,21 +3,21 @@
   "records": [
     {
       "aux_mode": "shared-main",
-      "auxiliary": "auto:qwen3-8-27b-unleashed-ud-q3-k-xl",
+      "auxiliary": "auto:qwen3-8-27b-gsq-rco-iq3s",
       "balanced_score": 58.77821,
       "benchmark_level": "screening",
       "catalog_auxiliary": "auto",
-      "catalog_main": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-      "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+      "catalog_main": "qwen3-8-27b-gsq-rco-iq3s",
+      "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
       "context": 262144,
       "hardware_tier_gb": 48,
       "host_process_rss_peak_mb": 9405.19140625,
       "intelligence_score": 46.875,
-      "main": "qwen3-8-27b-unleashed-ud-q3-k-xl",
+      "main": "qwen3-8-27b-gsq-rco-iq3s",
       "measurements": [
         {
           "name": "deep-swe",
-          "raw_result": "/tmp/turbofit_benchmark_repair/references/results/intelligence-campaign/qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k/screening/attempts/20260823T053113.248993Z/raw-aggregate.json",
+          "raw_result": "/tmp/turbofit_benchmark_repair/references/results/intelligence-campaign/qwen3-8-27b-gsq-rco-iq3s--auto--262k/screening/attempts/20260823T053113.248993Z/raw-aggregate.json",
           "raw_result_sha256": "sha256:19758459d46791be0dfc146ba40d130c3901e8ce5b7624dbab02e85ec45c42f0",
           "revision": "435ee89ec2f2e2289f33b0da4f992f0b7b7266b9",
           "score": 0.0,
@@ -26,7 +26,7 @@
         },
         {
           "name": "agentic-pair",
-          "raw_result": "/tmp/turbofit_benchmark_repair/references/results/intelligence-campaign/qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k/screening/attempts/20260823T053113.248993Z/raw-aggregate.json",
+          "raw_result": "/tmp/turbofit_benchmark_repair/references/results/intelligence-campaign/qwen3-8-27b-gsq-rco-iq3s--auto--262k/screening/attempts/20260823T053113.248993Z/raw-aggregate.json",
           "raw_result_sha256": "sha256:19758459d46791be0dfc146ba40d130c3901e8ce5b7624dbab02e85ec45c42f0",
           "revision": "agentic-pair-v1",
           "score": 0.9375,

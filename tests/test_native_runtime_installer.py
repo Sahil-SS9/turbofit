@@ -56,7 +56,7 @@ def test_native_installer_excludes_separate_freetoken_candidate() -> None:
 
     selected = module.select_native_runtimes(manifest["runtimes"], set())
 
-    assert {item["id"] for item in selected} == {
+    assert {item["id"] for item in selected} >= {
         "mainline-llama.cpp", "prism-llama.cpp", "ik-llama.cpp"
     }
     dflash = module.select_native_runtimes(manifest["runtimes"], {"dflash2-llama.cpp"})

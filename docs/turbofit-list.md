@@ -8,7 +8,7 @@ The **TurboFit List** is made only from benchmark winners at each physical hardw
 | 16 GB | — | — | — | — | — | pending benchmarks (Bonsai 2 + GSQ-RCO candidates) |
 | 24 GB | — | — | — | — | — | pending benchmarks |
 | 32 GB | — | — | — | — | — | pending benchmarks |
-| 48 GB | `Qwen 3.8 27B Unleashed UD-Q3_K_XL + Route auxiliary tasks to main` | 262144 | 46.875 | 39.39215795117914 | 58.778 | winner |
+| 48 GB | `Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL + Route auxiliary tasks to main` | 262144 | 46.875 | 39.39215795117914 | 58.778 | winner |
 | 64 GB | — | — | — | — | — | pending benchmarks |
 | 96 GB | — | — | — | — | — | pending benchmarks |
 | 128 GB | — | — | — | — | — | pending benchmarks |
@@ -25,7 +25,7 @@ A blank level is honest: no current-recipe winner has completed the exact physic
 | 16 GB | Qwen 3.8 27B GSQ-RCO IQ3_XXS | 10.1 GB | GSQ-RCO-IQ3_XXS | Strong all-round operating point; 3.0 bpw |
 | 16 GB | Tiel Coder 35B-A3B UD-IQ3_XXS | 13.2 GB | UD-IQ3_XXS | Code specialist MoE; 3-bit with context headroom |
 | 24 GB | Qwen 3.8 27B GSQ-RCO IQ3_S | 11.8 GB | GSQ-RCO-IQ3_S | Task-lossless; 3.5 bpw; recommended operating point |
-| 24 GB | Qwen 3.8 27B Unleashed UD-Q3_K_XL | 13.0 GB | UD-Q3_K_XL | Current 24GB profile rung; evidence-backed |
+| 24 GB | Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL | 13.0 GB | UD-Q3_K_XL | Current 24GB profile rung; evidence-backed |
 | 32 GB | Qwen 3.8 27B GSQ-RCO IQ3_S | 11.8 GB | GSQ-RCO-IQ3_S | Task-lossless; fits with KV room |
 | 32 GB | Tiel Coder 35B-A3B UD-Q5_K_XL | 26.6 GB | UD-Q5_K_XL | Code specialist MoE; 5-bit for 32GB |
 | 64 GB | Qwen 3.8 27B GSQ-RCO IQ3_S | 11.8 GB | GSQ-RCO-IQ3_S | Task-lossless; fits with KV room |

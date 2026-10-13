@@ -296,7 +296,7 @@ def report() -> dict[str, Any]:
             "ok": "/api/plugins/turbofit/backends" in dashboard_js
             and '@router.get("/backends")' in plugin_api
             and "publish_tailnet" in plugin_api
-            and "install_sirvir" in plugin_api,
+            and "install_turbosouth" in plugin_api,
         },
         "hermes_plugin_and_setup_command": {
             "ok": bool(plugin_version)
@@ -334,7 +334,7 @@ def report() -> dict[str, Any]:
             "ok": all(
                 token in dashboard_js and token in desktop_js
                 for token in (
-                    "fallback_chain", "multimodal", "publish_tailnet", "install_sirvir",
+                    "fallback_chain", "multimodal", "publish_tailnet", "install_turbosouth",
                     "install_native", "install_lemonade", "dashboard_https_port",
                     "provider_https_port",
                 )
@@ -346,12 +346,12 @@ def report() -> dict[str, Any]:
             and "refusing to overwrite" in tailnet_source
             and "publish_tailnet" in plugin_tools,
         },
-        "github_sirvir_customer_service": {
-            "ok": "install_sirvir_profile" in plugin_tools
-            and '"https://github.com/SouthpawIN/sirvir.git"' in plugin_tools
+        "github_turbosouth_customer_service": {
+            "ok": "install_turbosouth_profile" in plugin_tools
+            and '"https://github.com/SouthpawIN/turbosouth.git"' in plugin_tools
             and '"profile",\n            "install"' in plugin_tools
-            and '"profile", "update", "sirvir", "--yes"' in plugin_tools,
-            "source": "https://github.com/SouthpawIN/sirvir.git",
+            and '"profile", "update", "turbosouth", "--yes"' in plugin_tools,
+            "source": "https://github.com/SouthpawIN/turbosouth.git",
         },
         "multimodal_setup_and_fit": {
             "ok": multimodal_catalog.get("schema") == "turbofit.multimodal-catalog/v1"

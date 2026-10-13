@@ -33,3 +33,5 @@ references/results/*-logs/
 
 # Generated promotional working files; release artwork lives under assets/.
 promo/
+src/turbofit.egg-info/
+uv.lock

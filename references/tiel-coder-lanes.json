@@ -58,7 +58,7 @@
     "campaign_state": "references/tiel-coder-campaign-state.json (isolated from references/catalog-campaign-state.json)",
     "intelligence_scores": "references/tiel-coder-intelligence-scores.json",
     "orchestrator": "scripts/turbofit-benchmark-orchestrator --tiel-coder (isolated)",
-    "no_contamination": "main turbofit-list.json 48 GB Unleashed UD-Q3_K_XL winner untouched; Tiel promotion uses same lexicographic criteria but isolated ranking"
+    "no_contamination": "main turbofit-list.json 48 GB GSQ-RCO IQ3_S winner untouched; Tiel promotion uses same lexicographic criteria but isolated ranking"
   },
   "harness": {
     "catalog_campaign": "scripts/turbofit-catalog-campaign --tiel-isolated (state: references/tiel-coder-campaign-state.json)",

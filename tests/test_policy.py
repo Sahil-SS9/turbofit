@@ -230,37 +230,46 @@ def tiered_profile(expansion_mode: str = "conservative") -> Turbofile:
     )
     mapping["rungs"] = [
         {
-            "id": "unleashed-ud-q3-k-xl-24gb-262k",
-            "context": 262144,
+            "id": "strata-flash-next-64gb-131k",
+            "context": 131072,
             "aux_mode": "shared-main",
             "evidence": "sha256:" + "1" * 64,
             "main_manifest": DIGEST_A,
         },
         {
-            # Maple rung sits BELOW the Ornith rung in the ladder on purpose:
-            # a static next-rung walk would pick it; a live re-fit must not.
-            "id": "maple-8gb-32k",
-            "context": 32768,
+            "id": "cyber-tiel-q6-k-xl-48gb-262k",
+            "context": 262144,
             "aux_mode": "shared-main",
             "evidence": "sha256:" + "2" * 64,
             "main_manifest": DIGEST_A,
         },
         {
-            "id": "ornith-16gb-128k",
+            "id": "cyber-tiel-iq3-xxs-16gb-128k",
             "context": 131072,
             "aux_mode": "shared-main",
             "evidence": "sha256:" + "3" * 64,
             "main_manifest": DIGEST_A,
         },
         {
+            # Maple rung sits BELOW the Cyber-Tiel rung in the ladder on
+            # purpose: a static next-rung walk would pick it; a live re-fit
+            # must not.
+            "id": "maple-tq2-8gb-32k",
+            "context": 32768,
+            "aux_mode": "shared-main",
+            "evidence": "sha256:" + "4" * 64,
+            "main_manifest": DIGEST_A,
+        },
+        {
             "id": "api",
             "context": 131072,
             "aux_mode": "api",
-            "evidence": "sha256:" + "4" * 64,
+            "evidence": "sha256:" + "5" * 64,
             "main_api_policy": "api:auto",
             "aux_api_policy": "api:auto",
         },
     ]
+    return Turbofile.from_mapping(mapping)
     return Turbofile.from_mapping(mapping)
 
 
@@ -272,7 +281,7 @@ def tiered_snapshot(
 ) -> CapacitySnapshot:
     return CapacitySnapshot(
         available_mb_per_card=(available,),
-        required_mb_by_rung=((34000,), (7800,), (15000,), ()),
+        required_mb_by_rung=((34000,), (35000,), (15000,), (7800,), ()),
         activation_succeeded=succeeded,
         activation_failed=failed,
     )
@@ -299,7 +308,7 @@ def test_pressure_probe_memory_refits_16gb_down_to_maple_tier() -> None:
 
     assert plan.action is ActionKind.ACTIVATE
     # 8 GB usable -> Maple tier (8-15 GB band).
-    assert plan.target_index == 1
+    assert plan.target_index == 3
 
 
 def test_exhausted_memory_falls_through_to_api_rung() -> None:
@@ -309,7 +318,7 @@ def test_exhausted_memory_falls_through_to_api_rung() -> None:
     plan = reconcile(state, tiered_snapshot(2048), item, now=10)
 
     assert plan.action is ActionKind.ACTIVATE
-    assert plan.target_index == 3
+    assert plan.target_index == 4
 
 
 def test_contraction_never_selects_banned_rungs() -> None:
@@ -322,14 +331,14 @@ def test_contraction_never_selects_banned_rungs() -> None:
     )
     mapping["rungs"] = [
         {
-            "id": "unleashed-ud-q3-k-xl-24gb-262k",
+            "id": "gsq-rco-iq3s-24gb-262k",
             "context": 262144,
             "aux_mode": "shared-main",
             "evidence": "sha256:" + "1" * 64,
             "main_manifest": DIGEST_A,
         },
         {
-            "id": "local-bonsai-65536",
+            "id": "qwen3-9b-base-65536",
             "context": 65536,
             "aux_mode": "shared-main",
             "evidence": "sha256:" + "2" * 64,
@@ -361,8 +370,8 @@ def test_contraction_never_selects_banned_rungs() -> None:
     plan = reconcile(state, banned, item, now=10)
 
     assert plan.action is ActionKind.ACTIVATE
-    # Neither the Bonsai rung (index 1) nor the 9B rung (index 2) may be
-    # selected even though they fit; the ladder walk lands on the API rung.
+    # Neither the 9B base rung (index 1) nor the 9B tiny rung (index 2) may
+    # be selected even though they fit; the ladder walk lands on the API rung.
     assert plan.target_index == 3
 
 
@@ -379,8 +388,8 @@ def test_contraction_respects_ladder_when_no_rung_carries_tier_identity() -> Non
 
 def test_default_expansion_is_conservative_one_rung_at_a_time() -> None:
     item = tiered_profile()
-    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(49152), item, now=0)
-    plan = reconcile(state.state, tiered_snapshot(49152), item, now=20)
+    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(50176), item, now=0)
+    plan = reconcile(state.state, tiered_snapshot(50176), item, now=20)
 
     assert plan.action is ActionKind.ACTIVATE
     # Conservative recovery walks back exactly one tier per transition
@@ -406,27 +415,27 @@ def test_policy_defaults_to_conservative_expansion_mode() -> None:
 
 def test_direct_expansion_mode_refits_straight_to_best_fit() -> None:
     item = tiered_profile(expansion_mode="direct")
-    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(49152), item, now=0)
+    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(50176), item, now=0)
 
-    plan = reconcile(state.state, tiered_snapshot(49152), item, now=20)
+    plan = reconcile(state.state, tiered_snapshot(50176), item, now=20)
 
     assert plan.action is ActionKind.ACTIVATE
-    # Direct mode jumps straight to the best tier that fits (24GB+ Unleashed).
-    assert plan.target_index == 0
-    assert plan.state.pending_index == 0
+    # Direct mode jumps straight to the best tier that fits (48GB Cyber-Tiel Q6).
+    assert plan.target_index == 1
+    assert plan.state.pending_index == 1
 
 
 def test_direct_expansion_still_requires_margin_and_dwell() -> None:
     item = tiered_profile(expansion_mode="direct")
-    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(49152), item, now=0)
+    state = reconcile(AdaptiveState(current_index=2), tiered_snapshot(50176), item, now=0)
 
-    before_dwell = reconcile(state.state, tiered_snapshot(49152), item, now=19)
+    before_dwell = reconcile(state.state, tiered_snapshot(50176), item, now=19)
     assert before_dwell.action is ActionKind.NONE
 
     tight = reconcile(
-        AdaptiveState(current_index=1), tiered_snapshot(15500), item, now=0
+        AdaptiveState(current_index=3), tiered_snapshot(36024), item, now=0
     )
-    plan = reconcile(tight.state, tiered_snapshot(15500), item, now=20)
+    plan = reconcile(tight.state, tiered_snapshot(36024), item, now=20)
     # From the Maple rung with 15500 MB usable, minus the 1 GB margin the
     # best direct fit is still the Maple tier itself (no better tier fits),
     # so no expansion happens.

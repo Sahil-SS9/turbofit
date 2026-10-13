@@ -1,17 +1,25 @@
 """Live-refit fit check: f(available_memory) -> Fit List tier profile.
 
-Authority: Fit List v2.4 tier bands.
+Authority: Fit Lists v1 (two separate lists).
 
-Shared total memory:
-    Maple 8-15 GB, Ornith 16-23 GB, Unleashed UD-Q3_K_XL 24 GB+
-Dedicated VRAM:
-    Maple TQ2 8-15 GB, Unleashed UD-IQ3_XXS 16-23 GB,
-    Unleashed UD-Q3_K_XL 24-95 GB, bf16 96 GB+
+Dedicated (GPU VRAM) — dense models preferred:
+    8-11 GB   Bonsai 2 PTQ1_0 / PQ2_0 (prism-llama.cpp)
+    12-15 GB  Underdog 27B PQ2_0 (prism-llama.cpp)
+    16-23 GB  Qwen 3.8 27B GSQ-RCO IQ3_S (llama.cpp, 131K)
+    24-63 GB  Strata Flash Next via expert tiering (24+ GB VRAM, 64 GB RAM)
+    64+ GB    Strata Flash Next full residency
+
+Unified / CPU — MoE models preferred (dense 27B crawls on CPU):
+    8-15 GB   Maple Preview TQ2_0 (20B-A1B ternary MoE)
+    16-23 GB  Cyber-Tiel Coder UD-IQ3_XXS (35B-A3B)
+    24-31 GB  Cyber-Tiel Coder UD-Q4_K_XL
+    32-47 GB  Cyber-Tiel Coder UD-Q5_K_XL
+    48-63 GB  Cyber-Tiel Coder UD-Q6_K_XL
+    64+ GB    Strata Flash Next
 
 The fit function is the single target-selection input for contraction
-(live re-fit under pressure) and direct expansion; the pre-baked rung
-ladder is only a fallback for profiles whose rung ids carry no tier
-identity. The ban list (no Bonsai, no 9B) applies to every selection.
+(live re-fit under pressure) and direct expansion. The ban list
+(no 9B) applies to every selection.
 """
 from __future__ import annotations
 
@@ -41,28 +49,34 @@ def _tier(tier_id: str, memory_class: str, min_gb: int, max_gb: int | None, *tok
     return TierProfile(tier_id, memory_class, min_gb, max_gb, tuple(tokens))
 
 
-SHARED_TIERS: tuple[TierProfile, ...] = (
-    _tier("maple-8gb", "shared", 8, 15, "maple"),
-    _tier("ornith-16gb", "shared", 16, 23, "ornith"),
-    _tier("gsq-rco-iq3xxs-16gb", "shared", 16, 23, "gsq-rco", "iq3-xxs"),
-    _tier("gsq-rco-iq3s-16gb", "shared", 16, 23, "gsq-rco", "iq3-s"),
-    _tier("bonsai-2-ptq1-8gb", "shared", 8, 15, "bonsai-2", "ptq1"),
-    _tier("bonsai-2-pq2-8gb", "shared", 8, 15, "bonsai-2", "pq2"),
-    _tier("bonsai-2-ptq1-16gb", "shared", 16, 23, "bonsai-2", "ptq1"),
-    _tier("bonsai-2-pq2-16gb", "shared", 16, 23, "bonsai-2", "pq2"),
-    _tier("unleashed-ud-q3-k-xl-24gb", "shared", 24, None, "unleashed"),
-)
+# Dedicated VRAM ladder (dense models preferred):
+#   8-11 GB   Bonsai 2 PTQ1_0 / PQ2_0
+#   12-15 GB  Underdog 27B PQ2_0
+#   16-63 GB  Qwen 3.8 27B GSQ-RCO IQ3_S (llama.cpp)
+#             16-23 GB at 131K, 24-63 GB at 262K (measured: 49.2 tok/s @ 48GB)
+#   64+ GB    Strata Flash Next (125B MoE, needs 64+ GB for expert residency)
 DEDICATED_TIERS: tuple[TierProfile, ...] = (
-    _tier("maple-tq2-8gb", "dedicated", 8, 15, "maple", "tq2"),
-    _tier("unleashed-ud-iq3-xxs-16gb", "dedicated", 16, 23, "unleashed", "iq3-xxs"),
-    _tier("gsq-rco-iq3xxs-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-xxs"),
+    _tier("bonsai-2-ptq1-8gb", "dedicated", 8, 11, "bonsai-2", "ptq1"),
+    _tier("bonsai-2-pq2-8gb", "dedicated", 8, 11, "bonsai-2", "pq2"),
+    _tier("underdog-pq2-12gb", "dedicated", 12, 15, "underdog", "pq2"),
     _tier("gsq-rco-iq3s-16gb", "dedicated", 16, 23, "gsq-rco", "iq3-s"),
-    _tier("bonsai-2-ptq1-8gb", "dedicated", 8, 15, "bonsai-2", "ptq1"),
-    _tier("bonsai-2-pq2-8gb", "dedicated", 8, 15, "bonsai-2", "pq2"),
-    _tier("bonsai-2-ptq1-16gb", "dedicated", 16, 23, "bonsai-2", "ptq1"),
-    _tier("bonsai-2-pq2-16gb", "dedicated", 16, 23, "bonsai-2", "pq2"),
-    _tier("unleashed-ud-q3-k-xl-24gb", "dedicated", 24, 95, "unleashed", "q3-k-xl"),
-    _tier("bf16-96gb", "dedicated", 96, None, "bf16"),
+    _tier("gsq-rco-iq3s-24gb", "dedicated", 24, 63, "gsq-rco", "iq3-s"),
+    _tier("strata-flash-next-64gb", "dedicated", 64, None, "strata", "flash-next"),
+)
+# Unified / CPU ladder (MoE models preferred — dense 27B crawls on CPU):
+#   8-15 GB   Maple Preview TQ2_0
+#   16-23 GB  Cyber-Tiel Coder UD-IQ3_XXS
+#   24-31 GB  Cyber-Tiel Coder UD-Q4_K_XL
+#   32-47 GB  Cyber-Tiel Coder UD-Q5_K_XL
+#   48-63 GB  Cyber-Tiel Coder UD-Q6_K_XL
+#   64+ GB    Strata Flash Next
+SHARED_TIERS: tuple[TierProfile, ...] = (
+    _tier("maple-tq2-8gb", "shared", 8, 15, "maple", "tq2"),
+    _tier("cyber-tiel-iq3-xxs-16gb", "shared", 16, 23, "cyber-tiel", "iq3-xxs"),
+    _tier("cyber-tiel-q4-k-xl-24gb", "shared", 24, 31, "cyber-tiel", "q4-k-xl"),
+    _tier("cyber-tiel-q5-k-xl-32gb", "shared", 32, 47, "cyber-tiel", "q5-k-xl"),
+    _tier("cyber-tiel-q6-k-xl-48gb", "shared", 48, 63, "cyber-tiel", "q6-k-xl"),
+    _tier("strata-flash-next-64gb", "shared", 64, None, "strata", "flash-next"),
 )
 TIERS_BY_CLASS = {"shared": SHARED_TIERS, "dedicated": DEDICATED_TIERS}
 
@@ -71,8 +85,29 @@ def rung_tokens(rung_id: str) -> frozenset[str]:
     return frozenset(token for token in _TOKEN_SPLIT.split(rung_id.lower()) if token)
 
 
+def rung_matches_tier(rung_id: str, model_tokens: tuple[str, ...]) -> bool:
+    """True when the rung id carries this tier's model identity.
+
+    Substring match on the normalized rung id, not token-set intersection:
+    the tokenizer splits on '-', which breaks hyphenated quant names
+    ("cyber-tiel", "iq3-xxs", "q4-k-xl", "gsq-rco", "iq3-s", "tq2", "pq2").
+
+    All tokens must match (family AND quant), otherwise any cyber-tiel rung
+    matches any cyber-tiel tier regardless of quantization.
+    """
+    normalized = rung_id.lower()
+    return all(token in normalized for token in model_tokens)
+
+
 def rung_is_banned(rung_id: str, ban_list: frozenset[str] = DEFAULT_BAN_LIST) -> bool:
-    """Ban-list check for a rung id (no Bonsai, no 9B by default)."""
+    """Ban-list check for a rung id (retired families only, no 9B by default).
+
+    Token match on the rung id. Retired Bonsai 1 rungs carry the token
+    "bonsai"; Bonsai 2 rungs carry "bonsai-2" which tokenizes to
+    {bonsai, 2} — an exact token hit on "bonsai" still matches Bonsai 2.
+    The caller must not put "bonsai" in the ban list alongside a live
+    Bonsai 2 tier; use "bonsai-1" for the retired family instead.
+    """
     tokens = rung_tokens(rung_id)
     for banned in ban_list:
         if banned in tokens:
@@ -119,6 +154,6 @@ def select_rung_for_tier(
     for index, rung_id in enumerate(rung_ids):
         if rung_is_banned(rung_id, ban_list):
             continue
-        if tier_tokens & rung_tokens(rung_id):
+        if rung_matches_tier(rung_id, tier.model_tokens):
             return index
     return None

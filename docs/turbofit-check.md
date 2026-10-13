@@ -72,7 +72,7 @@ TurboFit Check also recommends:
 
 ## Promo points
 
-- Uncensored Qwen 3.8 27B Unleashed, 262K context, single 24 GB GPU
+- Uncensored Qwen 3.8 27B GSQ-RCO, 262K context, single 24 GB GPU
 - Apple: OrcaRouter Uncensored MLX 4/6/8-bit
 - The entire fallback ladder, explained
 - Multimodal, explained

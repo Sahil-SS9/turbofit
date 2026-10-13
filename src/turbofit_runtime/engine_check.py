@@ -73,13 +73,13 @@ _SPECS = (
         "strata",
         "Strata",
         8082,
-        "Install Niko1221/Strata for Qwen3.8-Flash-Next on consumer NVIDIA/AMD GPUs.",
-        ("strata", "strata-server"),
-        ("strata",),
+        "Install Strata with scripts/install-strata-runtime (Qwen3.8 Flash Next 125B MoE).",
+        (),  # No CLI command — Strata is a Python package launched via setup.py
+        (),  # No importable module — detected by venv directory
         "https://github.com/Niko1221/Strata",
-        "0.1.39",
         "",
-        True,
+        "",
+        True,  # endpoint_discoverable — running on port 8082 counts as installed
     ),
     EngineSpec(
         "prism-llama.cpp",

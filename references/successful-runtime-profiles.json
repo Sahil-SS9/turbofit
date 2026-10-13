@@ -21639,19 +21639,19 @@
         }
       ]
     },
-    "qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k": {
+    "qwen-3-8-27b-gsq-rco-iq3s-auto-262k": {
       "evidence_schema": "turbofit.catalog-physical/v4",
-      "description": "Qwen 3.8 27B Unleashed UD-Q3_K_XL main with auto auxiliary at 262144",
+      "description": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL main with auto auxiliary at 262144",
       "context": 262144,
-      "evidence": "/home/sovthpaw/.hermes/wiki/topics/turbofit/evidence/qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k.md",
-      "raw_result": "/tmp/turbofit_benchmark_repair/references/results/catalog-campaign/attempts/qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k/20260823T023610.276876Z/result.json",
+      "evidence": "/home/sovthpaw/.hermes/wiki/topics/turbofit/evidence/qwen-3-8-27b-gsq-rco-iq3s-auto-262k.md",
+      "raw_result": "/tmp/turbofit_benchmark_repair/references/results/catalog-campaign/attempts/qwen-3-8-27b-gsq-rco-iq3s-auto-262k/20260823T023610.276876Z/result.json",
       "raw_result_sha256": "sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f",
       "physical_fingerprint": "sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b",
       "backend": "native-process",
-      "runtime_string": "turbofit-runtime use qwen-3-8-27b-unleashed-ud-q3-k-xl-auto-262k",
+      "runtime_string": "turbofit-runtime use qwen-3-8-27b-gsq-rco-iq3s-auto-262k",
       "expected": {
-        "main_alias": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-        "aux_alias": "auto:qwen3-8-27b-unleashed-ud-q3-k-xl",
+        "main_alias": "qwen3-8-27b-gsq-rco-iq3s",
+        "aux_alias": "auto:qwen3-8-27b-gsq-rco-iq3s",
         "aux_mode": "shared-main"
       },
       "metrics": {
@@ -21674,13 +21674,13 @@
           "command": [
             "/home/sovthpaw/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-cuda/bin/llama-server",
             "-m",
-            "/home/sovthpaw/Models/storage/gguf/Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
+            "/home/sovthpaw/Models/storage/gguf/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-UD-Q3_K_XL.gguf",
             "--host",
             "127.0.0.1",
             "--port",
             "11605",
             "--alias",
-            "qwen3-8-27b-unleashed-ud-q3-k-xl",
+            "qwen3-8-27b-gsq-rco-iq3s",
             "-c",
             "262144",
             "-ngl",
@@ -21701,7 +21701,7 @@
             "--parallel",
             "1",
             "--mmproj",
-            "/home/sovthpaw/Models/storage/gguf/Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf"
+            "/home/sovthpaw/Models/storage/gguf/Qwen3.8-27B-GSQ-RCO/mmproj-GSQ-RCO-f16.gguf"
           ]
         }
       ]

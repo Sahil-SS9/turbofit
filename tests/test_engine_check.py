@@ -38,8 +38,10 @@ def test_registry_contains_every_turbofit_check_engine() -> None:
         "vllm",
         "freetoken",
         "turbohaul-manager",
+        "strata",
+        "prism-llama.cpp",
     )
-    turbohaul = engine_specs()[-1]
+    turbohaul = next(spec for spec in engine_specs() if spec.engine_id == "turbohaul-manager")
     assert turbohaul.source_url == "https://github.com/MrTrenchTrucker/turbohaul-manager"
     assert turbohaul.source_ref == "v0.7.0"
     assert turbohaul.source_revision == "905b4506883313b17e1d4e0480a8e6ca6c63399b"
@@ -49,7 +51,7 @@ def test_registry_contains_every_turbofit_check_engine() -> None:
 def test_linux_cuda_checks_all_engines_and_admits_native_linux_engines() -> None:
     reports = by_id(check_engines(machine("linux", "x86_64", backend="cuda"), driver_major=580))
 
-    assert set(reports) == {"llama.cpp", "mlx", "sglang", "vllm", "freetoken", "turbohaul-manager"}
+    assert set(reports) == {"llama.cpp", "mlx", "sglang", "vllm", "freetoken", "turbohaul-manager", "strata", "prism-llama.cpp"}
     assert reports["llama.cpp"].compatible
     assert not reports["mlx"].compatible
     assert reports["sglang"].compatible
@@ -152,7 +154,7 @@ def test_probe_only_calls_endpoint_for_endpoint_discoverable_uninstalled_runtime
         endpoint_ready=lambda url: calls.append(url) or False,
     )
 
-    assert calls == ["http://127.0.0.1:11401"]
+    assert calls == ["http://127.0.0.1:11401", "http://127.0.0.1:8082", "http://127.0.0.1:8083"]
     assert all(not report.running for report in reports)
 
 

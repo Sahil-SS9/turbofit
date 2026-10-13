@@ -204,10 +204,10 @@
       },
       "candidates": [
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--64k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3xxs--auto--64k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-            "name": "Qwen 3.8 27B Unleashed UD-IQ3_XXS",
+            "id": "qwen3-8-27b-gsq-rco-iq3xxs",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-IQ3_XXS",
             "quantization": "UD-IQ3_XXS",
             "runtime_features": [
               "vision-projector"
@@ -255,10 +255,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-iq3-xxs--ornith-1-5-35a3b--64k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3xxs--ornith-1-5-35a3b--64k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-            "name": "Qwen 3.8 27B Unleashed UD-IQ3_XXS",
+            "id": "qwen3-8-27b-gsq-rco-iq3xxs",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-IQ3_XXS",
             "quantization": "UD-IQ3_XXS",
             "runtime_features": [
               "vision-projector"
@@ -310,10 +310,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--128k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3xxs--auto--128k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-            "name": "Qwen 3.8 27B Unleashed UD-IQ3_XXS",
+            "id": "qwen3-8-27b-gsq-rco-iq3xxs",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-IQ3_XXS",
             "quantization": "UD-IQ3_XXS",
             "runtime_features": [
               "vision-projector"
@@ -382,10 +382,10 @@
       },
       "candidates": [
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--64k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -433,10 +433,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -488,10 +488,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--128k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -554,10 +554,10 @@
       "status": "physically-validated",
       "recommendations": {
         "measured_winner": {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -605,10 +605,10 @@
           "balanced_score": 58.778209660040595
         },
         "smartest": {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -656,10 +656,10 @@
           "balanced_score": 58.778209660040595
         },
         "fastest": {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -707,10 +707,10 @@
           "balanced_score": 58.778209660040595
         },
         "balanced": {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -813,10 +813,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--128k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--128k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -868,10 +868,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--64k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -923,10 +923,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -995,10 +995,10 @@
       },
       "candidates": [
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -1050,10 +1050,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -1101,10 +1101,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3xxs--auto--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-iq3-xxs",
-            "name": "Qwen 3.8 27B Unleashed UD-IQ3_XXS",
+            "id": "qwen3-8-27b-gsq-rco-iq3xxs",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-IQ3_XXS",
             "quantization": "UD-IQ3_XXS",
             "runtime_features": [
               "vision-projector"
@@ -1173,10 +1173,10 @@
       },
       "candidates": [
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--262k",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--262k",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -1228,10 +1228,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--1m",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -1414,10 +1414,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--1m",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"
@@ -1653,10 +1653,10 @@
           "balanced_score": null
         },
         {
-          "configuration_id": "qwen3-8-27b-unleashed-ud-q3-k-xl--ornith-1-5-35a3b--1m",
+          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--1m",
           "main": {
-            "id": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-            "name": "Qwen 3.8 27B Unleashed UD-Q3_K_XL",
+            "id": "qwen3-8-27b-gsq-rco-iq3s",
+            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
             "quantization": "UD-Q3_K_XL",
             "runtime_features": [
               "vision-projector"

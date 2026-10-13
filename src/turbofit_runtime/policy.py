@@ -5,7 +5,7 @@ import math
 from dataclasses import dataclass, replace
 from enum import Enum
 
-from .fit_check import TierProfile, fit_tier, rung_is_banned, rung_tokens
+from .fit_check import TierProfile, fit_tier, rung_is_banned, rung_matches_tier
 from .runtime_profile import Turbofile
 
 
@@ -280,7 +280,7 @@ def _rung_indices_for_tier(profile: Turbofile, tier: TierProfile) -> tuple[int, 
     for index, rung_id in enumerate(rung_ids):
         if rung_is_banned(rung_id):
             continue
-        if set(tier.model_tokens) & rung_tokens(rung_id):
+        if rung_matches_tier(rung_id, tier.model_tokens):
             indices.append(index)
     return tuple(indices)
 

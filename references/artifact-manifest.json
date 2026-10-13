@@ -256,9 +256,7 @@
     {
       "destination": "Qwen3.8-27B/Qwen3.8-27B-DFlash2-Q4_K_M.gguf",
       "families": [
-        "qwen3-8-27b-q4-dflash2",
-        "qwen3-8-27b-unleashed-ud-iq3-xxs",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl"
+        "qwen3-8-27b-q4-dflash2"
       ],
       "repo_id": "incoai/Qwen3.8-27B-DFlash2-GGUF",
       "revision": "6cb5872e2cee6b4e780a8414922350be8e42d65c",
@@ -417,40 +415,6 @@
       "size_bytes": 931145760
     },
     {
-      "destination": "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
-      "families": [
-        "qwen3-8-27b-unleashed-ud-iq3-xxs"
-      ],
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
-      "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "Qwen3.8-27B-Unleashed-UD-IQ3_XXS.gguf",
-      "sha256": "585267a0ba9bee47e3684f68e7991a61f48ef589982ef93cc0963ff344bc1fca",
-      "size_bytes": 10968037216
-    },
-    {
-      "destination": "Qwen3.8-27B-Unleashed/Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "families": [
-        "qwen3-8-27b-unleashed-ud-q3-k-xl"
-      ],
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
-      "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "Qwen3.8-27B-Unleashed-UD-Q3_K_XL.gguf",
-      "sha256": "b4c9721ab6ed1b7d1d1863b8f43e2fbce6a88dab39ea4333d2e74a7ad69580fe",
-      "size_bytes": 13223069536
-    },
-    {
-      "destination": "Qwen3.8-27B-Unleashed/mmproj-Unleashed-f16.gguf",
-      "families": [
-        "qwen3-8-27b-unleashed-ud-iq3-xxs",
-        "qwen3-8-27b-unleashed-ud-q3-k-xl"
-      ],
-      "repo_id": "outsourc-e/Qwen3.8-27B-Unleashed-GGUF",
-      "revision": "67a999218fd7002f11bf82bc81d6289beea60841",
-      "path": "mmproj-Unleashed-f16.gguf",
-      "sha256": "02b26e0e0e3f1b09be342f21cff7461f571ce491a2ce514a5e7c9880fc1cee2e",
-      "size_bytes": 931145760
-    },
-    {
       "destination": "Ornith-1.5-35B-A3B/Ornith-1.5-35B-Q4_K_M.gguf",
       "families": [
         "ornith-1-5-35a3b"
@@ -463,7 +427,9 @@
     },
     {
       "destination": "Ornith-1.5-35B-A3B-oQ4e-mtp",
-      "families": ["ornith-1-5-oq4e-mtp"],
+      "families": [
+        "ornith-1-5-oq4e-mtp"
+      ],
       "repo_id": "dotyerts/Ornith-1.5-35B-A3B-oQ4e-mtp",
       "revision": "74d4e12c62e9bcd7b69cb290dee4eed76222e308",
       "path": ".",
@@ -472,7 +438,9 @@
     },
     {
       "destination": "Ornith-1.5-35B-A3B-oQ8e-mtp",
-      "families": ["ornith-1-5-oq8e-mtp"],
+      "families": [
+        "ornith-1-5-oq8e-mtp"
+      ],
       "repo_id": "dotyerts/Ornith-1.5-35B-A3B-oQ8e-mtp",
       "revision": "867508b47eb34dc273f98c3dabad0012373b2b90",
       "path": ".",
@@ -503,7 +471,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/README.md",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/README.md",
@@ -512,7 +482,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/chat_template.jinja",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/chat_template.jinja",
@@ -521,7 +493,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/config.json",
@@ -530,7 +504,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/generation_config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/generation_config.json",
@@ -539,7 +515,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00001-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00001-of-00006.safetensors",
@@ -548,7 +526,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00002-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00002-of-00006.safetensors",
@@ -557,7 +537,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00003-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00003-of-00006.safetensors",
@@ -566,7 +548,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00004-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00004-of-00006.safetensors",
@@ -575,7 +559,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00005-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00005-of-00006.safetensors",
@@ -584,7 +570,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model-00006-of-00006.safetensors",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model-00006-of-00006.safetensors",
@@ -593,7 +581,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/model.safetensors.index.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/model.safetensors.index.json",
@@ -602,7 +592,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/preprocessor_config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/preprocessor_config.json",
@@ -611,7 +603,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/processor_config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/processor_config.json",
@@ -620,7 +614,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/tokenizer.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/tokenizer.json",
@@ -629,7 +625,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/tokenizer_config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/tokenizer_config.json",
@@ -638,7 +636,9 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/video_preprocessor_config.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/video_preprocessor_config.json",
@@ -647,12 +647,236 @@
     },
     {
       "destination": "Qwen3.8-27B-Uncensored-MLX/8-bit/vocab.json",
-      "families": ["qwen3-8-27b-uncensored-mlx-8bit"],
+      "families": [
+        "qwen3-8-27b-uncensored-mlx-8bit"
+      ],
       "repo_id": "orcarouter/Qwen3.8-27B-Uncensored-MLX",
       "revision": "b4603df5fd2a51e7fed2560ee7090caa4e13e4b7",
       "path": "8-bit/vocab.json",
       "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
       "size_bytes": 6722759
+    },
+    {
+      "destination": "Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-IQ3_XXS.gguf",
+      "families": [
+        "cyber-tiel-coder-35b-a3b-ud-iq3-xxs"
+      ],
+      "repo_id": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Cyber-Tiel-Coder-35B-A3B-UD-IQ3_XXS.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 14171161600
+    },
+    {
+      "destination": "Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "families": [
+        "cyber-tiel-coder-35b-a3b-ud-q4-k-xl"
+      ],
+      "repo_id": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 22360478720
+    },
+    {
+      "destination": "Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q5_K_XL.gguf",
+      "families": [
+        "cyber-tiel-coder-35b-a3b-ud-q5-k-xl"
+      ],
+      "repo_id": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Cyber-Tiel-Coder-35B-A3B-UD-Q5_K_XL.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 28541829120
+    },
+    {
+      "destination": "Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q6_K_XL.gguf",
+      "families": [
+        "cyber-tiel-coder-35b-a3b-ud-q6-k-xl"
+      ],
+      "repo_id": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Cyber-Tiel-Coder-35B-A3B-UD-Q6_K_XL.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 34141573120
+    },
+    {
+      "destination": "Cyber-Tiel-Coder-35B-A3B/Cyber-Tiel-Coder-35B-A3B-UD-Q8_K_XL.gguf",
+      "families": [
+        "cyber-tiel-coder-35b-a3b-ud-q8-k-xl"
+      ],
+      "repo_id": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Cyber-Tiel-Coder-35B-A3B-UD-Q8_K_XL.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 44000000000
+    },
+    {
+      "destination": "ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ3_S-mtp.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq3s"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ3_S-mtp.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 1260000000
+    },
+    {
+      "destination": "ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq3xxs"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 1100000000
+    },
+    {
+      "destination": "ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq2s"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 1000000000
+    },
+    {
+      "destination": "ISTA-DASLab_Qwen3.8-27B-GSQ-RCO-GGUF/Qwen3.8-27B-GSQ-RCO-IQ2_XS-mtp.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq2xs"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ2_XS-mtp.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 900000000
+    },
+    {
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq3s"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 11800000000
+    },
+    {
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq3xxs"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ3_XXS.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 10300000000
+    },
+    {
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_S.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq2s"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ2_S.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 9400000000
+    },
+    {
+      "destination": "Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ2_XS.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq2xs"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-27B-GSQ-RCO-IQ2_XS.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 8500000000
+    },
+    {
+      "destination": "Underdog-27B/Underdog-PQ2_0.gguf",
+      "families": [
+        "underdog-27b-pq2"
+      ],
+      "repo_id": "ConwayResearch/Underdog-Ternary-1.1",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Underdog-PQ2_0.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 7206168928
+    },
+    {
+      "destination": "Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "families": [
+        "ternary-bonsai-2-27b-ptq1"
+      ],
+      "repo_id": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 5946648928
+    },
+    {
+      "destination": "Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "families": [
+        "ternary-bonsai-2-27b-pq2"
+      ],
+      "repo_id": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 7742040000
+    },
+    {
+      "destination": "flash-next-gsq/Qwen3.8-Flash-Next-IQ2_XS.gguf",
+      "families": [
+        "qwen3-8-flash-next-strata"
+      ],
+      "repo_id": "Qwen/Qwen3.8-Flash-Next-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Qwen3.8-Flash-Next-IQ2_XS.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 36000000000
+    },
+    {
+      "destination": "Qwen3.8-27B-GSQ-RCO/mmproj-Qwen3.8-27B-BF16.gguf",
+      "families": [
+        "qwen3-8-27b-gsq-rco-iq3s",
+        "qwen3-8-27b-gsq-rco-iq3xxs"
+      ],
+      "repo_id": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "mmproj-Qwen3.8-27B-BF16.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 931145760
+    },
+    {
+      "destination": "Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-F16.gguf",
+      "families": [
+        "ternary-bonsai-2-27b-f16"
+      ],
+      "repo_id": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Ternary-Bonsai-2-27B-F16.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 27000000000
+    },
+    {
+      "destination": "Ternary-Bonsai-2-27B/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "families": [
+        "ternary-bonsai-2-27b-ptq1",
+        "ternary-bonsai-2-27b-pq2"
+      ],
+      "repo_id": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+      "path": "Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 931145760
     }
   ]
 }

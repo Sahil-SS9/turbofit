@@ -279,8 +279,8 @@ async def configure(body: dict[str, Any]) -> dict[str, Any]:
     profile = body.get("profile")
     base_url = body.get("base_url")
     publish_tailnet_routes = body.get("publish_tailnet", False)
-    install_sirvir = body.get("install_sirvir", body.get("install_turbosouth", False))
-    install_turbosouth = body.get("install_turbosouth", install_sirvir)
+    install_turbosouth = body.get("install_turbosouth", body.get("install_turbosouth", False))
+    install_turbosouth = body.get("install_turbosouth", install_turbosouth)
     install_desktop = body.get("install_desktop", False)
     install_lemonade = body.get("install_lemonade", False)
     install_native = body.get("install_native", False)
@@ -296,7 +296,7 @@ async def configure(body: dict[str, Any]) -> dict[str, Any]:
         not isinstance(primary, bool)
         or (fallback is not None and not isinstance(fallback, bool))
         or not isinstance(publish_tailnet_routes, bool)
-        or not isinstance(install_sirvir, bool)
+        or not isinstance(install_turbosouth, bool)
         or not isinstance(install_desktop, bool)
         or not isinstance(install_lemonade, bool)
         or not isinstance(install_native, bool)
@@ -323,7 +323,7 @@ async def configure(body: dict[str, Any]) -> dict[str, Any]:
             profile=profile,
             base_url=base_url,
             publish_tailnet_routes=publish_tailnet_routes,
-            install_sirvir=install_sirvir,
+            install_turbosouth=install_turbosouth,
             install_desktop=install_desktop,
             install_lemonade=install_lemonade,
             install_native=install_native,

@@ -87,6 +87,25 @@
         "model_format": "gguf"
       },
       "status": "production"
+    },
+    {
+      "id": "maple-flash-moe",
+      "kind": "python-cli",
+      "repository": "https://github.com/PUT-Request/maple-flash-moe.git",
+      "revision": "main",
+      "purpose": "Maple Preview with file-backed expert offload. Streams 256 experts from disk, keeps active 8 in DRAM. 9x RAM reduction (~0.63 GB resident vs 5.9 GB full).",
+      "executable": "~/.local/share/turbofit/runtimes/maple-flash-moe/.venv/bin/python",
+      "launch_command": "-m mlx_lm server",
+      "port": 8085,
+      "requirements": {
+        "os": "darwin",
+        "architecture": "arm64",
+        "backend": "metal",
+        "min_system_ram_gb": 4,
+        "multimodal": false,
+        "model_format": "mlx"
+      },
+      "status": "production"
     }
   ]
 }

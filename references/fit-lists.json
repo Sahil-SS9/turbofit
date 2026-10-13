@@ -61,14 +61,24 @@
     "unified": {
       "description": "Unified memory (Apple Silicon) and CPU-only hosts. MoE models preferred \u2014 dense 27B crawls on CPU.",
       "tiers": {
+        "4-7gb": {
+          "model": "Maple Preview 20B-A1B TQ2_0 (Flash-MoE)",
+          "family": "maple-preview",
+          "quant": "TQ2_0",
+          "size_gb": 0.63,
+          "engine": "maple-flash-moe",
+          "context": 131072,
+          "note": "File-backed expert offload. Only ~0.63 GB resident. Streams from SSD. Runs on any Apple Silicon Mac.",
+          "source": "deepgrove/maple-2bit-mlx"
+        },
         "8-15gb": {
           "model": "Maple Preview 20B-A1B TQ2_0",
           "family": "maple-preview",
           "quant": "TQ2_0",
           "size_gb": 5.5,
-          "engine": "maple-llama.cpp",
+          "engine": "maple-flash-moe",
           "context": 131072,
-          "note": "20B-A1B ternary MoE. 87.5% AIME26. 218 tok/s on Mac mini M4. MoE \u2014 CPU-friendly.",
+          "note": "20B-A1B ternary MoE with Flash-MoE expert streaming. ~0.63 GB resident (9x reduction). 218 tok/s on M4. Streams 256 experts from disk, keeps active 8 in DRAM.",
           "source": "deepgrove/maple-preview-GGUF"
         },
         "16-23gb": {

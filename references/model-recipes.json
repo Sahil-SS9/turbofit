@@ -715,7 +715,8 @@
         "1048576": "baseline",
         "262144": "baseline",
         "32768": "baseline"
-      }
+      },
+      "cpu_moe": false
     },
     "qwen3-8-27b-gsq-rco-iq3xxs": {
       "family": "Qwen 3.8 27B GSQ-RCO IQ3_XXS",
@@ -799,7 +800,9 @@
         "262144": "baseline",
         "1048576": "baseline",
         "32768": "baseline"
-      }
+      },
+      "cpu_moe": true,
+      "no_mmap": false
     },
     "cyber-tiel-coder-35b-a3b-ud-q5-k-xl": {
       "family": "Cyber-Tiel Coder 35B-A3B",
@@ -813,7 +816,9 @@
         "262144": "baseline",
         "1048576": "baseline",
         "32768": "baseline"
-      }
+      },
+      "cpu_moe": true,
+      "no_mmap": false
     },
     "cyber-tiel-coder-35b-a3b-ud-q6-k-xl": {
       "family": "Cyber-Tiel Coder 35B-A3B",
@@ -827,7 +832,9 @@
         "262144": "baseline",
         "1048576": "baseline",
         "32768": "baseline"
-      }
+      },
+      "cpu_moe": true,
+      "no_mmap": false
     },
     "cyber-tiel-coder-35b-a3b-ud-q8-k-xl": {
       "family": "Cyber-Tiel Coder 35B-A3B",
@@ -841,7 +848,9 @@
         "262144": "baseline",
         "1048576": "baseline",
         "32768": "baseline"
-      }
+      },
+      "cpu_moe": true,
+      "no_mmap": false
     }
   },
   "models": {

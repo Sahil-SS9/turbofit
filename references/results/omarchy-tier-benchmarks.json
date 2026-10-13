@@ -67,6 +67,33 @@
       "baseline_tok_per_sec": 48.07,
       "speedup": "1.59x",
       "evidence": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "model": "cyber-tiel-coder-35b-a3b-mtp-ud-iq3-xxs",
+      "tier": "16gb-unified",
+      "context": 65536,
+      "gpus": 1,
+      "avg_tok_per_sec": 120.97,
+      "note": "IQ3_XXS fits fully in VRAM. No expert offload needed. 121 tok/s.",
+      "evidence": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "model": "cyber-tiel-coder-35b-a3b-ud-q4-k-xl-cpu-moe",
+      "tier": "8gb-unified",
+      "context": 65536,
+      "gpus": 0,
+      "avg_tok_per_sec": 2.43,
+      "note": "Pure CPU with mmap. Too slow for interactive use.",
+      "evidence": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "model": "cyber-tiel-coder-35b-a3b-ud-q4-k-xl-hybrid",
+      "tier": "12gb-unified",
+      "context": 65536,
+      "gpus": 1,
+      "avg_tok_per_sec": 3.38,
+      "note": "Hybrid GPU/CPU expert offload with --cpu-moe. Still bandwidth-bound.",
+      "evidence": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     }
   ]
 }

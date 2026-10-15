@@ -35,12 +35,12 @@ def _profiles(tmp_path: Path) -> Path:
 def test_unified_catalog_uses_stable_profile_ids(tmp_path, monkeypatch):
     monkeypatch.setattr(GATEWAY, "PROFILES", str(_profiles(tmp_path)))
     models = GATEWAY.provider_models()
-    assert [item["id"] for item in models] == [
-        "auto",
-        "active:main",
-        "active:aux",
-    ]
+    # auto first, then discovered local/remote models (none in test env)
+    assert models[0]["id"] == "auto"
     assert all(item["owned_by"] == "turbofit" for item in models)
+    # Internal role routes are no longer exposed as selectable models
+    assert "active:main" not in [item["id"] for item in models]
+    assert "active:aux" not in [item["id"] for item in models]
 
 
 def test_universal_model_strings_encode_role_without_a_second_provider():

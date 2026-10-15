@@ -39,7 +39,7 @@ def test_gateway_advertises_independent_contexts(tmp_path,monkeypatch):
     monkeypatch.setattr(GATEWAY,'RUNTIME_STATE',str(p))
     monkeypatch.setattr(GATEWAY,'_live_n_ctx',lambda _: (_ for _ in ()).throw(AssertionError('unnecessary probe')))
     got={x['id']:x['context_length'] for x in GATEWAY.provider_models()}
-    assert got=={'auto':204800,'active:main':204800,'active:aux':262144}
+    assert got=={'auto':204800}
 
 
 @pytest.mark.parametrize('policy',[{'default_budget':1024},{'hard_cap':0},{'hard_cap':True},{'hard_cap':'bad'}])

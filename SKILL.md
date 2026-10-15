@@ -1,7 +1,7 @@
 ---
 name: turbofit-runtime
 description: "Hardware-aware adaptive Hermes runtime using portable Turbofiles, total usable memory, owned native llama.cpp residency, stable auto/active:main/active:aux routes, and evidence-backed promotion. Use for recommending, activating, inspecting, testing, or troubleshooting Turbofit runtimes."
-version: 2.3.1
+version: 2.3.3
 author: SouthpawIN + Nous Girl
 license: MIT
 tags: [hermes-agent, llama-cpp, llm, accelerator, cpu, adaptive-runtime, turbofile]
@@ -49,6 +49,101 @@ curl -fsS http://127.0.0.1:8091/v1/models
 <profile-id>` validates a measured, natively resolvable manual combination.
 Both begin at API safety and use the same adaptive controller to contract and
 heal; manual selection changes only the healing ceiling.
+
+## Selectable models in the Hermes `/model` picker
+
+Treat stable route IDs and selectable model IDs as different contracts. Keep
+`auto`, `active:main`, and `active:aux` stable, then advertise friendly model
+IDs only from an operator-owned selector map that resolves each ID to an
+approved runtime profile. Add matching entries to Hermes provider config so
+the picker shows useful labels.
+
+Switch through the canonical runtime CLI rather than a second launcher:
+
+1. Reject the transition while lifecycle leases show an active request; never
+   restart or unload a model mid-response.
+2. Resolve the friendly ID to a measured profile, write the normal selection,
+   and let the controller retire the old main before loading the new one.
+3. Wait until route state reports the requested profile as active before
+   proxying the caller. Size this timeout for cold model startup, not a normal
+   HTTP request; large local runtimes can need several minutes.
+4. Rewrite the friendly picker ID to the selected backend's real model ID when
+   forwarding the request.
+5. Verify the catalog and a real `A → B → A` inference sequence, leaving the
+   declared default active. Catalog visibility alone does not prove switching.
+
+Leases and residency gate every mutation and admission. Wait (bounded re-check
+loop) for lifecycle leases to drain before switching or deploying — a live
+fleet request holds a lease for seconds to minutes, and an instant empty-check
+must never disturb an active response. Read fleet readiness from `/v1/models`
+plus the services' active state, not `/health`, which legitimately degrades
+while wake-on-demand roles sit idle-released. The ownership proof for a
+resident native process is its creation identity plus command line: require
+`--alias` in that line only when the launcher actually passes it — config-
+driven backends whose alias is fixed by their config omit it and otherwise
+report residency `error`, which refuses every lease and makes the wake path
+euthanize and relaunch a perfectly healthy model. Treat the lifecycle endpoint
+as ephemeral: its real port and token live in a state-dir endpoint file that
+every controller start rewrites; port tables are intent, not address.
+
+Store one runtime profile document per YAML file. Discover a bounded naming
+pattern such as `manual-profile*.yaml`; do not concatenate profiles into a
+multi-document file unless every profile loader is explicitly multi-document
+aware. Validate the profile catalog, runtime resolutions, and rung
+requirements together before restart so every advertised selector is
+loadable.
+
+When a non-llama backend is a runtime flavor, branch before constructing the
+launch command and do not append llama.cpp-only flags afterward. Backend
+selection is not complete until the exact launch path has passed a real
+controller-style startup probe — same user and same working directory as the
+daemon. A probe run from the repo checkout can pass while the daemon's spawn
+fails, because recipe paths and the invoker's home resolve differently.
+
+When the gateway — not a human shell — invokes the runtime CLI, it inherits the
+service user's home: pass `TURBOFIT_CONFIG_DIR` and `TURBOFIT_SELECTION_STATE`
+so profile lookup and the selection write land on the controller's config
+directory. Without them the CLI reports `unknown profile` for valid profiles
+and the picker answers 400 even though the same command succeeds in a shell.
+Make the watched selection file's directory writable by the gateway user: the
+selection write is a tempfile-plus-rename inside that directory, so a
+root-owned directory fails every activation even when the file itself is
+readable. When a gateway-invoked helper fails only inside the service, log its captured
+stdout/stderr into the service journal with one bounded retry, and make the
+helper self-report (its interpreter, config dir, profile files, catalog ids)
+on non-zero exit — a spawn-only failure that cannot be reproduced outside the
+gateway must confess its own view. Reproduce such spawns from the running
+service's `/proc/<pid>/environ` and exact argv before concluding anything.
+Pin service-run Python dependencies in a stable venv outside directories a
+tool manager refreshes: the interactive PATH often resolves a different
+interpreter than the daemon's spawn, and a refreshed shared interpreter
+silently loses packages between runs while a shell probe still passes.
+
+Deploy picker changes as one rollback-capable unit: back up controller,
+gateway, recipe resolver, Turbofit config, selector map, and Hermes provider
+config; syntax/parse-check staged files; apply; restart only the Turbofit
+control plane; verify `/health`, `/v1/models`, both switch directions, and the
+final active profile. Restore the whole unit on any failed gate rather than
+leaving picker entries that point to an unavailable runtime.
+
+When iterating an apply script, every verification failure rolls back to the
+PREVIOUS run's state, which can predate your newest fix: install the complete
+shadow code set — every module the switch path executes — on every attempt,
+and mirror each installed artifact in both the backup and rollback sets
+(an artifact absent from the backup cannot be restored). Verify the restore
+explicitly on every failure path: an ERR trap does not catch `set -u`
+unbound-variable errors inside functions, and `local` names shadow shell
+builtins. Reuse an expensive standalone smoke test across attempts with a
+one-use marker file that only the verified success writes and the next run
+consumes. Three one-line traps worth an hour each: capture HTTP error bodies
+without curl's `-f` (it suppresses the body exactly when you need it); poll
+the process that actually runs, not a `setsid`/`exec` wrapper whose PID dies
+instantly and whose death then triggers cleanup on the just-started server;
+accept `reasoning_content` when asserting a chat reply, because thinking
+models can return empty `content`.
+For operator-facing summaries, lead with four plain facts: default model,
+alternative model, context/speed, and the exact action required. Keep internal
+implementation detail behind those outcomes unless requested.
 
 - `scripts/turbofit-catalog-campaign` proves native runtime fit and TPS; it does not produce intelligence scores.
 - `scripts/turbofit-intelligence-campaign` runs the exact successful quantized production recipe through pinned DeepSWE and the Turbofit agentic main/auxiliary pair harness.

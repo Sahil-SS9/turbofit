@@ -2,11 +2,17 @@
   "schema": "turbofit.native-runtimes/v1",
   "runtimes": [
     {
-      "id": "mainline-llama.cpp",
-      "repository": "https://github.com/ggml-org/llama.cpp.git",
-      "revision": "1c3c9674de4d455f1e571bed808252af54932767",
-      "purpose": "default GGUF production runtime",
-      "cuda_binary": "~/.local/share/turbofit/runtimes/llama.cpp-1c3c9674de4d455f1e571bed808252af54932767/build-cuda/bin/llama-server"
+      "id": "atomic-turboquant",
+      "repository": "https://github.com/AtomicBot-ai/atomic-llama-cpp-turboquant.git",
+      "revision": "3cde9e4f83c000627f5e6e7d50b7db7cc473427b",
+      "version": "b10269-1.5.1 (build 11417)",
+      "purpose": "default GGUF production runtime — ONLY fork supporting turbo2/turbo3 KV cache + draft-mtp for Qwen 3.8 27B main and Carwin MoE aux (mainline exits with 'Unsupported cache type: turbo2')",
+      "cuda_binary": "~/.local/share/turbofit/runtimes/atomic-turboquant-3cde9e4f8/build-cuda/bin/llama-server",
+      "live_serving_binary": "/srv/kensei-ai/turbofit/runtime/bin/llama-server",
+      "status": "production",
+      "swapped_in": "2026-10-14",
+      "previous_revision": "99279d982 (b10269-1.7.0 build 10733)",
+      "rollback": "cp ~/backups/turbofit-runtime-bin-pre-swap-20261014-030023/* /srv/kensei-ai/turbofit/runtime/bin/"
     },
     {
       "id": "prism-llama.cpp",

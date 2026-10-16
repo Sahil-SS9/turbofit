@@ -90,20 +90,6 @@ model: auto
 
 ---
 
-## Visual Reference
-
-![Model Ladder](assets/scaling-ladder.png)
-
-![Provider Integration](assets/provider-integration.png)
-
-![Hermes Settings](assets/hermes-desktop-turbofit-settings.png)
-
-![Speculative Decode](assets/turbofit-2.4-spec-decode.png)
-
-![Turbofit Hero](assets/turbofit-hero.png)
-
----
-
 ## Integrations
 
 | Repo | Description |

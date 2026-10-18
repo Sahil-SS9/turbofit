@@ -56,37 +56,37 @@ model: auto
 
 ---
 
-## Hardware Tiers
+## Two Fit Lists
 
-### GPU (NVIDIA/AMD VRAM)
+Two separate lists, kept clean by memory model. **Dense models stay on the Dedicated
+list** (a real GPU can run dense); the **Unified/CPU list uses MoE stand-ins**, because a
+dense 27B crawls on CPU no matter what. Both lists converge on Qwen 3.8 Flash Next.
 
-| Tier | Model | Quant | VRAM Used | Context | Notes |
-|------|-------|-------|-----------|---------|-------|
-| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | SSD streaming |
-| 16–64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless, low power |
-| 96 GB | Flash Next | IQ3_XXS | ~48 GiB | 262K native | Qwen4 preview |
-| 128 GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Max context |
-| 256 GB | DeepSeek V4.1 Flash | FP8 | ~160 GiB | 1M | Top capability |
+### Dedicated (GPU / VRAM) — dense is fine on a real GPU
 
-### CPU (System RAM)
+| Band (VRAM) | Model | Quant | Class | Notes |
+|------|-------|-------|-------|-------|
+| 8–11 | Bonsai 2 | PTQ1_0 / PQ2_0 | dense (ternary) | lowest-VRAM rung |
+| 12–15 | Underdog 27B | PQ2_0 | dense (ternary) | |
+| 16–23 | Qwen 3.8 GSQ-RCO | IQ3_S | dense | 131K context |
+| 24–63 | Qwen 3.8 GSQ-RCO | IQ3_S | dense | 262K context |
+| 64+ | Qwen 3.8 Flash Next | IQ2_XS (Strata) | MoE | converges |
 
-| Tier | Model | Quant | RAM Used | Context | Notes |
-|------|-------|-------|----------|---------|-------|
-| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | Minimum viable |
-| 16 GB | Cyber-Tiel Coder | Q3_K_M | ~14 GiB | 262K native | MoE, fast |
-| 32–48 GB | Cyber-Tiel Coder | UD-Q4_K_XL | ~22 GiB | 262K+ | Fast MoE |
-| 64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless |
-| 96+ GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Top tier |
+### Unified (CPU / RAM) — MoE stand-ins, never dense
 
-### Unified Memory (Apple Silicon)
+| Band (RAM) | Model | Quant | Class | Stands in for |
+|------|-------|-------|-------|---------------|
+| 8–15 | Maple Preview | TQ2_0 | MoE | Bonsai 2 / Underdog (dense) |
+| 16–23 | Cyber-Tiel Coder | IQ3_XXS | MoE | GSQ-RCO 27B (dense) |
+| 24–31 | Cyber-Tiel Coder | Q4_K_XL | MoE | GSQ-RCO 27B (dense) |
+| 32–47 | Cyber-Tiel Coder | Q5_K_XL | MoE | GSQ-RCO 27B (dense) |
+| 48–63 | Cyber-Tiel Coder | Q6_K_XL | MoE | GSQ-RCO 27B (dense) |
+| 64+ | Qwen 3.8 Flash Next | IQ2_XS (Strata) | MoE | converges |
 
-| Tier | Model | Quant | RAM Used | Context | Notes |
-|------|-------|-------|----------|---------|-------|
-| <8 GB | Maple | TQ2_0 | ~6 GiB | 131K native | 218 tok/s on M4 |
-| 16 GB | Cyber-Tiel Coder | Q3_K_M | ~14 GiB | 262K native | MoE, fast |
-| 32–48 GB | Cyber-Tiel Coder | UD-Q4_K_XL | ~22 GiB | 262K+ | Fast MoE |
-| 64 GB | GSQ-RCO | IQ3_S | ~12 GiB | 262K+ | Near-lossless |
-| 96+ GB | Flash Next | IQ3_XXS | ~48 GiB | 1M | Top tier |
+> **Correspondence:** Maple is the MoE replacement for Bonsai 2 + Underdog (the low dense
+> rungs); Cyber-Tiel is the MoE replacement for GSQ-RCO 27B (the mid dense rung). Dense never
+> appears on the Unified list — it's too slow on CPU. Both lists converge on Flash Next. On
+> Apple silicon the 64 GB+ Flash Next rung is candidate-only (no released macOS engine yet).
 
 ---
 
@@ -104,7 +104,7 @@ model: auto
 
 ## Rules
 
-1. **CPU and Unified Memory prefer MoE over dense** — Cyber-Tiel Coder for <48GB, GSQ-RCO at 64GB+
+1. **Dense stays on the Dedicated list; CPU/Unified uses MoE stand-ins** — Maple for the low rungs, Cyber-Tiel for the mid rungs; both converge on Flash Next. Never put a dense model (GSQ-RCO) on the Unified list — it's too slow on CPU.
 2. **IQ3_S is the default** — near-lossless, lower power, faster inference
 3. **Only 5 TurboFit candidates** — Maple, Cyber-Tiel, GSQ-RCO, Flash Next, DeepSeek V4.1 Flash
 4. **Math must be correct** — model size + KV cache ≤ tier size

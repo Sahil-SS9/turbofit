@@ -216,6 +216,14 @@ def _discover_local_models() -> list[dict]:
             "context_length": ctx,
             "source": "local",
             "base_url": base_url,
+            "metadata": {
+                "role": role,
+                "backing_model": alias,
+                "residency": "unknown",
+                "mode": "local",
+                "observed_at": None,
+                "freshness": {"age_s": None, "max_age_s": 15.0, "stale": True},
+            },
         })
     return models
 
@@ -228,10 +236,25 @@ def _discover_remote_models() -> list[dict]:
     their models to the catalog with a remote source tag.
     """
     models: list[dict] = []
+    peers: list[str] = []
+
+    # Explicit peers always win (env override)
     peers_raw = os.environ.get("TURBOFIT_PEERS", "").strip()
-    if not peers_raw:
+    if peers_raw:
+        peers.extend(p.strip() for p in peers_raw.split(",") if p.strip())
+
+    # Automatic tailnet discovery — no configuration needed
+    if os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
+        try:
+            from turbofit_runtime.tailnet import discover_turbofit_peers
+            for found in discover_turbofit_peers():
+                peers.append(found["host"] + f":{found['port']}")
+        except Exception:
+            pass
+
+    if not peers:
         return models
-    for peer in peers_raw.split(","):
+    for peer in peers:
         peer = peer.strip().rstrip("/")
         if not peer:
             continue
@@ -254,6 +277,14 @@ def _discover_remote_models() -> list[dict]:
                     "source": "remote",
                     "base_url": peer,
                     "remote_model": model_id,
+                    "metadata": {
+                        "role": "remote",
+                        "backing_model": model_id,
+                        "residency": "remote",
+                        "mode": "tailnet",
+                        "observed_at": None,
+                        "freshness": {"age_s": None, "max_age_s": 15.0, "stale": False},
+                    },
                 })
         except Exception:
             continue
@@ -1107,6 +1138,54 @@ class GatewayHandler(BaseHTTPRequestHandler):
         )
         self._send_json(200, props)
 
+    def _resolve_local_alias(self, model_id):
+        """Resolve a model id that matches a local runtime-state alias.
+
+        Returns (port, alias) when the alias is served by a local runtime,
+        or None. This is what lets a gateway route the same model ids it
+        advertises in /v1/models.
+        """
+        try:
+            with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+                state = json.load(handle)
+        except (OSError, ValueError):
+            return None
+        if not isinstance(state, dict):
+            return None
+        routes = state.get("routes") or {}
+        if not isinstance(routes, dict):
+            return None
+        for role in ("main", "aux"):
+            route = routes.get(role)
+            if not isinstance(route, dict):
+                continue
+            alias = str(route.get("alias") or "").strip()
+            if alias != model_id:
+                continue
+            port = route.get("port")
+            if not isinstance(port, int) or port <= 0:
+                continue
+            return port, alias
+        return None
+
+    def _proxy_local_port(self, port, path, body=None):
+        """Proxy a request straight to a local runtime port."""
+        upstream = f"http://127.0.0.1:{port}/v1/{path.lstrip('/')}"
+        try:
+            req = urllib.request.Request(
+                upstream,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST" if body else "GET",
+            )
+            with urllib.request.urlopen(req, timeout=PROXY_BACKEND_TIMEOUT_S) as resp:
+                self._send_json(resp.status, json.loads(resp.read().decode()))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:400]
+            self._send_502(f"Local runtime error {exc.code}: {detail}")
+        except Exception as exc:
+            self._send_502(f"Local runtime error: {exc}")
+
     def _resolve_remote_model(self, model_id):
         """Resolve a remote Tailscale model to its peer base_url and model name.
 
@@ -1156,6 +1235,13 @@ class GatewayHandler(BaseHTTPRequestHandler):
         if remote:
             base_url, remote_model = remote
             self._proxy_remote(base_url, remote_model, path[len("/v1/"):], body=body)
+            return
+
+        # Local runtime alias — proxy straight to the serving port
+        local = self._resolve_local_alias(model)
+        if local:
+            port, _alias = local
+            self._proxy_local_port(port, path[len("/v1/"):], body=body)
             return
 
         profile_id, role = parse_provider_model(model)

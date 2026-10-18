@@ -55,6 +55,9 @@ RestartSec=5
 Environment=PYTHONUNBUFFERED=1
 Environment=TURBOFIT_ALLOW_API=true
 Environment=TURBOFIT_CAMPAIGN_LEASE=%h/.local/state/turbofit/campaign-lease.json
+# Reachable on the tailnet so other machines' gateways can discover this
+# one and list its models. Override in controller.env to bind loopback only.
+Environment=TURBOFIT_GATEWAY_HOST=0.0.0.0
 EnvironmentFile=-%h/.config/turbofit/controller.env
 
 [Install]

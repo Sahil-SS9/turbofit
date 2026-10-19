@@ -6,10 +6,10 @@
     "label": "Ladder 1 — Dedicated (GPU / VRAM, dense)",
     "rungs": {
       "8-11gb": { "model": "Ternary Bonsai 2 27B PQ2_0", "quant": "PQ2_0", "size_gb": 7.21, "context": 131072, "note": "dense ternary GGUF (Q2); prism-llama.cpp; MTP on" },
-      "12-15gb": { "model": "Underdog 27B", "quant": "Q4_K_M", "size_gb": 16, "context": 131072, "note": "dense; MTP on" },
+      "12-15gb": { "model": "Underdog 27B", "quant": "pq2", "size_gb": 16, "context": 131072, "note": "dense; MTP on" },
       "16-23gb": { "model": "Qwen 3.8 GSQ-RCO 27B", "quant": "IQ3_S", "size_gb": 12, "context": 131072, "note": "near-lossless; MTP on" },
       "24-63gb": { "model": "Qwen 3.8 GSQ-RCO 27B", "quant": "IQ3_S", "size_gb": 12, "context": 262144, "note": "near-lossless; 262K at 24 GB; MTP on; power bill stays on IQ3_S (no heavier quant)" },
-      "64gb+": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ2_XS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" }
+      "64gb+": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ3_XXS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" }
     }
   },
   "unified": {
@@ -19,7 +19,7 @@
       "8-15gb": { "model": "Maple 27B", "quant": "TQ2_0", "size_gb": 6, "context": 131072, "note": "MoE; 218 tok/s on M4" },
       "16-23gb": { "model": "Cyber Tiel Coder", "quant": "Q3_K_M", "size_gb": 14, "context": 131072, "note": "MoE, 3B active; faster than GSQ-RCO on CPU" },
       "24-63gb": { "model": "Cyber Tiel Coder", "quant": "UD-Q4_K_XL", "size_gb": 22, "context": 262144, "note": "MoE, 3B active" },
-      "64-127gb": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ2_XS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" },
+      "64-127gb": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ3_XXS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" },
       "128gb+": { "model": "DeepSeek V4.1 Flash (Strata 1017)", "quant": "FP8 / UD-Q4_K_XL", "context": 262144, "pending": true, "note": "Top of the unified ladder — above Flash Next. 763B MoE (16B active); 1017 update, Strata engine. Pending: exact target-tier fit not yet validated (candidate)." }
     }
   }

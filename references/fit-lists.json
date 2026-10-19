@@ -1,137 +1,26 @@
 {
   "schema": "turbofit.fit-lists/v1",
-  "generated_at": "2026-10-11T00:00:00Z",
-  "policy": "Two separate lists. Dedicated VRAM runs dense models. Unified/CPU runs MoE. Every tier has a benchmarked production candidate.",
-  "lists": {
-    "dedicated": {
-      "description": "Dedicated GPU VRAM. Dense models preferred \u2014 no MoE expert spill into host RAM.",
-      "tiers": {
-        "8-11gb": {
-          "model": "Ternary Bonsai 2 27B PTQ1_0",
-          "family": "bonsai-2-27b",
-          "quant": "PTQ1_0",
-          "size_gb": 5.95,
-          "engine": "prism-llama.cpp",
-          "context": 262144,
-          "note": "1.75 bpw ternary g128. 98.2% of FP16 intelligence.",
-          "source": "prism-ml/Ternary-Bonsai-2-27B-gguf"
-        },
-        "12-15gb": {
-          "model": "Underdog 27B PQ2_0",
-          "family": "underdog-27b",
-          "quant": "PQ2_0",
-          "size_gb": 7.21,
-          "engine": "prism-llama.cpp",
-          "context": 262144,
-          "note": "Bonsai 2 base + post-training. Splash + DFlash2 hits 157.9 tok/s on Apple M5 Max. PrismML llama.cpp PQ2_0 engine.",
-          "source": "ConwayResearch/Underdog-Ternary-1.1"
-        },
-        "16-23gb": {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "family": "qwen3-8-27b-gsq-rco",
-          "quant": "IQ3_S",
-          "size_gb": 11.8,
-          "engine": "llama.cpp",
-          "context": 131072,
-          "note": "Task-lossless 3.5 bpw. Matches base on AIME25 and LCBv6. Switch off Bonsai here.",
-          "source": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF"
-        },
-        "24-63gb": {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "family": "qwen3-8-27b-gsq-rco",
-          "quant": "IQ3_S",
-          "size_gb": 11.8,
-          "engine": "llama.cpp",
-          "context": 131072,
-          "note": "Task-lossless 3.5 bpw. Measured 76.2 tok/s at 131K with MTP (1.59x over baseline). 49.2 tok/s at 262K dual-GPU.",
-          "source": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF"
-        },
-        "64gb+": {
-          "model": "Qwen 3.8 Flash Next IQ2_XS (Strata)",
-          "family": "qwen3-8-flash-next-strata",
-          "quant": "IQ2_XS",
-          "size_gb": 36.0,
-          "engine": "strata",
-          "context": 131072,
-          "note": "Full residency on 64 GB+ total (VRAM+RAM).",
-          "source": "Niko1221/Strata"
-        }
-      }
-    },
-    "unified": {
-      "description": "Unified memory (Apple Silicon) and CPU-only hosts. MoE models preferred \u2014 dense 27B crawls on CPU.",
-      "tiers": {
-        "4-7gb": {
-          "model": "Maple Preview 20B-A1B TQ2_0 (Flash-MoE)",
-          "family": "maple-preview",
-          "quant": "TQ2_0",
-          "size_gb": 0.63,
-          "engine": "maple-flash-moe",
-          "context": 131072,
-          "note": "File-backed expert offload. Only ~0.63 GB resident. Streams from SSD. Runs on any Apple Silicon Mac.",
-          "source": "deepgrove/maple-2bit-mlx"
-        },
-        "8-15gb": {
-          "model": "Maple Preview 20B-A1B TQ2_0",
-          "family": "maple-preview",
-          "quant": "TQ2_0",
-          "size_gb": 5.5,
-          "engine": "maple-flash-moe",
-          "context": 131072,
-          "note": "20B-A1B ternary MoE with Flash-MoE expert streaming. ~0.63 GB resident (9x reduction). 218 tok/s on M4. Streams 256 experts from disk, keeps active 8 in DRAM.",
-          "source": "deepgrove/maple-preview-GGUF"
-        },
-        "16-23gb": {
-          "model": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
-          "family": "cyber-tiel-coder-35b-a3b",
-          "quant": "UD-IQ3_XXS",
-          "size_gb": 13.2,
-          "engine": "llama.cpp",
-          "context": 131072,
-          "note": "35B-A3B MoE code specialist. ~3.4B active. Runs on 16 GB unified with CPU expert offload.",
-          "source": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF"
-        },
-        "24-31gb": {
-          "model": "Cyber-Tiel Coder 35B-A3B UD-Q4_K_XL",
-          "family": "cyber-tiel-coder-35b-a3b",
-          "quant": "UD-Q4_K_XL",
-          "size_gb": 22.4,
-          "engine": "llama.cpp",
-          "context": 131072,
-          "note": "Benchmarked tier. Snug 24 GB unified. Code specialist MoE.",
-          "source": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF"
-        },
-        "32-47gb": {
-          "model": "Cyber-Tiel Coder 35B-A3B UD-Q5_K_XL",
-          "family": "cyber-tiel-coder-35b-a3b",
-          "quant": "UD-Q5_K_XL",
-          "size_gb": 26.6,
-          "engine": "llama.cpp",
-          "context": 262144,
-          "note": "Full 262K on 32 GB unified. M1 Pro / M4 class.",
-          "source": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF"
-        },
-        "48-63gb": {
-          "model": "Cyber-Tiel Coder 35B-A3B UD-Q6_K_XL",
-          "family": "cyber-tiel-coder-35b-a3b",
-          "quant": "UD-Q6_K_XL",
-          "size_gb": 31.8,
-          "engine": "llama.cpp",
-          "context": 262144,
-          "note": "Near-lossless 6-bit. Comfortable on 48 GB unified (M4 Max class).",
-          "source": "peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF"
-        },
-        "64gb+": {
-          "model": "Qwen 3.8 Flash Next IQ2_XS (Strata)",
-          "family": "qwen3-8-flash-next-strata",
-          "quant": "IQ2_XS",
-          "size_gb": 36.0,
-          "engine": "strata",
-          "context": 131072,
-          "note": "125B MoE. Needs 64 GB unified/CPU RAM. Expert tiering on GPU + RAM.",
-          "source": "Niko1221/Strata"
-        }
-      }
+  "generated_at": "2026-10-19",
+  "policy": "Two separate ladders, not one: the dedicated (VRAM) ladder runs dense models; the unified (CPU/Mac) ladder runs MoE only, because dense does not run well on unified memory. Both converge on Qwen 3.8 Flash Next at 64 GB — the only MoE rung on the dense side. Top of the unified ladder: DeepSeek V4.1 (1017), above Flash Next (pending). The Fit List IS the fallback chain: serve auto walks down the chain on OOM/timeout. Cross-cutting rules for every rung: (1) MTP on whenever available; (2) mind the power bill (kWh/hour) — IQ3_S is lossless, so do not push a heavier / higher-draw quant past it (32 GB and 48 GB both stay on GSQ-RCO @ IQ3_S).",
+  "dedicated": {
+    "label": "Ladder 1 — Dedicated (GPU / VRAM, dense)",
+    "rungs": {
+      "8-11gb": { "model": "Ternary Bonsai 2 27B PQ2_0", "quant": "PQ2_0", "size_gb": 7.21, "context": 131072, "note": "dense ternary GGUF (Q2); prism-llama.cpp; MTP on" },
+      "12-15gb": { "model": "Underdog 27B", "quant": "Q4_K_M", "size_gb": 16, "context": 131072, "note": "dense; MTP on" },
+      "16-23gb": { "model": "Qwen 3.8 GSQ-RCO 27B", "quant": "IQ3_S", "size_gb": 12, "context": 131072, "note": "near-lossless; MTP on" },
+      "24-63gb": { "model": "Qwen 3.8 GSQ-RCO 27B", "quant": "IQ3_S", "size_gb": 12, "context": 262144, "note": "near-lossless; 262K at 24 GB; MTP on; power bill stays on IQ3_S (no heavier quant)" },
+      "64gb+": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ2_XS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" }
+    }
+  },
+  "unified": {
+    "label": "Ladder 2 — Unified (CPU / Apple Silicon, MoE only — no dense)",
+    "rungs": {
+      "4-7gb": { "model": "Maple 27B", "quant": "TQ2_0", "size_gb": 6, "context": 131072, "note": "MoE; CPU 20-22 tok/s" },
+      "8-15gb": { "model": "Maple 27B", "quant": "TQ2_0", "size_gb": 6, "context": 131072, "note": "MoE; 218 tok/s on M4" },
+      "16-23gb": { "model": "Cyber Tiel Coder", "quant": "Q3_K_M", "size_gb": 14, "context": 131072, "note": "MoE, 3B active; faster than GSQ-RCO on CPU" },
+      "24-63gb": { "model": "Cyber Tiel Coder", "quant": "UD-Q4_K_XL", "size_gb": 22, "context": 262144, "note": "MoE, 3B active" },
+      "64-127gb": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ2_XS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" },
+      "128gb+": { "model": "DeepSeek V4.1 Flash (Strata 1017)", "quant": "FP8 / UD-Q4_K_XL", "context": 262144, "pending": true, "note": "Top of the unified ladder — above Flash Next. 763B MoE (16B active); 1017 update, Strata engine. Pending: exact target-tier fit not yet validated (candidate)." }
     }
   }
 }

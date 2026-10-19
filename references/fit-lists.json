@@ -20,7 +20,7 @@
       "16-23gb": { "model": "Cyber Tiel Coder", "quant": "Q3_K_M", "size_gb": 14, "context": 131072, "note": "MoE, 3B active; faster than GSQ-RCO on CPU" },
       "24-63gb": { "model": "Cyber Tiel Coder", "quant": "UD-Q4_K_XL", "size_gb": 22, "context": 262144, "note": "MoE, 3B active" },
       "64-127gb": { "model": "Qwen 3.8 Flash Next (MoE)", "quant": "IQ3_XXS", "size_gb": 21, "context": 262144, "note": "MoE; both ladders converge on Flash Next; MTP on" },
-      "128gb+": { "model": "DeepSeek V4.1 Flash (Strata 1017)", "quant": "FP8 / UD-Q4_K_XL", "context": 262144, "pending": true, "note": "Top of the unified ladder — above Flash Next. 763B MoE (16B active); 1017 update, Strata engine. Pending: exact target-tier fit not yet validated (candidate)." }
+      "128gb+": { "model": "DeepSeek V4.1 Flash (Strata 1017)", "quant": "FP8 / UD-Q4_K_XL", "context": 181000, "pending": true, "note": "Top of the unified ladder — above Flash Next. 763B MoE (16B active); 1017 update, Strata engine. Pending: exact target-tier fit not yet validated (candidate)." }
     }
   }
 }

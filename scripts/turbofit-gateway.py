@@ -25,6 +25,7 @@ import threading
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlsplit
+import urllib.request
 from urllib.request import urlopen
 
 logging.basicConfig(
@@ -181,10 +182,118 @@ def reasoning_policy_for(backend):
     return policy
 
 
+def _discover_local_models() -> list[dict]:
+    """Discover models from local runtimes registered in the runtime state."""
+    models: list[dict] = []
+    try:
+        with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+            state = json.load(handle)
+        routes = (state.get("routes") or {}) if isinstance(state, dict) else {}
+    except (OSError, ValueError):
+        return models
+    seen = set()
+    for role in ("main", "aux"):
+        route = routes.get(role)
+        if not isinstance(route, dict):
+            continue
+        alias = str(route.get("alias") or "").strip()
+        if not alias or alias in seen:
+            continue
+        base_url = str(route.get("base_url") or "").rstrip("/")
+        if not base_url:
+            port = route.get("port")
+            if isinstance(port, int) and port > 0:
+                base_url = f"http://127.0.0.1:{port}"
+        if not base_url:
+            continue
+        seen.add(alias)
+        ctx = _live_n_ctx(route) or 65536
+        models.append({
+            "id": alias,
+            "object": "model",
+            "owned_by": "turbofit",
+            "description": f"Local — {alias}",
+            "context_length": ctx,
+            "source": "local",
+            "base_url": base_url,
+            "metadata": {
+                "role": role,
+                "backing_model": alias,
+                "residency": "unknown",
+                "mode": "local",
+                "observed_at": None,
+                "freshness": {"age_s": None, "max_age_s": 15.0, "stale": True},
+            },
+        })
+    return models
+
+
+def _discover_remote_models() -> list[dict]:
+    """Discover TurboFit instances on the Tailscale network.
+
+    Reads TURBOFIT_PEERS (comma-separated host:port or URL list) and
+    queries each peer's /v1/models endpoint. Peers that answer are
+    their models to the catalog with a remote source tag.
+    """
+    models: list[dict] = []
+    peers: list[str] = []
+
+    # Explicit peers always win (env override)
+    peers_raw = os.environ.get("TURBOFIT_PEERS", "").strip()
+    if peers_raw:
+        peers.extend(p.strip() for p in peers_raw.split(",") if p.strip())
+
+    # Automatic tailnet discovery — no configuration needed
+    if os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
+        try:
+            from turbofit_runtime.tailnet import discover_turbofit_peers
+            for found in discover_turbofit_peers():
+                peers.append(found["host"] + f":{found['port']}")
+        except Exception:
+            pass
+
+    if not peers:
+        return models
+    for peer in peers:
+        peer = peer.strip().rstrip("/")
+        if not peer:
+            continue
+        if not peer.startswith(("http://", "https://")):
+            peer = f"http://{peer}"
+        try:
+            with urlopen(peer + "/v1/models", timeout=2.0) as handle:
+                data = json.loads(handle.read().decode())
+            for item in (data.get("data") or []):
+                model_id = str(item.get("id") or "").strip()
+                if not model_id or model_id == "auto":
+                    continue
+                host = urlsplit(peer).hostname or peer
+                models.append({
+                    "id": f"{host}/{model_id}",
+                    "object": "model",
+                    "owned_by": "turbofit",
+                    "description": f"Remote — {host}: {item.get('description', model_id)}",
+                    "context_length": item.get("context_length") or 65536,
+                    "source": "remote",
+                    "base_url": peer,
+                    "remote_model": model_id,
+                    "metadata": {
+                        "role": "remote",
+                        "backing_model": model_id,
+                        "residency": "remote",
+                        "mode": "tailnet",
+                        "observed_at": None,
+                        "freshness": {"age_s": None, "max_age_s": 15.0, "stale": False},
+                    },
+                })
+        except Exception:
+            continue
+    return models
+
+
 def provider_models():
-    """OpenAI-compatible catalog exposed by the single Turbofit provider."""
+    """OpenAI-compatible catalog: auto + local models + Tailscale remote models."""
     context_length = active_context_length(role="main")
-    auxiliary_context = active_context_length(role="aux")
     models: list[dict] = [
         {
             "id": "auto",
@@ -192,25 +301,22 @@ def provider_models():
             "owned_by": "turbofit",
             "description": "Hardware-matched tested main + auxiliary configuration",
             "context_length": context_length,
-        },
-        {
-            "id": "active:main",
-            "object": "model",
-            "owned_by": "turbofit",
-            "description": "Stable route to the currently reconciled main role",
-            "context_length": context_length,
-        },
-        {
-            "id": "active:aux",
-            "object": "model",
-            "owned_by": "turbofit",
-            "description": "Stable route to the currently reconciled auxiliary role",
-            "context_length": auxiliary_context,
+            "source": "auto",
         },
     ]
+    # Local models
+    seen = {"auto"}
+    for model in _discover_local_models():
+        if model["id"] not in seen:
+            models.append(model)
+            seen.add(model["id"])
+    # Remote (Tailscale) models
+    for model in _discover_remote_models():
+        if model["id"] not in seen:
+            models.append(model)
+            seen.add(model["id"])
     metadata = provider_model_metadata()
-    for model, role in zip(models, ("auto", "main", "aux")):
-        model["metadata"] = metadata[role]
+    models[0]["metadata"] = metadata["auto"]
     return models
 
 
@@ -1032,6 +1138,87 @@ class GatewayHandler(BaseHTTPRequestHandler):
         )
         self._send_json(200, props)
 
+    def _resolve_local_alias(self, model_id):
+        """Resolve a model id that matches a local runtime-state alias.
+
+        Returns (port, alias) when the alias is served by a local runtime,
+        or None. This is what lets a gateway route the same model ids it
+        advertises in /v1/models.
+        """
+        try:
+            with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+                state = json.load(handle)
+        except (OSError, ValueError):
+            return None
+        if not isinstance(state, dict):
+            return None
+        routes = state.get("routes") or {}
+        if not isinstance(routes, dict):
+            return None
+        for role in ("main", "aux"):
+            route = routes.get(role)
+            if not isinstance(route, dict):
+                continue
+            alias = str(route.get("alias") or "").strip()
+            if alias != model_id:
+                continue
+            port = route.get("port")
+            if not isinstance(port, int) or port <= 0:
+                continue
+            return port, alias
+        return None
+
+    def _proxy_local_port(self, port, path, body=None):
+        """Proxy a request straight to a local runtime port."""
+        upstream = f"http://127.0.0.1:{port}/v1/{path.lstrip('/')}"
+        try:
+            req = urllib.request.Request(
+                upstream,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST" if body else "GET",
+            )
+            with urllib.request.urlopen(req, timeout=PROXY_BACKEND_TIMEOUT_S) as resp:
+                self._send_json(resp.status, json.loads(resp.read().decode()))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:400]
+            self._send_502(f"Local runtime error {exc.code}: {detail}")
+        except Exception as exc:
+            self._send_502(f"Local runtime error: {exc}")
+
+    def _resolve_remote_model(self, model_id):
+        """Resolve a remote Tailscale model to its peer base_url and model name.
+
+        Returns (base_url, remote_model) or None.
+        """
+        for model in provider_models():
+            if model["id"] == model_id and model.get("source") == "remote":
+                return model["base_url"], model["remote_model"]
+        return None
+
+    def _proxy_remote(self, base_url, remote_model, path, body=None):
+        """Proxy a request to a remote TurboFit peer."""
+        upstream = f"{base_url}/v1/{path.lstrip('/')}"
+        # Rewrite the model field so the remote gateway routes correctly
+        if body:
+            try:
+                payload = json.loads(body)
+                payload["model"] = remote_model
+                body = json.dumps(payload).encode()
+            except Exception:
+                pass
+        try:
+            req = urllib.request.Request(
+                upstream,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST" if body else "GET",
+            )
+            with urllib.request.urlopen(req, timeout=PROXY_BACKEND_TIMEOUT_S) as resp:
+                self._send_json(resp.status, json.loads(resp.read().decode()))
+        except Exception as exc:
+            self._send_502(f"Remote peer error: {exc}")
+
     def _handle_unified(self, path):
         content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length) if content_length > 0 else None
@@ -1042,6 +1229,21 @@ class GatewayHandler(BaseHTTPRequestHandler):
             except Exception:
                 self.send_error(400, "Request body must be valid JSON")
                 return
+
+        # Remote Tailscale model — proxy to the peer
+        remote = self._resolve_remote_model(model)
+        if remote:
+            base_url, remote_model = remote
+            self._proxy_remote(base_url, remote_model, path[len("/v1/"):], body=body)
+            return
+
+        # Local runtime alias — proxy straight to the serving port
+        local = self._resolve_local_alias(model)
+        if local:
+            port, _alias = local
+            self._proxy_local_port(port, path[len("/v1/"):], body=body)
+            return
+
         profile_id, role = parse_provider_model(model)
         selected = resolve_requested_profile(model)
         if not selected:
@@ -1457,6 +1659,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
             connection.close()
         except Exception:
             pass
+
+    def _send_502(self, message):
+        self._send_json(502, {"error": {"message": message, "type": "bad_gateway"}})
 
     def _send_503(self, reason, tried=None):
         log.error(f"503: {reason} (tried={tried})")

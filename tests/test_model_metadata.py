@@ -31,12 +31,14 @@ def catalogue(tmp_path, monkeypatch):
 
 def test_raw_ids_and_unloaded_backing_identity(catalogue):
     models = GATEWAY.provider_models()
-    assert [m["id"] for m in models] == ["auto", "active:main", "active:aux"]
-    assert [{k: m["metadata"][k] for k in ("role", "backing_model", "residency")} for m in models] == [
-        {"role": "auto", "backing_model": "Exact/Main:Q4", "residency": "unknown"},
-        {"role": "main", "backing_model": "Exact/Main:Q4", "residency": "unknown"},
-        {"role": "aux", "backing_model": "Exact/Aux:Q8", "residency": "unknown"}]
-    assert [m["context_length"] for m in models] == [4096, 4096, 2048]
+    assert models[0]["id"] == "auto"
+    assert models[0]["metadata"]["role"] == "auto"
+    assert models[0]["metadata"]["backing_model"] == "Exact/Main:Q4"
+    assert models[0]["metadata"]["residency"] == "unknown"
+    assert models[0]["context_length"] == 4096
+    # Local/remote discovered models follow auto (none in test env)
+    assert all(m["id"] != "active:main" for m in models)
+    assert all(m["id"] != "active:aux" for m in models)
 
 
 def test_shared_main_uses_main_backing_and_status_once(catalogue, monkeypatch):
@@ -53,9 +55,8 @@ def test_shared_main_uses_main_backing_and_status_once(catalogue, monkeypatch):
             "freshness": {"age_s": 0, "max_age_s": 15, "stale": False}}}}
     monkeypatch.setattr(native_lifecycle, "lifecycle_request", status)
     models = GATEWAY.provider_models()
-    assert models[2]["metadata"]["backing_model"] == "Exact/Main:Q4"
-    assert models[2]["metadata"]["mode"] == "shared-main"
-    assert all(m["metadata"]["residency"] == "loading" for m in models)
+    assert models[0]["metadata"]["backing_model"] == "Exact/Main:Q4"
+    assert models[0]["metadata"]["residency"] == "loading"
     assert calls == [({"action": "status"}, 0.5)]
 
 
@@ -77,8 +78,8 @@ def test_unreachable_controller_preserves_identity(catalogue, monkeypatch):
     def unavailable(_):
         raise native_lifecycle.LifecycleUnavailable("stale endpoint")
     monkeypatch.setattr(native_lifecycle, "load_endpoint", unavailable)
-    assert GATEWAY.provider_models()[1]["metadata"]["backing_model"] == "Exact/Main:Q4"
-    assert GATEWAY.provider_models()[1]["metadata"]["residency"] == "unknown"
+    assert GATEWAY.provider_models()[0]["metadata"]["backing_model"] == "Exact/Main:Q4"
+    assert GATEWAY.provider_models()[0]["metadata"]["residency"] == "unknown"
 
 
 @pytest.mark.parametrize("content", ['[]', '{', '{}', '{"active":"x","routes":[]}',
@@ -114,15 +115,15 @@ def test_http_catalogue_and_detail_observe_real_lifecycle_without_wake(catalogue
         with pytest.raises(RuntimeError):
             lifecycle.wake("main", fail)
         before = lifecycle.status()
-        for path in ("/v1/models", "/v1/models/active:main"):
+        for path in ("/v1/models", "/v1/models/auto"):
             connection = http.client.HTTPConnection(*server.server_address, timeout=5)
             try:
                 connection.request("GET", path)
                 response = connection.getresponse()
                 data = json.loads(response.read())
                 assert response.status == 200
-                model = data["data"][1] if path == "/v1/models" else data
-                assert model["id"] == "active:main"
+                model = data["data"][0] if path == "/v1/models" else data
+                assert model["id"] == "auto"
                 assert model["metadata"]["residency"] == "error"
                 assert model["metadata"]["backing_model"] == "Exact/Main:Q4"
             finally:

@@ -195,3 +195,60 @@ def ensure_tailnet(
             "provider_base_url": None,
             "error": str(exc),
         }
+
+
+def discover_turbofit_peers(
+    *,
+    provider_port: int = 8091,
+    timeout_s: float = 2.0,
+    command_runner: CommandRunner | None = None,
+    probe: Callable[[str, float], bool] | None = None,
+) -> list[dict[str, Any]]:
+    """Discover TurboFit gateways running on other machines in the tailnet.
+
+    Enumerates online Tailscale peers and probes each for a TurboFit
+    gateway on ``provider_port``. Returns a list of peers that answered,
+    each with ``host`` (MagicDNS name), ``port`` and ``url``.
+
+    This is what lets the model picker show models from the user's other
+    machines without any manual peer configuration.
+    """
+    import socket
+
+    runner = command_runner or _run
+
+    def default_probe(host: str, timeout: float) -> bool:
+        try:
+            with socket.create_connection((host, provider_port), timeout=timeout):
+                return True
+        except OSError:
+            return False
+
+    probe_fn = probe or default_probe
+
+    try:
+        status = _execute_json(["tailscale", "status", "--json"], runner)
+    except (FileNotFoundError, OSError, subprocess.SubprocessError, RuntimeError):
+        return []
+
+    peers: list[dict[str, Any]] = []
+    raw_peer_map = status.get("Peer") or {}
+    if not isinstance(raw_peer_map, dict):
+        return []
+    for _key, raw_peer in raw_peer_map.items():
+        if not isinstance(raw_peer, dict):
+            continue
+        if raw_peer.get("Online") is not True:
+            continue
+        dns_name = str(raw_peer.get("DNSName") or "").strip().rstrip(".")
+        if not dns_name:
+            continue
+        if not probe_fn(dns_name, timeout_s):
+            continue
+        peers.append({
+            "host": dns_name,
+            "port": provider_port,
+            "url": f"http://{dns_name}:{provider_port}",
+            "os": raw_peer.get("OS"),
+        })
+    return peers

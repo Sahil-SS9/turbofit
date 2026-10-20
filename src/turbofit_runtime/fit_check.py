@@ -6,7 +6,7 @@ Dedicated (GPU VRAM) — dense models preferred:
     8-11 GB   Bonsai 2 PTQ1_0 / PQ2_0 (prism-llama.cpp)
     12-15 GB  Underdog 27B PQ2_0 (prism-llama.cpp)
     16-23 GB  Qwen 3.8 27B GSQ-RCO IQ3_S (llama.cpp, 131K)
-    24-63 GB  Strata Flash Next via expert tiering (24+ GB VRAM, 64 GB RAM)
+    24-63 GB  Qwen 3.8 27B GSQ-RCO IQ3_S (llama.cpp, 262K)
     64+ GB    Strata Flash Next full residency
 
 Unified / CPU — MoE models preferred (dense 27B crawls on CPU):

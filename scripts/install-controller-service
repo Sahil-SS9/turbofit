@@ -55,6 +55,9 @@ RestartSec=5
 Environment=PYTHONUNBUFFERED=1
 Environment=TURBOFIT_ALLOW_API=true
 Environment=TURBOFIT_CAMPAIGN_LEASE=%h/.local/state/turbofit/campaign-lease.json
+# Reachable on the tailnet so other machines' gateways can discover this
+# one and list its models. Override in controller.env to bind loopback only.
+Environment=TURBOFIT_GATEWAY_HOST=0.0.0.0
 EnvironmentFile=-%h/.config/turbofit/controller.env
 
 [Install]
@@ -62,12 +65,64 @@ WantedBy=default.target
 """
 
 
+def gateway_launchd_plist() -> dict:
+    """macOS LaunchAgent for the gateway.
+
+    The explicit PATH matters: launchd's default omits /usr/local/bin,
+    where the tailscale CLI lives, so peer discovery silently finds
+    nothing without it.
+    """
+    import sys
+    return {
+        "Label": "com.hermes.turbofit-gateway",
+        "ProgramArguments": [sys.executable, str(ROOT / "scripts" / "turbofit-gateway.py")],
+        "EnvironmentVariables": {
+            "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+            "PYTHONPATH": str(ROOT / "src") + ":" + str(ROOT),
+            "TURBOFIT_GATEWAY_PORT": "8091",
+            "TURBOFIT_GATEWAY_HOST": "127.0.0.1",
+            "TURBOFIT_ALLOW_API": "0",
+            "TURBOFIT_PEER_DISCOVERY": "1",
+        },
+        "RunAtLoad": True,
+        "KeepAlive": True,
+        "StandardOutPath": str(Path.home() / ".local/state/turbofit/logs/gateway.log"),
+        "StandardErrorPath": str(Path.home() / ".local/state/turbofit/logs/gateway.err.log"),
+    }
+
+
+def install_launchd(*, enable: bool, start: bool) -> int:
+    import plistlib
+    import platform
+    if platform.system() != "Darwin":
+        print("launchd install is macOS-only", file=__import__("sys").stderr)
+        return 1
+    logs = Path.home() / ".local/state/turbofit/logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    agents = Path.home() / "Library/LaunchAgents"
+    agents.mkdir(parents=True, exist_ok=True)
+    path = agents / "com.hermes.turbofit-gateway.plist"
+    with open(path, "wb") as handle:
+        plistlib.dump(gateway_launchd_plist(), handle, sort_keys=True)
+    if enable or start:
+        subprocess.run(["launchctl", "unload", str(path)], check=False,
+                       capture_output=True)
+        subprocess.run(["launchctl", "load", str(path)], check=True)
+    print(path)
+    return 0
+
+
 def main() -> int:
+    import platform
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--enable", action="store_true", help="enable for future user sessions")
     parser.add_argument("--start", action="store_true", help="start immediately after installing")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    if platform.system() == "Darwin":
+        return install_launchd(enable=args.enable, start=args.start)
+
     content = unit_text()
     gateway_content = gateway_unit_text()
     if args.dry_run:

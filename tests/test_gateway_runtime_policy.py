@@ -327,7 +327,9 @@ def test_provider_catalog_advertises_stable_auto_and_role_ids(tmp_path, monkeypa
 
     ids = [item["id"] for item in GATEWAY.provider_models()]
 
-    assert ids == ["auto", "active:main", "active:aux"]
+    assert ids[0] == "auto"
+    assert "active:main" not in ids
+    assert "active:aux" not in ids
 
 
 def test_malformed_or_partial_published_routes_fail_closed(tmp_path, monkeypatch) -> None:

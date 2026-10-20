@@ -74,7 +74,7 @@ def test_catalogue_rejects_unbound_or_invalid_freshness(catalogue, monkeypatch, 
     monkeypatch.setenv('TURBOFIT_LIFECYCLE_REQUIRED', '1')
     monkeypatch.setattr(native_lifecycle, 'load_endpoint', lambda _: {})
     monkeypatch.setattr(native_lifecycle, 'lifecycle_request', lambda *a, **k: {'orphaned': False, 'roles': {'main': item}})
-    model = GATEWAY.provider_models()[1]
+    model = GATEWAY.provider_models()[0]
     assert model['metadata']['residency'] == 'unknown'
     assert model['metadata']['backing_model'] == 'Exact/Main:Q4'
 
@@ -97,7 +97,7 @@ def test_real_child_owner_health_idle_failure_to_real_catalogue(catalogue, tmp_p
     monkeypatch.setenv('TURBOFIT_LIFECYCLE_REQUIRED', '1')
     monkeypatch.setenv('TURBOFIT_NATIVE_STATE', str(lc.state_dir))
     try:
-        assert GATEWAY.provider_models()[1]['metadata']['residency'] == 'unknown'
+        assert GATEWAY.provider_models()[0]['metadata']['residency'] == 'unknown'
         lc.wake('main', lambda: runtime.ensure_role('main'))
         lc.observe(runtime.residency_snapshot())
         assert all(m['metadata']['residency'] == 'ready' for m in GATEWAY.provider_models())
@@ -105,7 +105,7 @@ def test_real_child_owner_health_idle_failure_to_real_catalogue(catalogue, tmp_p
         resident.process.terminate()  # Only our fixture child, not an external PID.
         resident.process.wait(timeout=3)
         lc.observe(runtime.residency_snapshot())
-        assert GATEWAY.provider_models()[1]['metadata']['residency'] == 'error'
+        assert GATEWAY.provider_models()[0]['metadata']['residency'] == 'error'
         lc.wake('main', lambda: runtime.ensure_role('main'))
         lc.observe(runtime.residency_snapshot())
         now[0] = 2

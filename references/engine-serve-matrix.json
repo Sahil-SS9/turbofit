@@ -162,7 +162,39 @@
       "model_target": "dense 27B (GSQ-RCO, Bonsai 2, Underdog)",
       "min_vram_gb": 4,
       "note": "Qualification gate: 4 GB VRAM / 16 GB RAM / HDD box. Pass = 4-8 tok/s sustained, 262K context, <2% hallucination delta vs 24 GB, single-process launch. Target 8-12 tok/s once KV offload is tuned.",
-      "source": "derived: Strata n-gram + llama.cpp --split-mode row + mmap"
+      "source": "derived: Strata n-gram + llama.cpp --split-mode row + mmap",
+      "upstream": {
+        "engine": "C99 SALT engine (State Assured Latent-Trasition)",
+        "repo": "https://github.com/SouthpawIN/SALT-core",
+        "pinned_commit": "407675aab4fc3f8cbb03206386a45b92b00e78a4",
+        "private_pin_revision": "ce0363260a488c96b951b4d826a188e1014575d4",
+        "export_pin_date": "2026-10-02",
+        "manifest": "CORE-FILES.sha256",
+        "paper": "SALT: Reusable Computation for Stateful Language-Model Inference (https://zenodo.org/records/23111764)"
+      },
+      "gate": {
+        "kind": "inference-qualification",
+        "checks": [
+          {"id": "G1", "name": "source-provenance", "kind": "static"},
+          {"id": "G2", "name": "host-build", "kind": "host"},
+          {"id": "G3", "name": "smoke-suite", "kind": "host"},
+          {"id": "G4", "name": "server-contract", "kind": "static-or-live"},
+          {"id": "G5", "name": "inference-qualification", "kind": "live"}
+        ],
+        "repo": {
+          "url": "https://github.com/SouthpawIN/SALT-core",
+          "pinned_commit": "407675aab4fc3f8cbb03206386a45b92b00e78a4",
+          "manifest": "CORE-FILES.sha256"
+        },
+        "pass_criteria": {
+          "sustained_tps_min": 4,
+          "expected_band_tps": [4, 8],
+          "target_band_tps": [8, 12],
+          "context_tokens": 262144,
+          "hallucination_delta_max_pct": 2,
+          "launch": "single-process"
+        }
+      }
     },
     "saliency": {
       "serves": "Dense 27B via dynamic token pruning + KV offload + disk streaming (candidate)",

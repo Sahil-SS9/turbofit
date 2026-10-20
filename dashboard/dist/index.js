@@ -51,6 +51,7 @@
     const [tournaments, setTournaments] = useState(null);
     const [hardwareTiers, setHardwareTiers] = useState(null);
     const [auxiliaryTiers, setAuxiliaryTiers] = useState(null);
+    const [leaderboard, setLeaderboard] = useState(null);
     const [multimodal, setMultimodal] = useState(null);
     const [multimodalSelections, setMultimodalSelections] = useState({});
     const [primary, setPrimary] = useState(false);
@@ -78,7 +79,7 @@
     const load = useCallback(async function () {
       setMessage("");
       try {
-        const [nextStatus, nextCombinations, nextBackends, nextTournaments, nextHardwareTiers, nextAuxiliaryTiers, nextMultimodal] = await Promise.all([
+        const [nextStatus, nextCombinations, nextBackends, nextTournaments, nextHardwareTiers, nextAuxiliaryTiers, nextMultimodal, nextLeaderboard] = await Promise.all([
           SDK.fetchJSON("/api/plugins/turbofit/status"),
           SDK.fetchJSON("/api/plugins/turbofit/combinations"),
           SDK.fetchJSON("/api/plugins/turbofit/backends"),
@@ -86,6 +87,7 @@
           SDK.fetchJSON("/api/plugins/turbofit/hardware-tiers"),
           SDK.fetchJSON("/api/plugins/turbofit/auxiliary-tiers"),
           SDK.fetchJSON("/api/plugins/turbofit/multimodal"),
+          SDK.fetchJSON("/api/plugins/turbofit/leaderboard"),
         ]);
         setStatus(nextStatus);
         const exact = nextCombinations.combinations || [];
@@ -94,6 +96,7 @@
         setTournaments(nextTournaments);
         setHardwareTiers(nextHardwareTiers);
         setAuxiliaryTiers(nextAuxiliaryTiers);
+        setLeaderboard(nextLeaderboard);
         setMultimodal(nextMultimodal);
         const selectedModalities = Object.assign({}, nextMultimodal.selected || {});
         ["image", "video", "music", "tts", "stt"].forEach((modality) => {
@@ -445,6 +448,30 @@
                     (shown ? shown.configuration_id : "no physical winner") +
                     " · intelligence " + intel + " · " + tps + " tok/s" +
                     (balanced ? " · balanced " + balanced.configuration_id : "")
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+
+        h(Card, { className: "tf-card tf-span-2" },
+          h(CardHeader, null, h(CardTitle, null, "Leaderboard · best model + engines per tier")),
+          h(CardContent, null,
+            h("p", { className: "tf-help" },
+              "Measured winner where the tier is physically validated; otherwise the top catalog candidate. Engines resolve by exact slug match against the engine/serve matrix — unmatched models default to native."
+            ),
+            h("dl", { className: "tf-stats" },
+              value(leaderboard, "tiers", []).map((tier) => {
+                const w = tier.winner || {};
+                const tps = w.measured_tps != null ? w.measured_tps.toFixed(2) + " tok/s" : "tps pending";
+                const engines = (tier.engines || []).join(", ") + (tier.engine_source === "default" ? " (default)" : "");
+                return h("div", { key: tier.tier_id },
+                  h("dt", null, tier.capacity_gb + " GB · " + (tier.status || "unknown")),
+                  h("dd", null,
+                    (w.model_name || w.model || "—") + " · " + (w.quantization || "—") +
+                    " · " + (w.context != null ? Number(w.context).toLocaleString() + " ctx" : "ctx —") +
+                    " · " + tps + " · " + engines
                   ),
                 );
               }),

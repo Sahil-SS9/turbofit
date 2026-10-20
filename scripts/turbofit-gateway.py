@@ -262,13 +262,13 @@ def _discover_remote_models() -> list[dict]:
     models: list[dict] = []
     peers: list[str] = []
 
-    # Explicit peers always win (env override)
+    # Explicit peers always win (env override): when set, they fully
+    # replace automatic discovery instead of merging with it.
     peers_raw = os.environ.get("TURBOFIT_PEERS", "").strip()
     if peers_raw:
         peers.extend(p.strip() for p in peers_raw.split(",") if p.strip())
-
-    # Automatic tailnet discovery — no configuration needed
-    if os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
+    elif os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
+        # Automatic tailnet discovery — no configuration needed
         try:
             from turbofit_runtime.tailnet import discover_turbofit_peers
             for found in discover_turbofit_peers():
@@ -285,7 +285,7 @@ def _discover_remote_models() -> list[dict]:
         if not peer.startswith(("http://", "https://")):
             peer = f"http://{peer}"
         try:
-            with urlopen(peer + "/v1/models", timeout=2.0) as handle:
+            with urlopen(peer + "/v1/models", timeout=10.0) as handle:
                 data = json.loads(handle.read().decode())
             for item in (data.get("data") or []):
                 model_id = str(item.get("id") or "").strip()

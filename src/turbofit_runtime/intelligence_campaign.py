@@ -1,6 +1,7 @@
 """Durable state machine for production configuration intelligence benchmarks."""
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -218,15 +219,37 @@ def mark_running(state: dict[str, Any], run_id: str) -> dict[str, Any]:
     return run
 
 
+def _active_pids() -> "set[int] | None":
+    """All live PIDs, or None when the OS exposes no /proc (macOS/Windows)."""
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return None
+    try:
+        return {int(path.name) for path in proc.iterdir() if path.name.isdigit()}
+    except OSError:
+        return None
+
+
+def _pid_alive(pid: int) -> bool:
+    """Cross-platform single-PID liveness probe (does not require /proc)."""
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def recover_interrupted(
     state: dict[str, Any], *, active_pids: set[int] | None = None,
     boot_id: str | None = None, legacy_stale_seconds: int = 21600
 ) -> tuple[str, ...]:
     """Requeue runs whose recorded worker process no longer exists."""
     if active_pids is None:
-        active_pids = {
-            int(path.name) for path in Path("/proc").iterdir() if path.name.isdigit()
-        }
+        active_pids = _active_pids()
     if boot_id is None:
         try:
             boot_id = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="utf-8").strip()
@@ -238,7 +261,13 @@ def recover_interrupted(
         if run["status"] != "running":
             continue
         worker_pid = run.get("worker_pid")
-        interrupted = isinstance(worker_pid, int) and worker_pid not in active_pids
+        if worker_pid is None:
+            interrupted = False
+        elif active_pids is None:
+            interrupted = not _pid_alive(worker_pid)
+        else:
+            assert active_pids is not None
+            interrupted = worker_pid not in active_pids
         worker_boot_id = run.get("worker_boot_id")
         if worker_boot_id and boot_id and worker_boot_id != boot_id:
             interrupted = True

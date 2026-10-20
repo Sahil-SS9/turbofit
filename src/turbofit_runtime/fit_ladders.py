@@ -99,6 +99,7 @@ class Rung:
     quant: str
     class_: str          # "dense" | "moe"
     engines: list = field(default_factory=list)   # ordered per-model priority
+    low_vram_candidates: list = field(default_factory=list)  # candidate engines (qualification gate pending)
     apple_alternate: list = field(default_factory=list)
     status: str = "candidate"
     note: str = ""
@@ -120,6 +121,7 @@ def _rung(tier) -> Rung:
     key = _pair_key_for(tier.model_tokens)
     rec = _load_pairs().get(key, {}) if key else {}
     engines = list(rec.get("priority") or rec.get("eligible_engines") or [])
+    low_vram_candidates = list(rec.get("low_vram_dense_candidates") or [])
     status = "released" if any(_released(e) for e in engines) else "candidate"
     _alt = rec.get("apple_alternate")
     apple_alternate = [_alt] if isinstance(_alt, str) else list(_alt or [])
@@ -130,6 +132,7 @@ def _rung(tier) -> Rung:
         quant=_quant_label(tier.model_tokens),
         class_=cls,
         engines=engines,
+        low_vram_candidates=low_vram_candidates,
         apple_alternate=apple_alternate,
         status=status,
         note=_STANDS_IN_FOR.get(first, ""),

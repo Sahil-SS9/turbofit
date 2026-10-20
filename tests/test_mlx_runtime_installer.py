@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import subprocess
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
@@ -81,6 +82,8 @@ def test_installer_help_bootstraps_from_legacy_system_python() -> None:
     system_python = Path("/usr/bin/python3")
     if not system_python.exists():
         return
+    if shutil.which("uv") is None:
+        pytest.skip("uv not on PATH; bootstrap cannot re-execute")
     result = subprocess.run(
         [str(system_python), str(SCRIPT), "--help"],
         text=True,

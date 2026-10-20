@@ -6,6 +6,8 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 
 ROOT = Path(__file__).parents[1]
 SCRIPT = ROOT / "scripts/turbofit-gateway-runtime"
@@ -56,6 +58,8 @@ def test_gateway_cli_bootstraps_from_legacy_system_python(tmp_path: Path) -> Non
     system_python = Path("/usr/bin/python3")
     if not system_python.exists():
         return
+    if not any(Path("~/.local/share/turbofit/runtimes").expanduser().glob("mlx-lm-*/.venv/bin/python")):
+        pytest.skip("managed MLX runtime not installed; bootstrap has no modern python to re-execute into")
     result = subprocess.run(
         [str(system_python), str(SCRIPT), "status", "--state", str(tmp_path / "missing.json")],
         text=True,

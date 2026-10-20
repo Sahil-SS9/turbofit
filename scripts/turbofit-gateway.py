@@ -191,36 +191,60 @@ def _discover_local_models() -> list[dict]:
         routes = (state.get("routes") or {}) if isinstance(state, dict) else {}
     except (OSError, ValueError):
         return models
+    main_alias = ""
+    main_kind = ""
+    main_base_url = ""
+    main_route = routes.get("main")
+    if isinstance(main_route, dict):
+        main_alias = str(main_route.get("alias") or "").strip()
+        main_kind = str(main_route.get("kind") or "").strip()
+        main_base_url = str(main_route.get("base_url") or "").rstrip("/")
+        if not main_base_url:
+            port = main_route.get("port")
+            if isinstance(port, int) and port > 0:
+                main_base_url = f"http://127.0.0.1:{port}"
     seen = set()
     for role in ("main", "aux"):
         route = routes.get(role)
         if not isinstance(route, dict):
             continue
+        kind = str(route.get("kind") or "").strip()
         alias = str(route.get("alias") or "").strip()
-        if not alias or alias in seen:
-            continue
-        base_url = str(route.get("base_url") or "").rstrip("/")
-        if not base_url:
-            port = route.get("port")
-            if isinstance(port, int) and port > 0:
-                base_url = f"http://127.0.0.1:{port}"
-        if not base_url:
-            continue
-        seen.add(alias)
+        if role == "aux" and kind == "shared-main":
+            # A shared-main aux has no model of its own; it rides on the main
+            # route's backing alias and endpoint while keeping role "aux".
+            if main_kind != "local" or not main_alias:
+                continue
+            model_id = main_alias
+            mode = "shared-main"
+            base_url = main_base_url
+        else:
+            # Only physical local routes carry a catalogue identity; api-policy
+            # and other kinds have no model of their own.
+            if kind != "local" or not alias or alias in seen:
+                continue
+            model_id = alias
+            mode = "local"
+            base_url = str(route.get("base_url") or "").rstrip("/")
+            if not base_url:
+                port = route.get("port")
+                if isinstance(port, int) and port > 0:
+                    base_url = f"http://127.0.0.1:{port}"
+        seen.add(model_id)
         ctx = _live_n_ctx(route) or 65536
         models.append({
-            "id": alias,
+            "id": model_id,
             "object": "model",
             "owned_by": "turbofit",
-            "description": f"Local — {alias}",
+            "description": f"Local — {model_id}",
             "context_length": ctx,
             "source": "local",
             "base_url": base_url,
             "metadata": {
                 "role": role,
-                "backing_model": alias,
+                "backing_model": model_id,
                 "residency": "unknown",
-                "mode": "local",
+                "mode": mode,
                 "observed_at": None,
                 "freshness": {"age_s": None, "max_age_s": 15.0, "stale": True},
             },
@@ -305,18 +329,23 @@ def provider_models():
         },
     ]
     # Local models
-    seen = {"auto"}
+    seen = {("auto", "auto")}
     for model in _discover_local_models():
-        if model["id"] not in seen:
+        key = (model["id"], model.get("metadata", {}).get("role"))
+        if key not in seen:
             models.append(model)
-            seen.add(model["id"])
+            seen.add(key)
     # Remote (Tailscale) models
     for model in _discover_remote_models():
-        if model["id"] not in seen:
+        key = (model["id"], model.get("metadata", {}).get("role"))
+        if key not in seen:
             models.append(model)
-            seen.add(model["id"])
+            seen.add(key)
     metadata = provider_model_metadata()
-    models[0]["metadata"] = metadata["auto"]
+    for index, model in enumerate(models):
+        role = "auto" if index == 0 else model.get("metadata", {}).get("role")
+        if role in metadata:
+            model["metadata"] = metadata[role]
     return models
 
 

@@ -164,7 +164,13 @@ def report() -> dict[str, Any]:
                 deferred_auto_rungs.append(f"{profile.id}/{rung.id}")
 
     main_count = sum("main" in item.get("roles", []) for item in catalog.get("models", []))
-    expected_matrix = main_count * len(catalog.get("auxiliary_options", [])) * len(catalog.get("contexts", []))
+    # Mirror build_configuration_matrix: main models x aux x each main's own
+    # supported_contexts (a model may support fewer than all four global contexts).
+    expected_matrix = sum(
+        len(item.get("supported_contexts", catalog.get("contexts", [])))
+        for item in catalog.get("models", [])
+        if "main" in item.get("roles", [])
+    ) * len(catalog.get("auxiliary_options", []))
     artifacts = artifact_manifest.get("artifacts", [])
     dashboard_js = (ROOT / "dashboard/dist/index.js").read_text(encoding="utf-8")
     desktop_js = (ROOT / "desktop/plugin.js").read_text(encoding="utf-8")

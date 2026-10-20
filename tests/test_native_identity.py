@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import signal
+import sys
 from pathlib import Path
 
 import pytest
@@ -168,6 +169,7 @@ def test_start_persists_identity_of_spawned_process(
     assert persisted["start_identity"] == "linux:777"
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="reads /proc; Linux only")
 def test_process_start_identity_reads_live_linux_process() -> None:
     identity = nb.process_start_identity(os.getpid())
     assert identity is not None and identity.startswith("linux:")

@@ -42,8 +42,62 @@ def test_launchd_plist_sets_path_for_tailscale_cli() -> None:
     assert plist["KeepAlive"] is True
 
 
+def test_launchd_plist_binds_for_tailnet_reachability() -> None:
+    # The systemd unit binds 0.0.0.0; a loopback-only launchd bind hides
+    # the Mac from tailnet peer discovery (fleet can't list its models).
+    plist = _module().gateway_launchd_plist()
+    assert plist["EnvironmentVariables"]["TURBOFIT_GATEWAY_HOST"] == "0.0.0.0"
+
+
 def test_launchd_plist_is_serializable_and_targets_the_gateway() -> None:
     plist = _module().gateway_launchd_plist()
     dumped = plistlib.dumps(plist)
     assert plistlib.loads(dumped)["Label"] == "com.hermes.turbofit-gateway"
     assert any("turbofit-gateway.py" in part for part in plist["ProgramArguments"])
+
+
+def test_autoconfigure_tailnet_is_best_effort_and_never_raises() -> None:
+    import json as _json
+    import subprocess as _sp
+
+    module = _module()
+
+    def completed(command, stdout=""):
+        return _sp.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+    # tailscale connected and healthy -> publishes and reports URLs
+    def healthy(command):
+        if command == ["tailscale", "status", "--json"]:
+            return completed(command, _json.dumps({
+                "BackendState": "Running",
+                "Self": {"DNSName": "host.ts.net."},
+            }))
+        if command == ["tailscale", "serve", "status", "--json"]:
+            return completed(command, "{}")
+        return completed(command)
+    result = module.autoconfigure_tailnet(command_runner=healthy)
+    assert result["available"] is True
+    assert result["connected"] is True
+    assert result["published"] is True
+    assert result["provider_base_url"] == "https://host.ts.net:9443/v1"
+
+    # tailscale binary missing -> warning, install continues
+    def missing(command):
+        raise FileNotFoundError("tailscale")
+    result = module.autoconfigure_tailnet(command_runner=missing)
+    assert result["available"] is False
+    assert result["published"] is False
+
+    # serve command fails mid-publish -> published=False, no crash
+    def flaky(command):
+        if command == ["tailscale", "status", "--json"]:
+            return completed(command, _json.dumps({
+                "BackendState": "Running",
+                "Self": {"DNSName": "host.ts.net."},
+            }))
+        if command == ["tailscale", "serve", "status", "--json"]:
+            return completed(command, "{}")
+        return _sp.CompletedProcess(command, 1, stdout="", stderr="serve: already in use")
+    result = module.autoconfigure_tailnet(command_runner=flaky)
+    assert result["published"] is False
+    assert "serve: already in use" in (result.get("error") or "")

@@ -74,6 +74,17 @@ def test_dedicated_dense_rung_engine_priorities() -> None:
         assert all(e in ("llama.cpp", "vllm", "sglang") for e in r.engines[1:])
 
 
+def test_candidate_engines_are_carried_on_rungs_separately() -> None:
+    # low-VRAM dense candidates come from the matrix, never mixed into priority
+    for r in dedicated_ladder():
+        is_27b_dense = r.model in ("Bonsai 2", "Underdog 27B", "Qwen 3.8 GSQ-RCO 27B")
+        expected = ["salt-core", "saliency"] if is_27b_dense else []
+        assert r.low_vram_candidates == expected, f"{r.band} {r.model}: {r.low_vram_candidates}"
+        assert not (set(r.low_vram_candidates) & set(r.engines))
+    for r in unified_ladder():
+        assert r.low_vram_candidates == [], f"{r.band} {r.model}: {r.low_vram_candidates}"
+
+
 def test_source_tiers_have_separate_dense_and_moe_lists() -> None:
     # the raw tier data itself is already split (this is what the publisher reads)
     assert all(t.model_tokens[0] in ("bonsai-2", "underdog", "gsq-rco", "strata")

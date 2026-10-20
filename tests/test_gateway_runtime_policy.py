@@ -366,3 +366,81 @@ def test_local_route_cannot_proxy_back_to_gateway_port(tmp_path, monkeypatch) ->
 
     assert GATEWAY.runtime_override("main") is None
     assert GATEWAY.runtime_override("aux") is None
+
+
+def test_provider_catalog_always_includes_auto_local_and_tailnet_sections(
+    tmp_path, monkeypatch
+) -> None:
+    profiles = tmp_path / "profiles.json"
+    profiles.write_text(json.dumps({"profiles": {}}))
+    monkeypatch.setattr(GATEWAY, "PROFILES", str(profiles))
+    monkeypatch.setattr(GATEWAY, "active_context_length", lambda role=None: 8192)
+    monkeypatch.setattr(GATEWAY, "provider_model_metadata", lambda: {})
+    monkeypatch.setattr(
+        GATEWAY, "_discover_local_models",
+        lambda: [{"id": "local:deepnet", "object": "model", "owned_by": "turbofit",
+                  "metadata": {"role": "local"}}],
+    )
+    monkeypatch.setattr(
+        GATEWAY, "_discover_remote_models",
+        lambda: [{"id": "omarchy.ts.net/quality-24gb", "object": "model",
+                  "owned_by": "turbofit", "source": "remote",
+                  "metadata": {"role": "remote"}}],
+    )
+
+    catalog = GATEWAY.provider_models()
+    ids = [item["id"] for item in catalog]
+    assert ids[0] == "auto"
+    assert "local:deepnet" in ids
+    assert "omarchy.ts.net/quality-24gb" in ids
+    remote = next(item for item in catalog if item["id"] == "omarchy.ts.net/quality-24gb")
+    assert remote["source"] == "remote"
+
+
+def test_remote_discovery_uses_tailnet_peers_and_explicit_overrides(monkeypatch) -> None:
+    import turbofit_runtime.tailnet as tailnet
+
+    class FakeHandle:
+        def __init__(self, models):
+            self._models = models
+        def read(self):
+            return json.dumps({"data": self._models}).encode()
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+
+    tailnet_models = [
+        {"id": "auto"},  # must be skipped
+        {"id": "quality-24gb", "description": "deepnet 24gb"},
+    ]
+    monkeypatch.setattr(
+        GATEWAY, "urlopen",
+        lambda url, timeout=None: FakeHandle(tailnet_models),
+    )
+    found_peers = []
+
+    def fake_discover(*args, **kwargs):
+        found_peers.append((args, kwargs))
+        return [{"host": "omarchy.ts.net", "port": 8091}]
+
+    monkeypatch.setattr(tailnet, "discover_turbofit_peers", fake_discover)
+    monkeypatch.delenv("TURBOFIT_PEERS", raising=False)
+
+    # Automatic tailnet discovery: no config, peer probed over urlopen
+    monkeypatch.setenv("TURBOFIT_PEER_DISCOVERY", "1")
+    models = GATEWAY._discover_remote_models()
+    assert found_peers, "auto-discovery was not consulted"
+    assert [m["id"] for m in models] == ["omarchy.ts.net/quality-24gb"]
+    assert models[0]["source"] == "remote"
+    assert models[0]["metadata"]["mode"] == "tailnet"
+
+    # Explicit TURBOFIT_PEERS wins and is used verbatim
+    monkeypatch.setenv("TURBOFIT_PEERS", "klerik.ts.net:8091")
+    models = GATEWAY._discover_remote_models()
+    assert [m["id"] for m in models] == ["klerik.ts.net/quality-24gb"]
+
+    # Discovery off + no explicit peers -> empty, never an error
+    monkeypatch.delenv("TURBOFIT_PEERS", raising=False)
+    monkeypatch.setenv("TURBOFIT_PEER_DISCOVERY", "0")
+    assert GATEWAY._discover_remote_models() == []

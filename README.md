@@ -44,7 +44,7 @@ Prefer a specific route? All five are supported.
 >
 > **Two cross-cutting rules for every rung:**
 > - **MTP on whenever we can** — every one of these models has MTP (multi-token prediction) available in some form; turn it on at each rung.
-> - **Mind the power bill (kWh / hour).** IQ3_S is lossless, so there's no reason to push a heavier quant (and a higher power draw) past it — 32 GB and 48 GB both stay on GSQ-RCO @ IQ3_S.
+> - **Mind the power bill (kWh / hour).** IQ3_S is lossless, so there's no reason to push a heavier quant (and a higher power draw) past it — 32 GB and 48 GB both stay on Qwen 3.8 27B GSQ-RCO @ IQ3_S.
 >
 > Deep detail: [fit-ladder](references/fit-ladder.md) · Canonical data in the product repo: `fit-lists.json` · `model-catalog.json`.
 
@@ -52,12 +52,12 @@ Prefer a specific route? All five are supported.
 
 | VRAM | Rung | Quant | Context | Notes |
 |------|------|-------|---------|-------|
-| 8 GB | **Bonsai 2** | Q2 | 131K | dense ternary; prism-llama.cpp |
-| 12 GB | **Underdog 27B** | pq2 | 131K | dense ternary; prism-llama.cpp |
-| 16 GB | **GSQ-RCO 27B** | IQ3_S | 131K | near-lossless |
-| 24 GB | **GSQ-RCO 27B** | IQ3_S | 262K | more KV headroom |
-| 32 GB | **GSQ-RCO 27B** | IQ3_S (lossless) | 262K+ | don't up the power bill past lossless |
-| 48 GB | **GSQ-RCO 27B** | IQ3_S + MTP | 262K+ | MTP on |
+| 8 GB | **Ternary Bonsai 2 27B** | PTQ1_0 / PQ2_0 | 131K | dense ternary; prism-llama.cpp |
+| 12 GB | **Underdog 27B** | PQ2_0 | 131K | dense ternary; prism-llama.cpp |
+| 16 GB | **Qwen 3.8 27B GSQ-RCO** | IQ3_S | 131K | near-lossless |
+| 24 GB | **Qwen 3.8 27B GSQ-RCO** | IQ3_S | 262K | more KV headroom |
+| 32 GB | **Qwen 3.8 27B GSQ-RCO** | IQ3_S (lossless) | 262K+ | don't up the power bill past lossless |
+| 48 GB | **Qwen 3.8 27B GSQ-RCO** | IQ3_S + MTP | 262K+ | MTP on |
 | 64 GB | **Qwen 3.8 Flash Next** | IQ3_XXS | 262K native | MoE — convergence |
 | 96 GB | **Qwen 3.8 Flash Next** | IQ3_XXS | 1M w/ YaRN | beats Claude Opus 4.6 |
 | 128 GB | **Qwen 3.8 Flash Next** | IQ3_XXS | 1M | max context |
@@ -66,10 +66,13 @@ Prefer a specific route? All five are supported.
 
 | RAM | Rung | Quant | Notes |
 |-----|------|-------|-------|
-| 8–15 GB | **Maple Preview** | TQ2_0 | MoE; 218 tok/s on M4 |
-| 16–48 GB | **Cyber Tiel Coder** | UD-Q4_K_XL | MoE, 3B active; faster than GSQ-RCO on CPU |
+| 8–15 GB | **Maple Preview 20B-A1B** | TQ2_0 | MoE; 218 tok/s on M4 |
+| 16–23 GB | **Cyber-Tiel Coder 35B-A3B** | UD-IQ3_XXS | MoE, 3B active; faster than GSQ-RCO on CPU |
+| 24–31 GB | **Cyber-Tiel Coder 35B-A3B** | UD-Q4_K_XL | MoE, 3B active |
+| 32–47 GB | **Cyber-Tiel Coder 35B-A3B** | UD-Q5_K_XL | MoE, 3B active |
+| 48–63 GB | **Cyber-Tiel Coder 35B-A3B** | UD-Q6_K_XL | MoE, 3B active |
 | 64 GB+ | **Qwen 3.8 Flash Next** | IQ3_XXS | MoE — convergence (candidate-only on Apple, no macOS engine yet) |
-| top | **DeepSeek V4.1 Flash** | FP8 / UD-Q4_K_XL | MoE, 763B; sits **above** Flash Next |
+| top | **DeepSeek V4.1 Flash** | FP8 / UD-Q4_K_XL | MoE, 763B; sits **above** Flash Next (engine pending) |
 
 ### DeepSeek V4.1 — the 1017 update (pending)
 
@@ -77,7 +80,18 @@ A native engine for **DeepSeek V4.1** (the **1017 update**) is in testing and me
 
 ### Live catalog (what `serve auto` ships today)
 
-The currently-automated, downloadable set (`model-catalog.json` / `fit-lists.json`) — the **shipped subset** of the list above: `Qwen3.5-397B-A17B` (MoE), `Qwen3.5-27B`, `GLM-5.1` (744 B MoE, strongest local coder), `Llama-3.3-70B`, `Qwen3-30B-A3B`, `Qwen3.5-35B-A3B` (1 M ctx), `Qwen2.5-72B-Instruct-1M` (8448 ctx).
+The currently-automated, downloadable set (`model-catalog.json`) — **61 models in 13 families**: `Ternary Bonsai 2 27B` (3 variants), `Underdog 27B`, `Qwen 3.8 27B` (11, incl. GSQ-RCO), `Qwen 3.8 Flash Next`, `Maple Preview 20B-A1B`, `Cyber-Tiel Coder 35B-A3B` (5), `Ornith 1.5 35A3B` (3), `Ternary Bonsai 27B` (12), `Bonsai 27B` (18), `Carwin Nano` (2), `GLM 5.2`, `Laguna S2.1` (2), `MiniMax M3`. The two ladders above are the curated rungs `serve auto` promotes; the rest of the catalog is Model Zoo download-only.
+
+### New models (canonical names)
+
+New additions this release, by exact canonical name (full variant/role/state table in [`skills/turbofit/README.md`](skills/turbofit/README.md)):
+
+- **Maple Preview 20B-A1B** — MoE main candidate (TQ2_0, 8 GB envelope)
+- **Qwen 3.8 27B GSQ-RCO** — near-lossless dense main (IQ3_S / IQ3_XXS / IQ2_S / IQ2_XS)
+- **Ornith 1.5 35A3B** — MoE auxiliary (Q4_K_M, oQ4e / oQ8e MTP)
+- **MiniMax Music 3** — music generation (pinned integration candidate)
+- **NVIDIA Parakeet TDT 0.6B v3** — speech-to-text (pinned integration candidate)
+- **Soprano TTS** — text-to-speech (pinned integration candidate)
 
 ### API lineup + named local picks (aux)
 
@@ -142,6 +156,7 @@ External results are discovery evidence only; a model is promoted to a local run
 Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: `/turbofit serve` exposes your gateway on a private tailnet with **no public ports**, and the model picker federates across it. Any user can enable it for their own devices — it's part of the product:
 
 - **Gateway binding:** your machine runs the Hermes Gateway on `0.0.0.0:8091`; Tailscale exposes it on your private tailnet (runs as a local service on each OS — launchd on macOS, systemd on Linux).
+- **Two gateways, don't confuse them:** the Turbofit model gateway on `127.0.0.1:8091` is separate from the Hermes messaging gateway. A refused `http://127.0.0.1:8091/v1/models` (on Windows: `WinError 10061`) means the Turbofit runtime is down — setup missing, not a firewall rule. Windows native path: [`docs/windows-native-install.md`](docs/windows-native-install.md).
 - **Model-picker federation:** peers auto-discover over the tailnet — each machine advertises the models it can serve, so every machine's model list auto-populates with every other machine's models.
 - **The end state:** private remote access + auto-fed model lists, zero public exposure. The wiki becomes the single source of truth, centralized over Tailscale across all devices, organized top-down by the wiki's own standards.
 

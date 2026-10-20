@@ -243,6 +243,22 @@ async def get_hardware_tiers() -> dict[str, Any]:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+def _leaderboard_rows() -> dict[str, Any]:
+    from turbofit_runtime.leaderboard import build_leaderboard, load_engine_matrix, load_tier_report
+
+    report = load_tier_report(PLUGIN_ROOT / "references" / "hardware-tier-report.json")
+    matrix = load_engine_matrix(PLUGIN_ROOT / "references" / "engine-serve-matrix.json")
+    return build_leaderboard(report, matrix)
+
+
+@router.get("/leaderboard")
+async def get_leaderboard() -> dict[str, Any]:
+    try:
+        return await asyncio.to_thread(_leaderboard_rows)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 @router.get("/auxiliary-tiers")
 async def get_auxiliary_tiers() -> dict[str, Any]:
     try:

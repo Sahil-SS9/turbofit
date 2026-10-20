@@ -69,7 +69,7 @@ def test_release_gate_derives_current_matrix_candidate_and_version() -> None:
     checks = loaded["report"]()["checks"]
 
     assert checks["canonical_configuration_matrix"]["ok"] is True
-    assert checks["canonical_configuration_matrix"]["expected"] == 552
+    assert checks["canonical_configuration_matrix"]["expected"] == 690
     assert checks["qwen38_day_zero_lane"]["ok"] is True
     assert checks["qwen38_day_zero_lane"]["replacement_candidate"] == "qwen3-8-27b-gsq-rco-iq3s"
     assert checks["hermes_plugin_and_setup_command"]["ok"] is True

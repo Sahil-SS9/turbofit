@@ -187,7 +187,14 @@ class NativeRuntimeBackend:
             return ""
         return result.stdout.strip() if result.returncode == 0 else ""
 
-    def _is_owned(self, runtime: OwnedRuntime) -> bool:
+    def _is_owned(self, runtime) -> bool:
+        # A process this backend started and still holds a live handle for is
+        # ours by construction: poll() is None means that exact child is alive,
+        # which a reused PID cannot fake. The identity/cmdline proofs below only
+        # guard *recovered* records (a pid read back from disk with no live
+        # handle), where signalling a reused PID would be unsafe.
+        if runtime.process is not None:
+            return runtime.process.poll() is None
         command_line = self._command_line(runtime.pid)
         if not command_line or not runtime.command:
             return False

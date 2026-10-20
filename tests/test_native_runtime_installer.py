@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +44,7 @@ def test_native_installer_fails_fast_with_install_hint_when_cmake_missing(monkey
         raise AssertionError("require_cmake should exit when cmake is missing")
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="WindowsPath cannot be instantiated off-Windows")
 def test_native_installer_resolves_visual_studio_release_executable(monkeypatch) -> None:
     module = _module()
     monkeypatch.setattr(module.os, "name", "nt")

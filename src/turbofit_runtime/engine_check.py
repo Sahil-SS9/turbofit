@@ -10,7 +10,9 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
-from typing import Callable
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any, Callable
 
 from .hardware import HardwareFingerprint
 
@@ -27,6 +29,10 @@ class EngineSpec:
     source_ref: str = ""
     source_revision: str = ""
     endpoint_discoverable: bool = False
+    os: tuple[str, ...] = ()
+    backends: tuple[str, ...] = ()
+    min_driver: int = 0
+    status: str = "released"
 
 
 @dataclass(frozen=True)
@@ -51,54 +57,86 @@ class EngineProbe(EngineCompatibility):
     executable: str | None
 
 
-_SPECS = (
-    EngineSpec("llama.cpp", "llama.cpp", 8080, "Install Turbofit's pinned native llama.cpp runtime.", ("llama-server", "llama-server.exe"), ()),
-    EngineSpec("mlx", "MLX", 8081, "Install mlx-lm on Apple Silicon macOS.", ("mlx_lm.server",), ("mlx_lm",)),
-    EngineSpec("sglang", "SGLang", 30000, "Install SGLang on native Linux or inside WSL.", ("sglang",), ("sglang",)),
-    EngineSpec("vllm", "vLLM", 8000, "Install vLLM on Linux/WSL or vLLM-Metal on Apple Silicon.", ("vllm",), ("vllm",)),
-    EngineSpec("freetoken", "FreeToken", 1919, "Install freetoken[accel] on Linux x86_64 with CUDA 13.", ("ft",), ("freetoken",)),
-    EngineSpec(
-        "turbohaul-manager",
-        "Turbohaul Manager",
-        11401,
-        "Install MrTrenchTrucker/turbohaul-manager from its pinned GitHub release.",
-        ("turbohaul-manager",),
-        ("turbohaul",),
-        "https://github.com/MrTrenchTrucker/turbohaul-manager",
-        "v0.7.0",
-        "905b4506883313b17e1d4e0480a8e6ca6c63399b",
-        True,
-    ),
-    EngineSpec(
-        "strata",
-        "Strata",
-        8082,
-        "Install Strata with scripts/install-strata-runtime (Qwen3.8 Flash Next 125B MoE).",
-        (),  # No CLI command — Strata is a Python package launched via setup.py
-        (),  # No importable module — detected by venv directory
-        "https://github.com/Niko1221/Strata",
-        "",
-        "",
-        True,  # endpoint_discoverable — running on port 8082 counts as installed
-    ),
-    EngineSpec(
-        "prism-llama.cpp",
-        "Prism llama.cpp",
-        8083,
-        "Install PrismML-Eng/llama.cpp fork for Ternary Bonsai 2 (CUDA, Metal, CPU).",
-        ("llama-server",),
-        (),
-        "https://github.com/PrismML-Eng/llama.cpp",
-        "",
-        "",
-        True,
-    ),
-)
+def _validate_engine_matrix(matrix: Mapping[str, Any]) -> None:
+    """Reject a serve matrix that cannot be turned into an engine registry."""
+    probe_order = matrix.get("probe_order")
+    engines = matrix.get("engines")
+    if not isinstance(probe_order, (list, tuple)) or not isinstance(engines, Mapping):
+        raise ValueError("engine-serve matrix must define probe_order and engines")
+    unknown = [str(engine_id) for engine_id in probe_order if engine_id not in engines]
+    if unknown:
+        raise ValueError(f"probe_order lists engines missing from engines: {', '.join(unknown)}")
+    if set(probe_order) != set(engines):
+        raise ValueError("probe_order and engines must list exactly the same engines")
 
 
-def engine_specs() -> tuple[EngineSpec, ...]:
-    """Return every engine TurboFit Check reports, in stable preference order."""
-    return _SPECS
+def engine_specs(matrix: dict[str, Any] | None = None) -> tuple[EngineSpec, ...]:
+    """Build the engine registry from the data registry (the serve matrix).
+
+    Registering a new inference engine is a data-only edit: add it to
+    ``engines`` and ``probe_order`` in references/engine-serve-matrix.json.
+    Engines without a hand-written branch in :func:`_compatibility` are
+    classified by the generic data-driven fallback from their declared
+    ``os``, ``backends`` and ``min_driver``.
+    """
+    if matrix is None:
+        matrix = load_serve_matrix()
+    _validate_engine_matrix(matrix)
+    specs: list[EngineSpec] = []
+    for engine_id in matrix["probe_order"]:
+        entry = matrix["engines"][engine_id]
+        detect = entry.get("detect") or {}
+        specs.append(
+            EngineSpec(
+                engine_id=str(engine_id),
+                display_name=str(entry.get("display_name") or engine_id),
+                openai_port=int(entry["openai_port"]),
+                install_hint=str(entry.get("install_hint") or "See the engine source."),
+                commands=tuple(str(command) for command in detect.get("commands") or ()),
+                modules=tuple(str(module) for module in detect.get("modules") or ()),
+                source_url=str(entry.get("source") or ""),
+                source_ref=str(entry.get("ref") or ""),
+                source_revision=str(entry.get("revision") or ""),
+                endpoint_discoverable=bool(entry.get("endpoint_discoverable", False)),
+                os=tuple(str(value) for value in entry.get("os") or ()),
+                backends=tuple(str(value) for value in entry.get("backends") or ()),
+                min_driver=int(entry.get("min_driver") or 0),
+                status=str(entry.get("status") or "released"),
+            )
+        )
+    return tuple(specs)
+
+
+def engine_status(engine_id: str, matrix: dict[str, Any] | None = None) -> str:
+    """Return an engine's qualification status: 'released' or 'candidate'."""
+    payload = matrix if matrix is not None else load_serve_matrix()
+    entry = (payload.get("engines") or {}).get(engine_id)
+    if not entry:
+        raise ValueError(f"unknown engine: {engine_id}")
+    status = str(entry.get("status") or "released")
+    if status not in _ENGINE_STATUSES:
+        raise ValueError(f"invalid engine status for {engine_id}: {status!r}")
+    return status
+
+
+def set_engine_status(matrix_path: str | Path | None, engine_id: str, status: str) -> dict[str, Any]:
+    """Flip an engine's qualification status inside the data registry.
+
+    This is the promotion hook for benchmark/qualification gates: when a
+    candidate engine clears its gate, its status in
+    references/engine-serve-matrix.json flips from "candidate" to
+    "released" — a data edit, not a code change.
+    """
+    if status not in _ENGINE_STATUSES:
+        raise ValueError(f"status must be one of {_ENGINE_STATUSES}, got {status!r}")
+    path = Path(matrix_path) if matrix_path is not None else _SERVE_MATRIX
+    payload = load_serve_matrix(path)
+    entry = (payload.get("engines") or {}).get(engine_id)
+    if not entry:
+        raise ValueError(f"unknown engine: {engine_id}")
+    entry["status"] = status
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return payload
 
 
 def parse_driver_major(value: str) -> int | None:
@@ -133,11 +171,12 @@ def check_engines(
     *,
     driver_major: int | None = None,
     is_wsl: bool = False,
+    matrix: dict[str, Any] | None = None,
 ) -> tuple[EngineCompatibility, ...]:
     """Classify every engine without installing or launching anything."""
     return tuple(
         _compatibility(spec, hardware, driver_major=driver_major, is_wsl=is_wsl)
-        for spec in _SPECS
+        for spec in engine_specs(matrix)
     )
 
 
@@ -149,16 +188,18 @@ def probe_engines(
     which: Callable[[str], str | None] = shutil.which,
     module_available: Callable[[str], bool] | None = None,
     endpoint_ready: Callable[[str], bool] | None = None,
+    matrix: dict[str, Any] | None = None,
 ) -> tuple[EngineProbe, ...]:
     """Report compatibility, installation, and live endpoint state for all engines."""
     find_module = module_available or _module_available
     ready = endpoint_ready or _endpoint_ready
+    specs = engine_specs(matrix)
     compatibility = {
         item.engine_id: item
-        for item in check_engines(hardware, driver_major=driver_major, is_wsl=is_wsl)
+        for item in check_engines(hardware, driver_major=driver_major, is_wsl=is_wsl, matrix=matrix)
     }
     reports: list[EngineProbe] = []
-    for spec in _SPECS:
+    for spec in specs:
         base = compatibility[spec.engine_id]
         executable = next((path for command in spec.commands if (path := which(command))), None)
         installed = executable is not None or any(find_module(module) for module in spec.modules)
@@ -270,6 +311,42 @@ def _compatibility(
     elif spec.engine_id == "prism-llama.cpp":
         compatible = os_name in {"linux", "windows", "darwin"}
         reason = "PrismML llama.cpp fork (CUDA, Metal, CPU)" if compatible else "Prism llama.cpp requires Linux, Windows, or macOS"
+    elif spec.engine_id in {"salt-core", "saliency"}:
+        mode = "wsl" if is_wsl else ("wsl" if os_name == "windows" else "native")
+        if os_name != "linux":
+            reason = f"{spec.display_name} currently requires Linux/WSL"
+        elif "cuda" not in backends:
+            reason = f"{spec.display_name} currently requires an NVIDIA CUDA GPU"
+        elif spec.engine_id == "salt-core":
+            compatible = True
+            reason = "SALT Core candidate (KV offload + disk streaming, 4 GB VRAM floor)"
+        else:
+            compatible = True
+            reason = "Saliency candidate (dynamic token pruning, 4 GB VRAM floor)"
+    else:
+        # Generic data-driven fallback: engines registered only in the serve
+        # matrix (no hand-written branch above) are classified from their
+        # declared os/backends and min_driver.
+        declared_os = set(spec.os)
+        if declared_os and os_name not in declared_os:
+            if os_name == "windows" and "linux" in declared_os:
+                mode = "wsl"
+                compatible = True
+                reason = f"{spec.display_name} requires Linux (WSL)"
+            else:
+                reason = f"{spec.display_name} requires {'/'.join(sorted(declared_os))}"
+        elif (
+            spec.min_driver
+            and "cuda" in set(spec.backends)
+            and (driver_major is None or driver_major < spec.min_driver)
+        ):
+            reason = f"{spec.display_name} requires NVIDIA driver r{spec.min_driver} or newer"
+        elif spec.backends and not (set(spec.backends) & backends):
+            host_backends = ", ".join(sorted(backends)) or "CPU only"
+            reason = f"{spec.display_name} requires one of {', '.join(sorted(spec.backends))} but the host has {host_backends}"
+        else:
+            compatible = True
+            reason = f"{spec.display_name} supports {os_name}"
 
     return EngineCompatibility(
         engine_id=spec.engine_id,
@@ -285,11 +362,17 @@ def _compatibility(
     )
 
 
-def load_serve_matrix(path: str | None = None) -> dict:
-    from pathlib import Path
+_SERVE_MATRIX = Path(__file__).resolve().parents[2] / "references/engine-serve-matrix.json"
+_ENGINE_STATUSES = ("released", "candidate")
 
-    target = Path(path) if path else Path(__file__).resolve().parents[2] / "references/engine-serve-matrix.json"
-    return json.loads(target.read_text(encoding="utf-8"))
+
+def load_serve_matrix(path: str | Path | None = None) -> dict:
+    """Load the engine-serve matrix, the single data registry for engines."""
+    target = Path(path) if path is not None else _SERVE_MATRIX
+    try:
+        return json.loads(target.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise FileNotFoundError(f"engine-serve matrix missing: {target}") from error
 
 
 def pair_engine_eligibility(main_alias: str, engine_id: str, *, matrix: dict | None = None) -> tuple[str, str]:
@@ -304,6 +387,9 @@ def pair_engine_eligibility(main_alias: str, engine_id: str, *, matrix: dict | N
         return "alternate", str(engine.get(key) or "Apple MLX alternate")
     if engine_id in (pair.get("hf_engines") or []):
         return "hf-only", str(engine.get(key) or "requires HuggingFace weights, not this GGUF")
+    if engine_id in (pair.get("low_vram_dense_candidates") or []):
+        floor = engine.get("min_vram_gb", 4)
+        return "candidate", f"candidate low-VRAM dense engine ({floor} GB VRAM floor) — qualification gate pending"
     if engine_id in (pair.get("ineligible_engines") or []):
         return "ineligible", str(engine.get(key) or "no researched serve path")
     return "unknown", "no researched serve path for this pair"
@@ -328,6 +414,8 @@ def audition_pair(
             audition = "incompatible"
         elif status == "ineligible":
             audition = "ineligible"
+        elif status == "candidate":
+            audition = "candidate"
         elif not probe.installed:
             audition = "not-installed"
         elif probe.running:
@@ -353,6 +441,6 @@ def audition_pair(
                 "support_mode": probe.support_mode,
             }
         )
-    rank = {"ready": 0, "installed": 1, "not-installed": 2, "incompatible": 3, "ineligible": 4}
+    rank = {"ready": 0, "installed": 1, "not-installed": 2, "incompatible": 3, "ineligible": 4, "candidate": 5}
     rows.sort(key=lambda item: (rank.get(str(item["audition"]), 9), str(item["engine_id"])))
     return rows

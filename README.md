@@ -31,7 +31,7 @@ Prefer a specific route? All five are supported.
 ### After install (any path)
 1. Quit Hermes Desktop (⌘Q) and open a new session.
 2. `/turbofit status` → `/turbofit setup` — **this scans your machine and populates your model list** with every model that fits your hardware tier: the best sustainable fit on top (your `auto` model), the rest below as explicit choices.
-3. The sovthpaw pet is selected for you (or run `hermes pets select sovthpaw` manually).
+3. The sovthpaw pet is selected for you (or run `hermes pets select s0uthpaw` manually).
 
 ---
 
@@ -111,7 +111,7 @@ Ranked by measured evidence, not heuristics:
 
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
 
-Installing TurboSouth **defaults to the sovthpaw pet** (`sovthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.
+Installing TurboSouth **defaults to the sovthpaw pet** (`s0uthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.
 
 What TurboSouth helps with:
 - **Install + setup** — resolves the right Auto-chain artifacts for your machine and gets the gateway up.

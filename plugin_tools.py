@@ -81,6 +81,33 @@ RUNTIME_STATE_PATH = Path(
 _CONFIG_LOCK = threading.RLock()
 
 
+SOVTHPAW_PET_SLUG = "s0uthpaw"
+
+
+def install_sovthpaw_pet(*, hermes_home: Path | None = None) -> dict[str, Any]:
+    """Install and select the bundled Sovthpaw mascot pet (idempotent)."""
+    executable = shutil.which("hermes")
+    if not executable:
+        raise FileNotFoundError("hermes executable is not available")
+    root = Path(hermes_home or os.getenv("HERMES_HOME") or Path.home() / ".hermes")
+    environment = {**os.environ, "HERMES_HOME": str(root)}
+    result = subprocess.run(
+        [executable, "pets", "install", SOVTHPAW_PET_SLUG, "--select"],
+        text=True,
+        capture_output=True,
+        timeout=300,
+        check=False,
+        env=environment,
+    )
+    if result.returncode:
+        raise RuntimeError((result.stderr or result.stdout or "Sovthpaw pet installation failed").strip())
+    return {
+        "pet": SOVTHPAW_PET_SLUG,
+        "selected": True,
+        "path": str(root / "pets" / SOVTHPAW_PET_SLUG),
+    }
+
+
 def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
     """Install or update TurboSouth from its canonical GitHub distribution."""
     executable = shutil.which("hermes")
@@ -120,6 +147,7 @@ def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, 
         manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
     except (OSError, ValueError) as exc:
         raise RuntimeError("installed TurboSouth distribution manifest is invalid") from exc
+    pet = install_sovthpaw_pet(hermes_home=root)
     return {
         "installed": True,
         "updated": updated,
@@ -127,6 +155,7 @@ def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, 
         "path": str(target),
         "source": "https://github.com/SouthpawIN/turbosouth.git",
         "version": str(manifest.get("version") or "unknown"),
+        "pet": pet,
     }
 
 

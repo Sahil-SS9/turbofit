@@ -252,67 +252,138 @@ def _discover_local_models() -> list[dict]:
     return models
 
 
+# Remote (tailnet) discovery is expensive: it spawns a `tailscale status`
+# subprocess, DNS+TCP-probes every online peer, then fetches each peer's
+# /v1/models. Running it on every request makes the catalog flaky — any
+# transient hiccup (tailscaled lock contention, a MagicDNS stall, a busy
+# peer) drops remote models for that one request and turns a live model
+# into a 400. Cache the result per peer-configuration with
+# stale-while-revalidate instead: while a refresh is in flight or fails,
+# serve the last known-good catalog rather than dropping peers.
+REMOTE_CACHE_TTL_S = float(os.environ.get("TURBOFIT_REMOTE_CACHE_TTL", "30"))
+_remote_cache: dict[tuple, dict] = {}
+_remote_cache_lock = threading.Lock()
+_remote_discovery_lock = threading.Lock()
+
+
+def _remote_peers_spec() -> tuple:
+    """Stable identity of the peer configuration, used as cache key.
+
+    Keying on the config (not just time) means a live change to
+    TURBOFIT_PEERS or TURBOFIT_PEER_DISCOVERY re-discovers immediately
+    instead of waiting out the TTL.
+    """
+    peers_raw = os.environ.get("TURBOFIT_PEERS", "").strip()
+    if peers_raw:
+        return ("peers", tuple(p.strip() for p in peers_raw.split(",") if p.strip()))
+    if os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
+        return ("auto", ())
+    return ("off", ())
+
+
 def _discover_remote_models() -> list[dict]:
     """Discover TurboFit instances on the Tailscale network.
 
-    Reads TURBOFIT_PEERS (comma-separated host:port or URL list) and
-    queries each peer's /v1/models endpoint. Peers that answer are
-    their models to the catalog with a remote source tag.
+    Reads TURBOFIT_PEERS (comma-separated host:port or URL list) or
+    auto-discovers online tailnet peers, and queries each peer's
+    /v1/models endpoint. Peers that answer add their models to the
+    catalog with a remote source tag.
+
+    Results are cached per peer-configuration for REMOTE_CACHE_TTL_S with
+    stale-while-revalidate: a failed refresh keeps the last known-good
+    catalog, so a transient discovery hiccup can never drop a remote
+    model from the catalog mid-session.
     """
+    spec = _remote_peers_spec()
+    now = time.time()
+    with _remote_cache_lock:
+        entry = _remote_cache.get(spec)
+        if entry and now - entry["ts"] < REMOTE_CACHE_TTL_S:
+            return list(entry["models"])
+
+    # Single-flight: another thread is already refreshing. Serve this
+    # spec's last known-good catalog (or empty) while it works.
+    if not _remote_discovery_lock.acquire(blocking=False):
+        with _remote_cache_lock:
+            entry = _remote_cache.get(spec)
+            return list(entry["models"]) if entry else []
+
     models: list[dict] = []
-    peers: list[str] = []
+    try:
+        peers: list[str] = []
 
-    # Explicit peers always win (env override): when set, they fully
-    # replace automatic discovery instead of merging with it.
-    peers_raw = os.environ.get("TURBOFIT_PEERS", "").strip()
-    if peers_raw:
-        peers.extend(p.strip() for p in peers_raw.split(",") if p.strip())
-    elif os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
-        # Automatic tailnet discovery — no configuration needed
-        try:
-            from turbofit_runtime.tailnet import discover_turbofit_peers
-            for found in discover_turbofit_peers():
-                peers.append(found["host"] + f":{found['port']}")
-        except Exception:
-            pass
+        # Explicit peers always win (env override): when set, they fully
+        # replace automatic discovery instead of merging with it.
+        if spec[0] == "peers":
+            peers = list(spec[1])
+        elif spec[0] == "auto":
+            # Automatic tailnet discovery — no configuration needed
+            try:
+                from turbofit_runtime.tailnet import discover_turbofit_peers
+                for found in discover_turbofit_peers():
+                    peers.append(found["host"] + f":{found['port']}")
+            except Exception:
+                pass
 
-    if not peers:
+        for peer in peers:
+            peer = peer.strip().rstrip("/")
+            if not peer:
+                continue
+            if not peer.startswith(("http://", "https://")):
+                peer = f"http://{peer}"
+            try:
+                with urlopen(peer + "/v1/models", timeout=10.0) as handle:
+                    data = json.loads(handle.read().decode())
+                for item in (data.get("data") or []):
+                    # Never relay a peer's remote entries: re-prefixing
+                    # them builds nested "host/host/host/..." model IDs
+                    # that grow without bound, as every gateway relays
+                    # what its peers relay. Each gateway only needs to
+                    # advertise its own LOCAL models to the tailnet —
+                    # that is what a peer's prefix makes a valid single-
+                    # hop remote entry.
+                    if item.get("source") == "remote":
+                        continue
+                    model_id = str(item.get("id") or "").strip()
+                    if not model_id or model_id == "auto":
+                        continue
+                    host = urlsplit(peer).hostname or peer
+                    models.append({
+                        "id": f"{host}/{model_id}",
+                        "object": "model",
+                        "owned_by": "turbofit",
+                        "description": f"Remote — {host}: {item.get('description', model_id)}",
+                        "context_length": item.get("context_length") or 65536,
+                        "source": "remote",
+                        "base_url": peer,
+                        "remote_model": model_id,
+                        "metadata": {
+                            "role": "remote",
+                            "backing_model": model_id,
+                            "residency": "remote",
+                            "mode": "tailnet",
+                            "observed_at": None,
+                            "freshness": {"age_s": None, "max_age_s": 15.0, "stale": False},
+                        },
+                    })
+            except Exception:
+                continue
+    finally:
+        _remote_discovery_lock.release()
+
+    with _remote_cache_lock:
+        if models:
+            _remote_cache[spec] = {"models": models, "ts": now}
+            return models
+        # Refresh found nothing (all peers down, or none configured).
+        # Serve the last known-good catalog if we have one — better than
+        # dropping a live model. Cache the empty result too, so a down
+        # peer is retried on the TTL cadence instead of every request.
+        entry = _remote_cache.get(spec)
+        if entry:
+            return list(entry["models"])
+        _remote_cache[spec] = {"models": [], "ts": now}
         return models
-    for peer in peers:
-        peer = peer.strip().rstrip("/")
-        if not peer:
-            continue
-        if not peer.startswith(("http://", "https://")):
-            peer = f"http://{peer}"
-        try:
-            with urlopen(peer + "/v1/models", timeout=10.0) as handle:
-                data = json.loads(handle.read().decode())
-            for item in (data.get("data") or []):
-                model_id = str(item.get("id") or "").strip()
-                if not model_id or model_id == "auto":
-                    continue
-                host = urlsplit(peer).hostname or peer
-                models.append({
-                    "id": f"{host}/{model_id}",
-                    "object": "model",
-                    "owned_by": "turbofit",
-                    "description": f"Remote — {host}: {item.get('description', model_id)}",
-                    "context_length": item.get("context_length") or 65536,
-                    "source": "remote",
-                    "base_url": peer,
-                    "remote_model": model_id,
-                    "metadata": {
-                        "role": "remote",
-                        "backing_model": model_id,
-                        "residency": "remote",
-                        "mode": "tailnet",
-                        "observed_at": None,
-                        "freshness": {"age_s": None, "max_age_s": 15.0, "stale": False},
-                    },
-                })
-        except Exception:
-            continue
-    return models
 
 
 def provider_models():
@@ -1752,6 +1823,10 @@ if __name__ == "__main__":
     log.info(f"  /main/ → stall-while-loading ({STALL_TIMEOUT_S:.0f}s) → API fallback")
     log.info(f"  /aux/  → ready-or-skip (no stall)")
     log.info(f"  /status → JSON, /health → 200/503")
+    # Warm the remote-discovery cache in the background before serving,
+    # so the first request doesn't eat a cold discovery run (and a
+    # cold-discovery failure can't 400 a live model).
+    threading.Thread(target=_discover_remote_models, daemon=True).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:

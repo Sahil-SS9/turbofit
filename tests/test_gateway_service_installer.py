@@ -56,6 +56,23 @@ def test_launchd_plist_is_serializable_and_targets_the_gateway() -> None:
     assert any("turbofit-gateway.py" in part for part in plist["ProgramArguments"])
 
 
+def test_controller_launchd_plist_targets_controller_and_keeps_alive() -> None:
+    # Fresh macOS installs must come up with BOTH agents: without the
+    # controller agent, no local rung ever starts and the fleet degrades
+    # to API-only.
+    module = _module()
+    plist = module.controller_launchd_plist()
+    assert plist["Label"] == "com.hermes.turbofit-controller"
+    assert any("turbofit-controller" in part for part in plist["ProgramArguments"])
+    assert plist["RunAtLoad"] is True
+    assert plist["KeepAlive"] is True
+    env = plist["EnvironmentVariables"]
+    assert "/usr/local/bin" in env["PATH"]
+    assert "src" in env["PYTHONPATH"]
+    dumped = plistlib.dumps(plist)
+    assert plistlib.loads(dumped)["Label"] == "com.hermes.turbofit-controller"
+
+
 def test_autoconfigure_tailnet_is_best_effort_and_never_raises() -> None:
     import json as _json
     import subprocess as _sp

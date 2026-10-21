@@ -10,7 +10,19 @@ CommandRunner = Callable[[list[str]], subprocess.CompletedProcess[str]]
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, text=True, capture_output=True, timeout=30, check=False)
+    result = subprocess.run(command, text=True, capture_output=True, timeout=30, check=False)
+    if result.returncode == 0:
+        return result
+    # Fresh installs may run as a regular user, where the tailscale CLI
+    # refuses to publish serve routes without root. Escalate only when
+    # non-interactive sudo is available (NOPASSWD or cached auth) —
+    # never prompt for a password during install.
+    probe = subprocess.run(["sudo", "-n", "true"], text=True,
+                           capture_output=True, timeout=10, check=False)
+    if probe.returncode == 0:
+        result = subprocess.run(["sudo", "-n", *command], text=True,
+                                capture_output=True, timeout=30, check=False)
+    return result
 
 
 def _execute_json(command: list[str], runner: CommandRunner) -> dict[str, Any]:

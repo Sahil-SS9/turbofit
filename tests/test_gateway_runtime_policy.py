@@ -444,3 +444,88 @@ def test_remote_discovery_uses_tailnet_peers_and_explicit_overrides(monkeypatch)
     monkeypatch.delenv("TURBOFIT_PEERS", raising=False)
     monkeypatch.setenv("TURBOFIT_PEER_DISCOVERY", "0")
     assert GATEWAY._discover_remote_models() == []
+
+
+def test_remote_discovery_cached_and_survives_peer_outage(monkeypatch) -> None:
+    """Cache hits skip discovery; a failed refresh serves stale models."""
+    import turbofit_runtime.tailnet as tailnet
+
+    class FakeHandle:
+        def __init__(self, models):
+            self._models = models
+        def read(self):
+            return json.dumps({"data": self._models}).encode()
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+
+    GATEWAY._remote_cache.clear()
+    calls = {"n": 0}
+
+    def flaky_urlopen(url, timeout=None):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise TimeoutError("peer down")
+        return FakeHandle([{"id": "quality-24gb"}])
+
+    monkeypatch.setattr(GATEWAY, "urlopen", flaky_urlopen)
+    monkeypatch.setattr(
+        tailnet, "discover_turbofit_peers",
+        lambda *a, **k: [{"host": "omarchy.ts.net", "port": 8091}],
+    )
+    monkeypatch.delenv("TURBOFIT_PEERS", raising=False)
+    monkeypatch.setenv("TURBOFIT_PEER_DISCOVERY", "1")
+
+    # First call discovers and caches.
+    models = GATEWAY._discover_remote_models()
+    assert [m["id"] for m in models] == ["omarchy.ts.net/quality-24gb"]
+
+    # Within the TTL: cache hit, no new urlopen.
+    assert GATEWAY._discover_remote_models()
+    assert calls["n"] == 1
+
+    # Simulate TTL expiry: next call re-discovers; the peer is down this
+    # time, so the last known-good catalog must be served (stale-while-
+    # revalidate) instead of dropping the model into a 400.
+    monkeypatch.setattr(GATEWAY, "REMOTE_CACHE_TTL_S", 0.0)
+    models = GATEWAY._discover_remote_models()
+    assert [m["id"] for m in models] == ["omarchy.ts.net/quality-24gb"]
+    assert calls["n"] == 2
+
+    # A changed peer config re-discovers immediately (cache is keyed on
+    # the config, not just time).
+    monkeypatch.setattr(GATEWAY, "REMOTE_CACHE_TTL_S", 30.0)
+    monkeypatch.setenv("TURBOFIT_PEERS", "klerik.ts.net:8091")
+    models = GATEWAY._discover_remote_models()
+    assert [m["id"] for m in models] == ["klerik.ts.net/quality-24gb"]
+    assert calls["n"] == 3
+
+
+def test_remote_discovery_does_not_relay_remote_entries(monkeypatch) -> None:
+    """A peer's remote entries must never be re-prefixed (relay loop)."""
+    class FakeHandle:
+        def __init__(self, models):
+            self._models = models
+        def read(self):
+            return json.dumps({"data": self._models}).encode()
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+
+    GATEWAY._remote_cache.clear()
+    peer_catalog = [
+        {"id": "quality-24gb", "source": "local"},
+        # This entry was itself relayed by the peer from ANOTHER peer.
+        # Re-prefixing it would create a nested "host/host/..." id that
+        # grows a hop longer on every discovery pass.
+        {"id": "omarchy.ts.net/qwen38-27b", "source": "remote"},
+        {"id": "auto", "source": "auto"},
+    ]
+    monkeypatch.setattr(
+        GATEWAY, "urlopen", lambda *a, **k: FakeHandle(peer_catalog))
+    monkeypatch.delenv("TURBOFIT_PEER_DISCOVERY", raising=False)
+    monkeypatch.setenv("TURBOFIT_PEERS", "omarchy.ts.net:8091")
+    models = GATEWAY._discover_remote_models()
+    assert [m["id"] for m in models] == ["omarchy.ts.net/quality-24gb"]

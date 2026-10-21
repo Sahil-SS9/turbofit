@@ -173,6 +173,46 @@ def _print_tailnet_status() -> None:
               file=sys.stderr)
 
 
+def ensure_linger(command_runner=None) -> bool:
+    """Enable systemd linger so user units survive logout and reboot.
+
+    Without linger, a fresh Linux install's services only run while the
+    user is logged in — the "survives a reboot" promise breaks. Enabling
+    linger usually requires root or polkit, so this is best-effort: never
+    raises, never blocks the install. Returns True when linger is on.
+    """
+    import getpass
+    import sys
+
+    def default_runner(command):
+        return subprocess.run(command, capture_output=True, text=True, timeout=15,
+                              check=False)
+
+    runner = command_runner or default_runner
+    user = getpass.getuser()
+    try:
+        result = runner(["loginctl", "enable-linger", user])
+    except Exception:
+        result = None
+    if result is not None and result.returncode == 0:
+        print(f"  linger enabled for {user}")
+        return True
+    # May already be on (or enable failed on permissions) — check state.
+    try:
+        status = runner(["loginctl", "show-user", user])
+        if status is not None and status.returncode == 0 and \
+                "Linger=yes" in (status.stdout or ""):
+            return True
+    except Exception:
+        pass
+    print(
+        f"  warning: linger is off, services will not start at boot without "
+        f"a login. Fix: sudo loginctl enable-linger {user}",
+        file=sys.stderr,
+    )
+    return False
+
+
 def main() -> int:
     import platform
     parser = argparse.ArgumentParser(description=__doc__)
@@ -209,6 +249,7 @@ def main() -> int:
         subprocess.run([
             "systemctl", "--user", "enable", "turbofit-controller.service", "turbofit-gateway.service",
         ], check=True)
+        ensure_linger()
     if args.start:
         subprocess.run([
             "systemctl", "--user", "restart", "turbofit-gateway.service", "turbofit-controller.service",

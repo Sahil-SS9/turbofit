@@ -73,6 +73,42 @@ def test_controller_launchd_plist_targets_controller_and_keeps_alive() -> None:
     assert plistlib.loads(dumped)["Label"] == "com.hermes.turbofit-controller"
 
 
+def test_ensure_linger_reports_and_warns() -> None:
+    import subprocess as _sp
+
+    module = _module()
+
+    def completed(command, stdout="", returncode=0, err=""):
+        return _sp.CompletedProcess(command, returncode, stdout, err)
+
+    # enable succeeds -> True
+    calls = []
+    def ok(command):
+        calls.append(list(command))
+        return completed(command)
+    assert module.ensure_linger(command_runner=ok) is True
+    assert calls[0][0] == "loginctl" and calls[0][1] == "enable-linger"
+
+    # enable fails but state already Linger=yes -> True
+    def already_on(command):
+        if command[1] == "enable-linger":
+            return completed(command, returncode=1, err="polkit: not authorized")
+        return completed(command, stdout="Linger=yes")
+    assert module.ensure_linger(command_runner=already_on) is True
+
+    # both fail -> False + actionable warning
+    def denied(command):
+        if command[1] == "enable-linger":
+            return completed(command, returncode=1, err="polkit: not authorized")
+        return completed(command, stdout="Linger=no")
+    assert module.ensure_linger(command_runner=denied) is False
+
+    # loginctl missing entirely -> False, no crash
+    def no_loginctl(command):
+        raise FileNotFoundError("loginctl")
+    assert module.ensure_linger(command_runner=no_loginctl) is False
+
+
 def test_autoconfigure_tailnet_is_best_effort_and_never_raises() -> None:
     import json as _json
     import subprocess as _sp

@@ -31,6 +31,8 @@ on a machine that doesn't ship Hermes.
 from __future__ import annotations
 
 import math
+import os
+import sys
 from dataclasses import dataclass, field, replace
 from typing import Any, Mapping
 
@@ -39,6 +41,8 @@ from . import allowed_lineup
 # --- built-in (Hermes local runtime) ---------------------------------------
 _HERMES_PKG = "hermes_cli"
 _GIB = 1024**3
+_HERMES_HOME_ENV = "TURBOFIT_HERMES_HOME"
+_DEFAULT_HERMES_HOME = "~/.hermes/hermes-agent"
 
 # Headroom left off the unified pool before it is treated as usable VRAM.
 # Apple leaves a fraction of unified memory to the OS / other GPU clients.
@@ -148,11 +152,32 @@ class Recommendation:
 
 
 # --- built-in access -------------------------------------------------------
+def _ensure_hermes_importable() -> None:
+    """Ensure the built-in (``hermes_cli``) is importable.
+
+    In production the running agent *is* ``hermes_cli``, so it is already on
+    ``sys.path``. When running from the standalone repo/venv it is not, so we
+    add the Hermes Agent checkout (``TURBOFIT_HERMES_HOME``, default
+    ``~/.hermes/hermes-agent``) to the path. No-op when it is already
+    importable.
+    """
+    import importlib.util
+
+    if importlib.util.find_spec(_HERMES_PKG) is not None:
+        return
+    home = os.path.expanduser(
+        os.environ.get(_HERMES_HOME_ENV, _DEFAULT_HERMES_HOME)
+    )
+    if home and os.path.isdir(home) and home not in sys.path:
+        sys.path.insert(0, home)
+
+
 def available() -> bool:
     """True when the built-in Hermes local runtime can be imported."""
     try:
         import importlib
 
+        _ensure_hermes_importable()
         importlib.import_module(_HERMES_PKG + ".local_runtime.catalog")
         return True
     except Exception:
@@ -162,6 +187,7 @@ def available() -> bool:
 def _import_hermes():
     import importlib
 
+    _ensure_hermes_importable()
     return (
         importlib.import_module(_HERMES_PKG + ".local_runtime.hardware"),
         importlib.import_module(_HERMES_PKG + ".local_runtime.catalog"),

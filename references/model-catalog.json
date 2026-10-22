@@ -1122,6 +1122,26 @@
       ],
       "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "darwin-180b-rsi-strata",
+      "name": "Darwin 180B RSI (MQ-Q5 + SSD PLE)",
+      "family": "Darwin 180B RSI",
+      "source": "https://huggingface.co/Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "artifact": "MQ-Q5-SSD-PLE-BF16",
+      "quantization": "MQ-Q5-SSD-PLE-BF16",
+      "vision": true,
+      "moe": true,
+      "runtime_features": [
+        "expert-tiering",
+        "ssd-ple-streaming"
+      ],
+      "roles": [
+        "main"
+      ],
+      "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next",
+      "upstream_revision": "236dfdf89930c86186243e53713065e7785b7a67"
     }
   ]
 }

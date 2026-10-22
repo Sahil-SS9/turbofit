@@ -4830,6 +4830,90 @@
       "auxiliary": "auto",
       "context": 1048576,
       "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--ornith-1-5-35a3b--64k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "ornith-1-5-35a3b",
+      "context": 65536,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--ornith-1-5-35a3b--128k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "ornith-1-5-35a3b",
+      "context": 131072,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--ornith-1-5-35a3b--262k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "ornith-1-5-35a3b",
+      "context": 262144,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--ornith-1-5-35a3b--1m",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "ornith-1-5-35a3b",
+      "context": 1048576,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--carwin-nano--64k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "carwin-nano",
+      "context": 65536,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--carwin-nano--128k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "carwin-nano",
+      "context": 131072,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--carwin-nano--262k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "carwin-nano",
+      "context": 262144,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--carwin-nano--1m",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "carwin-nano",
+      "context": 1048576,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--auto--64k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "auto",
+      "context": 65536,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--auto--128k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "auto",
+      "context": 131072,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--auto--262k",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "auto",
+      "context": 262144,
+      "status": "candidate"
+    },
+    {
+      "id": "darwin-180b-rsi-strata--auto--1m",
+      "main": "darwin-180b-rsi-strata",
+      "auxiliary": "auto",
+      "context": 1048576,
+      "status": "candidate"
     }
   ]
 }

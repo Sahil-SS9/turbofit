@@ -33,7 +33,7 @@ def test_operator_docs_match_current_catalog_size_and_models() -> None:
     backend_docs = (ROOT / "docs/runtime-backends.md").read_text(encoding="utf-8")
     matrix = __import__("json").loads((ROOT / "references/configuration-matrix.json").read_text(encoding="utf-8"))
 
-    assert len(matrix["rows"]) == 690
+    assert len(matrix["rows"]) == 702
     assert "552 active rows" in campaign_docs
     assert "currently 552 rows" in backend_docs
     assert "1,620" not in campaign_docs + backend_docs
@@ -69,7 +69,7 @@ def test_release_gate_derives_current_matrix_candidate_and_version() -> None:
     checks = loaded["report"]()["checks"]
 
     assert checks["canonical_configuration_matrix"]["ok"] is True
-    assert checks["canonical_configuration_matrix"]["expected"] == 690
+    assert checks["canonical_configuration_matrix"]["expected"] == 702
     assert checks["qwen38_day_zero_lane"]["ok"] is True
     assert checks["qwen38_day_zero_lane"]["replacement_candidate"] == "qwen3-8-27b-gsq-rco-iq3s"
     assert checks["hermes_plugin_and_setup_command"]["ok"] is True

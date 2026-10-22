@@ -851,6 +851,17 @@
       },
       "cpu_moe": true,
       "no_mmap": false
+    },
+    "darwin-180b-rsi-strata": {
+      "family": "Darwin 180B RSI (Strata)",
+      "alias": "darwin-180b-rsi-strata",
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline",
+        "32768": "baseline"
+      }
     }
   },
   "models": {
@@ -1316,6 +1327,30 @@
         "32768": "baseline"
       },
       "runtime_flavor": "prism"
+    },
+    "Darwin 180B RSI (Strata)": {
+      "alias": "darwin-180b-rsi-strata",
+      "kind": "process",
+      "binary": "~/.local/share/turbofit/runtimes/strata/.venv/bin/python",
+      "binary_args": [
+        "setup.py",
+        "serve"
+      ],
+      "model_root": "${TURBOFIT_MODEL_ROOT}/Darwin-180B-RSI",
+      "model": "MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00001-of-00003.gguf",
+      "port": 11613,
+      "large": true,
+      "native_context": 262144,
+      "max_context": 1048576,
+      "methods": {
+        "65536": "baseline",
+        "131072": "baseline",
+        "262144": "baseline",
+        "1048576": "baseline"
+      },
+      "runtime_flavor": "strata",
+      "working_dir": "~/.local/share/turbofit/runtimes/strata",
+      "data_dir": "~/.local/share/turbofit/strata-data"
     }
   },
   "native_binaries": {

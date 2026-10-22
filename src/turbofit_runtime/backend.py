@@ -285,6 +285,7 @@ class CampaignBackend:
                 "main_alias": recipe.main_alias,
                 "aux_alias": recipe.aux_alias,
                 "aux_mode": recipe.aux_mode,
+                "aux_residency": recipe.aux_residency,
             },
             "components": components,
             "activating": True,

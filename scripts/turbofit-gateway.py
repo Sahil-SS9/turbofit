@@ -399,19 +399,19 @@ def provider_models():
             "source": "auto",
         },
     ]
-    # Local models
-    seen = {("auto", "auto")}
+    # Local models. Key on id only: main/aux routes backed by the same
+    # model must not double-advertise it (the role is internal routing
+    # state, not a distinct model).
+    seen = {"auto"}
     for model in _discover_local_models():
-        key = (model["id"], model.get("metadata", {}).get("role"))
-        if key not in seen:
+        if model["id"] not in seen:
             models.append(model)
-            seen.add(key)
+            seen.add(model["id"])
     # Remote (Tailscale) models
     for model in _discover_remote_models():
-        key = (model["id"], model.get("metadata", {}).get("role"))
-        if key not in seen:
+        if model["id"] not in seen:
             models.append(model)
-            seen.add(key)
+            seen.add(model["id"])
     metadata = provider_model_metadata()
     for index, model in enumerate(models):
         role = "auto" if index == 0 else model.get("metadata", {}).get("role")

@@ -10,19 +10,14 @@ CommandRunner = Callable[[list[str]], subprocess.CompletedProcess[str]]
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(command, text=True, capture_output=True, timeout=30, check=False)
-    if result.returncode == 0:
-        return result
-    # Fresh installs may run as a regular user, where the tailscale CLI
-    # refuses to publish serve routes without root. Escalate only when
-    # non-interactive sudo is available (NOPASSWD or cached auth) —
-    # never prompt for a password during install.
-    probe = subprocess.run(["sudo", "-n", "true"], text=True,
-                           capture_output=True, timeout=10, check=False)
-    if probe.returncode == 0:
-        result = subprocess.run(["sudo", "-n", *command], text=True,
-                                capture_output=True, timeout=30, check=False)
-    return result
+    # Run the tailscale command directly. Tailscale Serve may require elevated
+    # privileges on some hosts; in that case the caller receives the (clear)
+    # permission error and can re-run with elevation manually.
+    # We deliberately do NOT auto-escalate privileges here: an automatic
+    # privilege escalation call trips the plugin security scanner and blocks
+    # install of the whole plugin. Escalation, when needed, is left to the
+    # operator.
+    return subprocess.run(command, text=True, capture_output=True, timeout=30, check=False)
 
 
 def _execute_json(command: list[str], runner: CommandRunner) -> dict[str, Any]:

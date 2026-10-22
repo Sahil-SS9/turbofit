@@ -56,12 +56,14 @@ def snapshot(
     *,
     succeeded: bool = False,
     failed: bool = False,
+    contended: tuple[bool, ...] = (),
 ) -> CapacitySnapshot:
     return CapacitySnapshot(
         available_mb_per_card=(available,),
         required_mb_by_rung=((20000,), (12000,), ()),
         activation_succeeded=succeeded,
         activation_failed=failed,
+        contended_per_card=contended,
     )
 
 
@@ -270,7 +272,6 @@ def tiered_profile(expansion_mode: str = "conservative") -> Turbofile:
         },
     ]
     return Turbofile.from_mapping(mapping)
-    return Turbofile.from_mapping(mapping)
 
 
 def tiered_snapshot(
@@ -278,12 +279,14 @@ def tiered_snapshot(
     *,
     succeeded: bool = False,
     failed: bool = False,
+    contended: tuple[bool, ...] = (),
 ) -> CapacitySnapshot:
     return CapacitySnapshot(
         available_mb_per_card=(available,),
         required_mb_by_rung=((34000,), (35000,), (15000,), (7800,), ()),
         activation_succeeded=succeeded,
         activation_failed=failed,
+        contended_per_card=contended,
     )
 
 
@@ -448,3 +451,56 @@ def test_expansion_mode_rejects_unknown_values() -> None:
     mapping["policy"]["expansion_mode"] = "aggressive"
     with pytest.raises(ValueError, match="expansion_mode"):
         Turbofile.from_mapping(mapping)
+
+
+# ---------------------------------------------------------------------------
+# GPU contention: a game/editor on a card forces a down-shift even when the
+# current rung fits, then heals back up when the card frees.
+# ---------------------------------------------------------------------------
+
+
+def test_contended_card_down_shifts_even_with_headroom() -> None:
+    """A contended card forces a down-shift even when the current rung fits."""
+    item = profile()
+    state = AdaptiveState(current_index=0, target_ceiling_index=0, deficit_since=0)
+    result = reconcile(
+        state,
+        snapshot(24000, contended=(True,)),
+        item,
+        now=10,
+    )
+    assert result.action is ActionKind.ACTIVATE
+    assert result.target_index == 1
+    assert result.reason == "sustained GPU contention"
+    assert result.state.pending_index == 1
+    assert result.state.deficit_since is None
+    assert result.state.last_stable_index == 0
+
+
+def test_contended_card_without_deficit_dwell_is_deferred() -> None:
+    """Contention is a deficit signal but must still survive the contraction dwell."""
+    item = profile()
+    state = AdaptiveState(current_index=0, target_ceiling_index=0, deficit_since=5)
+    result = reconcile(
+        state,
+        snapshot(24000, contended=(True,)),
+        item,
+        now=10,
+    )
+    assert result.action is not ActionKind.ACTIVATE
+    assert result.state.deficit_since == 5
+
+
+def test_contended_card_heals_back_up_when_released() -> None:
+    """Once the game leaves and the rung fits again, the chain heals back up."""
+    item = profile()
+    state = AdaptiveState(current_index=1, target_ceiling_index=0, surplus_since=0)
+    result = reconcile(
+        state,
+        snapshot(24000),
+        item,
+        now=20,
+    )
+    assert result.action is ActionKind.ACTIVATE
+    assert result.target_index == 0
+    assert result.state.pending_index == 0

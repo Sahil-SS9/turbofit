@@ -295,9 +295,11 @@ class AdaptiveController:
                 raise ValueError(
                     f"rung {index} requirement card count does not match pressure card count"
                 )
+        contended = tuple(card.contended for card in pressure.cards)
         capacity = CapacitySnapshot(
             available_mb_per_card=available,
             required_mb_by_rung=self.requirements.required_mb_by_rung,
+            contended_per_card=contended,
         )
         plan = reconcile(self.state.adaptive, capacity, self.profile, now)
         if plan.action is not ActionKind.ACTIVATE:

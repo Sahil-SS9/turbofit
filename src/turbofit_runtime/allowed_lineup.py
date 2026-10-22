@@ -230,6 +230,7 @@ def check_local_options(
             {
                 "role": "main",
                 "alias": main,
+                "engine": "llama.cpp",
                 "why": (
                     "Integrated/unified memory uses total-memory bands: "
                     "Maple at 8 GB, Ornith at 16 GB, GSQ-RCO at 24 GB+."
@@ -243,6 +244,7 @@ def check_local_options(
             {
                 "role": "main",
                 "alias": "maple-preview-tq2",
+                "engine": "llama.cpp",
                 "why": "20B-A1B Maple TQ2_0 fits within the dedicated 8 GB VRAM band.",
             },
         ]
@@ -251,6 +253,7 @@ def check_local_options(
                 {
                     "role": "main",
                     "alias": "ornith-1-5-35a3b",
+                    "engine": "llama.cpp",
                     "why": (
                         "35A3B MoE alternative when host RAM can hold offloaded "
                         f"experts via {residency['mode']}-backed mmap."
@@ -263,16 +266,19 @@ def check_local_options(
         {
             "role": "main",
             "alias": local_main_for_vram_gb(vram_gb),
+            "engine": "llama.cpp",
             "why": "Intelligence / balanced: GSQ-RCO / Qwen band for this VRAM.",
         },
         {
             "role": "main",
             "alias": speed_main_for_vram_gb(vram_gb),
+            "engine": "llama.cpp",
             "why": "Speed: Ornith MoE / MTP instead of dense 27B.",
         },
         {
             "role": "aux",
             "alias": local_aux_for_host(vram_gb=vram_gb, host_ram_gb=host_ram_gb),
+            "engine": "llama.cpp",
             "why": "Default aux is MTP Ornith when total VRAM can hold it next to main.",
             "residency": residency,
         },

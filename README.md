@@ -1,6 +1,6 @@
 # TurboFit
 
-![Turbofit — unified backend, amber and mint aesthetic](wiki/assets/turbofit-hero.png)
+![Turbofit — unified backend, amber and mint aesthetic](assets/turbofit-hero.png)
 
 **One model provider. Every machine. The best local configuration the hardware can safely sustain.**
 
@@ -36,7 +36,7 @@ Prefer a specific route? All five are supported.
 ---
 
 ## The Fit — two ladders that converge on Flash Next (source of truth for the UI)
-![TurboFit hero](https://raw.githubusercontent.com/SouthpawIN/turbofit/main/assets/turbofit-hero.jpg)
+![TurboFit hero](assets/turbofit-hero.png)
 
 > **Two ladders, not one.** Dense doesn't run well on CPU / Unified memory, so the tiers split into **two fit ladders** — the **GPU-dedicated ladder is dense**, the **Unified (CPU / Mac) ladder is MoE** — and **both converge on Qwen 3.8 Flash Next**. Flash Next is an MoE, and it's the *only* rung where the dense ladder switches to MoE.
 >
@@ -107,7 +107,7 @@ Ranked by measured evidence, not heuristics:
 
 ## TurboSouth — your TurboFit service tech
 
-![TurboSouth — the sovthpaw pet](wiki/assets/turbosouth-hero.png)
+![TurboSouth — the sovthpaw pet](assets/turbosouth-hero.png)
 
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
 
@@ -173,7 +173,7 @@ Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: 
 - **Native engines** — CUDA, ROCm, Vulkan, Metal, and CPU backends chosen by your hardware.
 - **One package** — installing TurboFit brings TurboSouth (and its default sovthpaw pet) along automatically.
 
-![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](wiki/assets/hermes-desktop-turbofit-settings.png)
+![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](assets/hermes-desktop-turbofit-settings.png)
 
 ---
 
@@ -199,9 +199,9 @@ This entry is the overview. The full evidence is one level down:
 
 ## Visual reference
 
-![Fit ladder — from low-VRAM rungs to the largest sustainable model](wiki/assets/scaling-ladder.png)
-![Provider integration](wiki/assets/provider-integration.png)
-![2.4 Spec-decode — Draft. Verify. Accept.](wiki/assets/turbofit-2.4-spec-decode.png)
+![Fit ladder — from low-VRAM rungs to the largest sustainable model](assets/scaling-ladder.png)
+![Provider integration](assets/provider-integration.png)
+![2.4 Spec-decode — Draft. Verify. Accept.](assets/turbofit-2.4-spec-decode.png)
 
 ## License
 

@@ -18,7 +18,7 @@ allowlist, and the recommendation all map *hardware → profile → model*.
 
 ## Current state
 
-- **Version:** 2.3.1 (the 2.4 surface is built and held, not released).
+- **Version:** 2.4.0 (released — two-ladder surface).
 - **Runtime:** ~60 modules in `src/turbofit_runtime/` behind the `turbofit` CLI
   (`runtime_cli`), covering hardware, catalog, fit, allowlist, recommendation,
   benchmarks, campaigns, the agent tool surface, and the install/verify path.
@@ -56,7 +56,6 @@ Ordered by what unblocks the most:
    (Apple currently runs CPU-only); q95 on Apple is the convergence target.
 4. **Full local multimodal** — 2-GPU frontier; out of scope until the single-GPU path is
    solid.
-5. **Release 2.4** — held until the above evidence lands.
 
 ## How to verify (fast, no model needed)
 

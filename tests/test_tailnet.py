@@ -63,44 +63,19 @@ def test_publish_refuses_to_overwrite_an_unrelated_existing_serve_route() -> Non
     assert len(calls) == 2
 
 
-def test_run_escalates_via_noninteractive_sudo_only_when_available(monkeypatch) -> None:
+def test_run_does_not_escalate(monkeypatch) -> None:
     import turbofit_runtime.tailnet as tn
 
     calls: list[list[str]] = []
-    sudo_available = {"value": True}
 
     def fake_run(command, **kwargs):
         calls.append(list(command))
-        if command[:2] == ["sudo", "-n"]:
-            # sudo -n true succeeds when sudo is available
-            return completed(command, returncode=0)
-        if command[:1] == ["sudo"]:
-            return completed(command, stdout="ok")
         return completed(command, returncode=1, stderr="permission denied (root required)")
 
     monkeypatch.setattr(tn.subprocess, "run", fake_run)
     result = tn._run(["tailscale", "serve", "--bg", "--yes", "--https=9443", "http://127.0.0.1:8091"])
-    assert result.returncode == 0
-    # plain attempt -> probe -> sudo attempt
-    assert calls[0][0] == "tailscale"
-    assert calls[1] == ["sudo", "-n", "true"]
-    assert calls[2][:2] == ["sudo", "-n"]
-    assert calls[2][2:] == ["tailscale", "serve", "--bg", "--yes", "--https=9443", "http://127.0.0.1:8091"]
-
-    # Without sudo (probe fails) the original failure is returned untouched.
-    calls.clear()
-    def fake_run_no_sudo(command, **kwargs):
-        calls.append(list(command))
-        if command[:2] == ["sudo", "-n"]:
-            return completed(command, returncode=1, stderr="sudo: a password is required")
-        return completed(command, returncode=1, stderr="permission denied")
-    monkeypatch.setattr(tn.subprocess, "run", fake_run_no_sudo)
-    result = tn._run(["tailscale", "serve", "--bg", "--yes", "--https=9443", "http://127.0.0.1:8091"])
     assert result.returncode == 1
-    assert calls == [
-        ["tailscale", "serve", "--bg", "--yes", "--https=9443", "http://127.0.0.1:8091"],
-        ["sudo", "-n", "true"],
-    ]
+    assert calls == [["tailscale", "serve", "--bg", "--yes", "--https=9443", "http://127.0.0.1:8091"]]
 
 
 def test_publish_tailnet_returns_shareable_dashboard_and_provider_urls() -> None:

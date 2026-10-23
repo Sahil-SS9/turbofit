@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.4.0 — Two-ladder TurboFit List, Strata engine, federated gateway
+
+- Version surfaces are `2.4.0`.
+- **Two-ladder fit doctrine**: dedicated-VRAM (dense) and unified/CPU (MoE) ladders converge on Qwen 3.8 Flash Next. Bonsai 2 27B PTQ1_0/PQ2_0 is the 8 GB rung; 24 GB reaches 262K; DeepSeek V4.1 (1017) is the top rung on the unified ladder (native engine + fit data pending). MTP on at every rung; IQ3_S is lossless, so no heavier quant past it (power bill). Canonical data in `references/fit-lists.json`, `references/fit-ladder.md`, and `references/model-lineup.md`.
+- **Strata engine**: systemd user unit installed from the runtime installer; GSQ-RCO recipes and remote backend with pipeline tests.
+- **Gateway federation**: local-alias routing plus automatic Tailscale peer discovery (10 s timeout); Tailscale auto-configure at install; gateway installed as a service on macOS and bound for tailnet reachability.
+- **SALT-core engine integration**: machine-readable G1–G5 qualification gate with a committed gate report from a real checkout (36 tests).
+- **Benchmark leaderboard**: deterministic best model + serve engines per tier from committed references; `/leaderboard` endpoint and dashboard card.
+- **Engine registry**: data-driven engine-serve matrix with native-identity checks.
+- **`hermes_fit` bridge**: built-in Hermes local-model recommendation — non-blocking, physics-predicted (no live model call, ~40 ms), deterministic, degrades to the allowlist + ladders.
+- **hermes_cli discovery** wired (runtime + tests) with the physics-predicted TurboFit List.
+- **sovthpaw mascot** bundled into the TurboSouth install (idempotent `hermes pets install s0uthpaw --select`).
+- Auxiliary model streams from the hard drive at every tier.
+- Cross-OS test suite made deterministic and fresh-install complete.
+- Dependency floors aligned to Hermes pins: `fastapi>=0.133.1`, `huggingface_hub>=1.24.0`.
+- Sudo auto-escalation removed — plugin security scan verdict is `safe`.
+- `after-install.md` deterministic install + verify + recovery path for `not a command: turbofit`.
+- Phase G: systemd linger enabled on Linux so user units survive logout/reboot (best-effort).
+
 ## 2.3.1 — Windows campaign gate fixes + remote-Mac docs
 
 - Version surfaces are `2.3.1` (the Maple Fit List line stays 2.3; 2.4 is held).

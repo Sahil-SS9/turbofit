@@ -4914,6 +4914,20 @@
       "auxiliary": "auto",
       "context": 1048576,
       "status": "candidate"
+    },
+    {
+      "id": "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--64k",
+      "main": "qwen3-8-27b-unleashed-ud-iq3-xxs",
+      "auxiliary": "auto",
+      "context": 65536,
+      "status": "candidate"
+    },
+    {
+      "id": "qwen3-8-27b-unleashed-ud-iq3-xxs--auto--128k",
+      "main": "qwen3-8-27b-unleashed-ud-iq3-xxs",
+      "auxiliary": "auto",
+      "context": 131072,
+      "status": "candidate"
     }
   ]
 }

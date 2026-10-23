@@ -1,271 +1,85 @@
 {
-  "generated_at": "2026-08-31T00:00:00+00:00",
+  "generated_at": "2026-10-23T04:10:06.997095+00:00",
   "levels": [
     {
       "hardware_level_gb": 8,
-      "status": "winner",
+      "status": "pending-benchmarks",
       "tier_id": "hardware-8gb",
-      "winner": {
-        "model": "ternary-bonsai-2-27b-ptq1",
-        "evidence": "sha256:14e0285fbd5e75b1715068ac8027eb43be9b52fe8bb4d9ad888636c73fb3caaf",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Ternary Bonsai 2 27B PTQ1_0",
-          "size_gb": 5.95,
-          "quant": "PTQ1_0",
-          "note": "Ternary g128; 98.2% of FP16 intelligence; needs Prism llama.cpp fork"
-        },
-        {
-          "model": "Ternary Bonsai 2 27B PQ2_0",
-          "size_gb": 7.21,
-          "quant": "PQ2_0",
-          "note": "2-bit slots; cheaper unpacking; needs Prism llama.cpp fork"
-        }
-      ]
+      "winner": null
     },
     {
       "hardware_level_gb": 16,
-      "status": "winner",
+      "status": "pending-benchmarks",
       "tier_id": "hardware-16gb",
-      "winner": {
-        "model": "qwen3-8-27b-gsq-rco-iq3s",
-        "evidence": "sha256:5fa2c5ad28eab8e4a90f949c0fd5ea6d95524692decd9e9086e1ddf6373effaa",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Ternary Bonsai 2 27B PTQ1_0",
-          "size_gb": 5.95,
-          "quant": "PTQ1_0",
-          "note": "Ternary g128; 98.2% of FP16 intelligence; needs Prism llama.cpp fork"
-        },
-        {
-          "model": "Ternary Bonsai 2 27B PQ2_0",
-          "size_gb": 7.21,
-          "quant": "PQ2_0",
-          "note": "2-bit slots; cheaper unpacking; needs Prism llama.cpp fork"
-        },
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_XXS",
-          "size_gb": 10.1,
-          "quant": "GSQ-RCO-IQ3_XXS",
-          "note": "Strong all-round operating point; 3.0 bpw"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-IQ3_XXS",
-          "size_gb": 13.2,
-          "quant": "UD-IQ3_XXS",
-          "note": "Code specialist MoE; 3-bit with context headroom"
-        }
-      ]
+      "winner": null
     },
     {
       "hardware_level_gb": 24,
-      "status": "winner",
+      "status": "pending-benchmarks",
       "tier_id": "hardware-24gb",
-      "winner": {
-        "model": "qwen3-8-27b-gsq-rco-iq3s",
-        "evidence": "sha256:99ba6eab28c247055d087943e5b576bda2049a77eae2624fbfc55b4d5bb8b8d4",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; 3.5 bpw; recommended operating point"
-        },
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
-          "size_gb": 13.0,
-          "quant": "UD-Q3_K_XL",
-          "note": "Current 24GB profile rung; evidence-backed"
-        }
-      ]
+      "winner": null
     },
     {
       "hardware_level_gb": 32,
-      "status": "winner",
-      "tier_id": "hardware-32gb",
-      "winner": {
-        "model": "qwen3-8-27b-gsq-rco-iq3s",
-        "evidence": "sha256:99ba6eab28c247055d087943e5b576bda2049a77eae2624fbfc55b4d5bb8b8d4",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q5_K_XL",
-          "size_gb": 26.6,
-          "quant": "UD-Q5_K_XL",
-          "note": "Code specialist MoE; 5-bit for 32GB"
-        }
-      ]
+      "status": "pending-benchmarks",
+      "tier_id": null,
+      "winner": null
     },
     {
       "hardware_level_gb": 48,
       "status": "winner",
       "tier_id": "hardware-48gb",
       "winner": {
-        "model": "qwen3-8-27b-gsq-rco-iq3s",
-        "evidence": "sha256:99ba6eab28c247055d087943e5b576bda2049a77eae2624fbfc55b4d5bb8b8d4",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
+        "auxiliary": "Route auxiliary tasks to main",
+        "balanced_score": 58.778209660040595,
+        "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--262k",
+        "context": 262144,
+        "evidence": "sha256:b27632086b4389e9b6b539eaf24d35a0d8151b398557ac8e4b23efb72cf9764f",
+        "hardware_fingerprint": "sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b",
+        "intelligence_score": 46.875,
+        "main": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
+        "measured_tps": 39.39215795117914
       }
     },
     {
       "hardware_level_gb": 64,
-      "status": "winner",
+      "status": "pending-benchmarks",
       "tier_id": "hardware-64gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q6_K_XL",
-          "size_gb": 31.8,
-          "quant": "UD-Q6_K_XL",
-          "note": "Near-lossless code MoE; 6-bit"
-        }
-      ]
+      "winner": null
     },
     {
       "hardware_level_gb": 96,
-      "status": "winner",
+      "status": "pending-benchmarks",
       "tier_id": "hardware-96gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q8_K_XL",
-          "size_gb": 38.5,
-          "quant": "UD-Q8_K_XL",
-          "note": "Reference 8-bit code MoE"
-        }
-      ]
+      "winner": null
     },
     {
       "hardware_level_gb": 128,
-      "status": "winner",
-      "tier_id": "hardware-128gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q8_K_XL",
-          "size_gb": 38.5,
-          "quant": "UD-Q8_K_XL",
-          "note": "Reference 8-bit code MoE"
-        }
-      ]
+      "status": "pending-benchmarks",
+      "tier_id": null,
+      "winner": null
     },
     {
       "hardware_level_gb": 192,
-      "status": "winner",
-      "tier_id": "hardware-192gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q8_K_XL",
-          "size_gb": 38.5,
-          "quant": "UD-Q8_K_XL",
-          "note": "Reference 8-bit code MoE"
-        }
-      ]
+      "status": "pending-benchmarks",
+      "tier_id": null,
+      "winner": null
     },
     {
       "hardware_level_gb": 256,
-      "status": "winner",
-      "tier_id": "hardware-256gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q8_K_XL",
-          "size_gb": 38.5,
-          "quant": "UD-Q8_K_XL",
-          "note": "Reference 8-bit code MoE"
-        }
-      ]
+      "status": "pending-benchmarks",
+      "tier_id": null,
+      "winner": null
     },
     {
       "hardware_level_gb": 384,
-      "status": "winner",
-      "tier_id": "hardware-384gb",
-      "winner": {
-        "model": "qwen3-8-flash-next-strata",
-        "evidence": "sha256:86726a97d0cfac5ee08bb0be7c8d4347cb64814de6824e2bbb1eccd50ccdd6b1",
-        "hardware_fingerprint": "sha256:2f584af410f41d247d0e5d5fcfafdb0d127197854fdf9f278dcb41946240a63e"
-      },
-      "candidates": [
-        {
-          "model": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "size_gb": 11.8,
-          "quant": "GSQ-RCO-IQ3_S",
-          "note": "Task-lossless; fits with KV room"
-        },
-        {
-          "model": "Tiel Coder 35B-A3B UD-Q8_K_XL",
-          "size_gb": 38.5,
-          "quant": "UD-Q8_K_XL",
-          "note": "Reference 8-bit code MoE"
-        }
-      ]
+      "status": "pending-benchmarks",
+      "tier_id": null,
+      "winner": null
     }
   ],
   "name": "TurboFit List",
-  "policy": "Every tier has a benchmarked winner. Two separate lists: dedicated VRAM runs dense models, unified/CPU runs MoE.",
+  "policy": "exact hardware + current recipe + physical evidence + intelligence + TPS",
   "schema": "turbofit.list/v1",
   "source_schema": "turbofit.hardware-tier-report/v1"
 }

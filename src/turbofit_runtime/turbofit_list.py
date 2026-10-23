@@ -51,7 +51,13 @@ def build_turbofit_list(report: Mapping[str, Any]) -> dict[str, Any]:
     for capacity in TIERS:
         tier = by_capacity.get(capacity)
         if tier is None:
-            raise ValueError(f"hardware tier report lacks {capacity} GB")
+            levels.append({
+                "hardware_level_gb": capacity,
+                "tier_id": None,
+                "status": "pending-benchmarks",
+                "winner": None,
+            })
+            continue
         winner = _winner(tier)
         levels.append({
             "hardware_level_gb": capacity,

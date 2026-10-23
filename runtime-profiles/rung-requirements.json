@@ -448,10 +448,10 @@
     ],
     "apple-32gb": [
       {
-        "rung_id": "local-ornith-262k",
-        "evidence": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "rung_id": "local-cyber-tiel-262k",
+        "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
         "required_mb_per_card": [
-          16600
+          29600
         ]
       },
       {

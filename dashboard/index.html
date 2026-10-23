@@ -278,7 +278,6 @@ header .status.offline .dot { background: var(--accent2); }
             <span class="label">Model</span>
             <select id="model-select">
                 <option value="auto">Auto</option>
-                <option value="qwen38-27b-unleashed">Unleashed Q3_K_XL</option>
                 <option value="qwen38-27b-dflash2">DFlash2</option>
                 <option value="ornith-1-5-35a3b">Ornith 1.5</option>
             </select>
@@ -338,7 +337,6 @@ function addLog(message, type = 'info') {
 }
 
 const modelList = [
-    { id: 'qwen38-27b-unleashed', name: 'Unleashed Q3_K_XL', meta: '27B · 262K · ~40 tok/s', provider: 'turbofit' },
     { id: 'qwen38-27b-dflash2', name: 'DFlash2 Draft', meta: 'Draft model', provider: 'turbofit-omarchy-dflash2' },
     { id: 'ornith-1-5-35a3b', name: 'Ornith 1.5', meta: '35B-A3B · MLX', provider: 'turbofit-mac' },
 ];
@@ -373,7 +371,7 @@ document.getElementById('toggle-kv').addEventListener('click', (e) => {
 });
 
 function updateStats() {
-    const baseTps = state.model.includes('unleashed') ? 38 : state.model.includes('dflash2') ? 50 : 28;
+    const baseTps = state.model.includes('dflash2') ? 50 : 28;
     state.targetTps = baseTps + (Math.random() * 8 - 4);
     state.currentTps += (state.targetTps - state.currentTps) * 0.1;
     updateSpeedometer(state.currentTps);

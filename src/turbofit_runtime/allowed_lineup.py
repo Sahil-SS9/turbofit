@@ -36,6 +36,7 @@ ALLOWED_MAIN = (
     "qwen3-8-27b-uncensored-mlx-4bit",
     "qwen3-8-27b-uncensored-mlx-6bit",
     "qwen3-8-27b-uncensored-mlx-8bit",
+    "cyber-tiel-coder-35b-a3b",
 )
 
 ALLOWED_AUX = (

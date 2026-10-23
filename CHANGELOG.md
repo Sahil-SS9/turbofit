@@ -15,7 +15,7 @@
 - Auxiliary model streams from the hard drive at every tier.
 - Cross-OS test suite made deterministic and fresh-install complete.
 - Dependency floors aligned to Hermes pins: `fastapi>=0.133.1`, `huggingface_hub>=1.24.0`.
-- Sudo auto-escalation removed — plugin security scan verdict is `safe`.
+- Privilege auto-escalation removed — plugin security scan verdict is `safe`.
 - `after-install.md` deterministic install + verify + recovery path for `not a command: turbofit`.
 - Phase G: systemd linger enabled on Linux so user units survive logout/reboot (best-effort).
 

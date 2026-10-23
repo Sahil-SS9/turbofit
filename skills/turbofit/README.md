@@ -90,7 +90,7 @@ node --check desktop/plugin.js
 scripts/release-check
 ```
 
-Full architecture, setup, model zoo, evidence policy, and repository map: [`../../README.md`](../../README.md).
+Full architecture, setup, model zoo, evidence policy, and repository map: [README.md](README.md).
 
 ## Supported Models
 

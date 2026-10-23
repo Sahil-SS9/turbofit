@@ -22,11 +22,13 @@ def _winner(tier: Mapping[str, Any]) -> dict[str, Any] | None:
         or not isinstance(fit, Mapping)
         or fit.get("physically_demonstrated") is not True
         or not fit.get("evidence")
-        or candidate.get("intelligence_score") is None
-        or candidate.get("measured_tps") is None
-        or candidate.get("balanced_score") is None
     ):
         return None
+    if candidate.get("measured_tps") is None:
+        return None
+    # Partial evidence: TPS is present but intelligence/balanced may be missing
+    intelligence_score = candidate.get("intelligence_score")
+    balanced_score = candidate.get("balanced_score")
     main = candidate.get("main") if isinstance(candidate.get("main"), Mapping) else {}
     auxiliary = candidate.get("auxiliary") if isinstance(candidate.get("auxiliary"), Mapping) else {}
     return {
@@ -34,11 +36,12 @@ def _winner(tier: Mapping[str, Any]) -> dict[str, Any] | None:
         "main": main.get("name"),
         "auxiliary": auxiliary.get("name"),
         "context": candidate.get("context"),
-        "intelligence_score": candidate.get("intelligence_score"),
+        "intelligence_score": intelligence_score,
         "measured_tps": candidate.get("measured_tps"),
-        "balanced_score": candidate.get("balanced_score"),
+        "balanced_score": balanced_score,
         "evidence": fit.get("evidence"),
         "hardware_fingerprint": fit.get("hardware_fingerprint"),
+        "partial": intelligence_score is None or balanced_score is None,
     }
 
 
@@ -59,10 +62,16 @@ def build_turbofit_list(report: Mapping[str, Any]) -> dict[str, Any]:
             })
             continue
         winner = _winner(tier)
+        if winner and winner.get("partial"):
+            status = "measured-tps-only"
+        elif winner:
+            status = "winner"
+        else:
+            status = "pending-benchmarks"
         levels.append({
             "hardware_level_gb": capacity,
             "tier_id": tier.get("id"),
-            "status": "winner" if winner else "pending-benchmarks",
+            "status": status,
             "winner": winner,
         })
     return {
@@ -88,6 +97,13 @@ def render_turbofit_list(payload: Mapping[str, Any]) -> str:
         winner = item.get("winner")
         if not isinstance(winner, Mapping):
             lines.append(f"| {item['hardware_level_gb']} GB | — | — | — | — | — | pending benchmarks |")
+            continue
+        if winner.get("partial"):
+            pair = f"{winner.get('main')} + {winner.get('auxiliary')}"
+            lines.append(
+                f"| {item['hardware_level_gb']} GB | `{pair}` | {winner.get('context')} | "
+                f"pending | {winner.get('measured_tps')} | pending | measured-tps-only |"
+            )
             continue
         pair = f"{winner.get('main')} + {winner.get('auxiliary')}"
         lines.append(

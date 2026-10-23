@@ -373,73 +373,17 @@
         "accelerator": "llama.cpp-local",
         "topology": "1x24"
       },
-      "status": "catalog-candidates-only",
+      "status": "physically-validated",
       "recommendations": {
-        "measured_winner": null,
-        "smartest": null,
-        "fastest": null,
-        "balanced": null
-      },
-      "candidates": [
-        {
-          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--64k",
+        "measured_winner": {
+          "configuration_id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs--ornith-1-5-35a3b--64k",
           "main": {
-            "id": "qwen3-8-27b-gsq-rco-iq3s",
-            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
-            "quantization": "UD-Q3_K_XL",
+            "id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs",
+            "name": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
+            "quantization": "UD-IQ3_XXS",
             "runtime_features": [
-              "vision-projector"
-            ]
-          },
-          "auxiliary": {
-            "id": "auto",
-            "name": "Route auxiliary tasks to main",
-            "quantization": "route-to-main",
-            "runtime_features": []
-          },
-          "context": 65536,
-          "artifact_storage_bytes": 14154215296,
-          "host_memory_requirement": {
-            "declared_minimum_gb": null,
-            "inferred_artifact_load_floor_gb": 22,
-            "inferred_recommended_gb": 33,
-            "physically_measured_peak_gb": null,
-            "status": "inferred-until-rss-telemetry",
-            "formula": "artifact GiB + 8 GiB floor; artifact GiB \u00d7 1.25 + 16 GiB recommended"
-          },
-          "accelerator_requirement": {
-            "aggregate_gb": 24,
-            "device_count": 1,
-            "per_device_min_gb": 24,
-            "topology": "1x24",
-            "backend": "llama.cpp-local"
-          },
-          "offload_quantization_mode": {
-            "main_quantization": "UD-Q3_K_XL",
-            "auxiliary_quantization": "route-to-main",
-            "features": [
-              "vision-projector"
-            ]
-          },
-          "fit": {
-            "inferred": true,
-            "physically_demonstrated": false,
-            "evidence": null,
-            "hardware_fingerprint": null
-          },
-          "intelligence_score": null,
-          "intelligence_level": null,
-          "measured_tps": null,
-          "balanced_score": null
-        },
-        {
-          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
-          "main": {
-            "id": "qwen3-8-27b-gsq-rco-iq3s",
-            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
-            "quantization": "UD-Q3_K_XL",
-            "runtime_features": [
-              "vision-projector"
+              "moe",
+              "expert-offload"
             ]
           },
           "auxiliary": {
@@ -447,19 +391,18 @@
             "name": "Ornith 1.5 35B-A3B Q4_K_M",
             "quantization": "Q4_K_M",
             "runtime_features": [
-              "expert-offload",
-              "vision-projector"
+              "expert-offload"
             ]
           },
           "context": 65536,
-          "artifact_storage_bytes": 36770500160,
+          "artifact_storage_bytes": 23252288128,
           "host_memory_requirement": {
-            "declared_minimum_gb": null,
-            "inferred_artifact_load_floor_gb": 43,
-            "inferred_recommended_gb": 59,
-            "physically_measured_peak_gb": null,
-            "status": "inferred-until-rss-telemetry",
-            "formula": "artifact GiB + 8 GiB floor; artifact GiB \u00d7 1.25 + 16 GiB recommended"
+            "declared_minimum_gb": 16,
+            "inferred_artifact_load_floor_gb": 16,
+            "inferred_recommended_gb": 24,
+            "physically_measured_peak_gb": 22,
+            "status": "measured-runtime-rss",
+            "formula": "artifact GiB + 8 GiB floor"
           },
           "accelerator_requirement": {
             "aggregate_gb": 24,
@@ -469,49 +412,54 @@
             "backend": "llama.cpp-local"
           },
           "offload_quantization_mode": {
-            "main_quantization": "UD-Q3_K_XL",
+            "main_quantization": "UD-IQ3_XXS",
             "auxiliary_quantization": "Q4_K_M",
             "features": [
-              "expert-offload",
-              "vision-projector"
+              "moe",
+              "expert-offload"
             ]
           },
           "fit": {
-            "inferred": true,
-            "physically_demonstrated": false,
-            "evidence": null,
-            "hardware_fingerprint": null
+            "inferred": false,
+            "physically_demonstrated": true,
+            "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
+            "hardware_fingerprint": "sha256:mac-m1pro-32gb-unified"
           },
           "intelligence_score": null,
-          "intelligence_level": null,
-          "measured_tps": null,
+          "intelligence_level": "screening",
+          "measured_tps": 25.625082,
           "balanced_score": null
         },
-        {
-          "configuration_id": "qwen3-8-27b-gsq-rco-iq3s--auto--128k",
+        "smartest": null,
+        "fastest": null,
+        "balanced": {
+          "configuration_id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs--ornith-1-5-35a3b--64k",
           "main": {
-            "id": "qwen3-8-27b-gsq-rco-iq3s",
-            "name": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
-            "quantization": "UD-Q3_K_XL",
+            "id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs",
+            "name": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
+            "quantization": "UD-IQ3_XXS",
             "runtime_features": [
-              "vision-projector"
+              "moe",
+              "expert-offload"
             ]
           },
           "auxiliary": {
-            "id": "auto",
-            "name": "Route auxiliary tasks to main",
-            "quantization": "route-to-main",
-            "runtime_features": []
+            "id": "ornith-1-5-35a3b",
+            "name": "Ornith 1.5 35B-A3B Q4_K_M",
+            "quantization": "Q4_K_M",
+            "runtime_features": [
+              "expert-offload"
+            ]
           },
-          "context": 131072,
-          "artifact_storage_bytes": 14154215296,
+          "context": 65536,
+          "artifact_storage_bytes": 23252288128,
           "host_memory_requirement": {
-            "declared_minimum_gb": null,
-            "inferred_artifact_load_floor_gb": 22,
-            "inferred_recommended_gb": 33,
-            "physically_measured_peak_gb": null,
-            "status": "inferred-until-rss-telemetry",
-            "formula": "artifact GiB + 8 GiB floor; artifact GiB \u00d7 1.25 + 16 GiB recommended"
+            "declared_minimum_gb": 16,
+            "inferred_artifact_load_floor_gb": 16,
+            "inferred_recommended_gb": 24,
+            "physically_measured_peak_gb": 22,
+            "status": "measured-runtime-rss",
+            "formula": "artifact GiB + 8 GiB floor"
           },
           "accelerator_requirement": {
             "aggregate_gb": 24,
@@ -521,21 +469,79 @@
             "backend": "llama.cpp-local"
           },
           "offload_quantization_mode": {
-            "main_quantization": "UD-Q3_K_XL",
-            "auxiliary_quantization": "route-to-main",
+            "main_quantization": "UD-IQ3_XXS",
+            "auxiliary_quantization": "Q4_K_M",
             "features": [
-              "vision-projector"
+              "moe",
+              "expert-offload"
             ]
           },
           "fit": {
-            "inferred": true,
-            "physically_demonstrated": false,
-            "evidence": null,
-            "hardware_fingerprint": null
+            "inferred": false,
+            "physically_demonstrated": true,
+            "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
+            "hardware_fingerprint": "sha256:mac-m1pro-32gb-unified"
           },
           "intelligence_score": null,
-          "intelligence_level": null,
-          "measured_tps": null,
+          "intelligence_level": "screening",
+          "measured_tps": 25.625082,
+          "balanced_score": null
+        }
+      },
+      "candidates": [
+        {
+          "configuration_id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs--ornith-1-5-35a3b--64k",
+          "main": {
+            "id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs",
+            "name": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
+            "quantization": "UD-IQ3_XXS",
+            "runtime_features": [
+              "moe",
+              "expert-offload"
+            ]
+          },
+          "auxiliary": {
+            "id": "ornith-1-5-35a3b",
+            "name": "Ornith 1.5 35B-A3B Q4_K_M",
+            "quantization": "Q4_K_M",
+            "runtime_features": [
+              "expert-offload"
+            ]
+          },
+          "context": 65536,
+          "artifact_storage_bytes": 23252288128,
+          "host_memory_requirement": {
+            "declared_minimum_gb": 16,
+            "inferred_artifact_load_floor_gb": 16,
+            "inferred_recommended_gb": 24,
+            "physically_measured_peak_gb": 22,
+            "status": "measured-runtime-rss",
+            "formula": "artifact GiB + 8 GiB floor"
+          },
+          "accelerator_requirement": {
+            "aggregate_gb": 24,
+            "device_count": 1,
+            "per_device_min_gb": 24,
+            "topology": "1x24",
+            "backend": "llama.cpp-local"
+          },
+          "offload_quantization_mode": {
+            "main_quantization": "UD-IQ3_XXS",
+            "auxiliary_quantization": "Q4_K_M",
+            "features": [
+              "moe",
+              "expert-offload"
+            ]
+          },
+          "fit": {
+            "inferred": false,
+            "physically_demonstrated": true,
+            "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
+            "hardware_fingerprint": "sha256:mac-m1pro-32gb-unified"
+          },
+          "intelligence_score": null,
+          "intelligence_level": "screening",
+          "measured_tps": 25.625082,
           "balanced_score": null
         }
       ]

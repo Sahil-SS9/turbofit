@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-23T04:10:06.997095+00:00",
+  "generated_at": "2026-10-23T04:27:12.479092+00:00",
   "levels": [
     {
       "hardware_level_gb": 8,
@@ -15,9 +15,20 @@
     },
     {
       "hardware_level_gb": 24,
-      "status": "pending-benchmarks",
+      "status": "measured-tps-only",
       "tier_id": "hardware-24gb",
-      "winner": null
+      "winner": {
+        "auxiliary": "Ornith 1.5 35B-A3B Q4_K_M",
+        "balanced_score": null,
+        "configuration_id": "cyber-tiel-coder-35b-a3b-ud-iq3-xxs--ornith-1-5-35a3b--64k",
+        "context": 65536,
+        "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
+        "hardware_fingerprint": "sha256:mac-m1pro-32gb-unified",
+        "intelligence_score": null,
+        "main": "Cyber-Tiel Coder 35B-A3B UD-IQ3_XXS",
+        "measured_tps": 25.625082,
+        "partial": true
+      }
     },
     {
       "hardware_level_gb": 32,
@@ -38,7 +49,8 @@
         "hardware_fingerprint": "sha256:aa8f29e3c3917a04f4301806f0b0f7d33e7267d283e1dfb96264e0ef313d926b",
         "intelligence_score": 46.875,
         "main": "Qwen 3.8 27B GSQ-RCO UD-Q3_K_XL",
-        "measured_tps": 39.39215795117914
+        "measured_tps": 39.39215795117914,
+        "partial": false
       }
     },
     {

@@ -813,7 +813,7 @@ def test_recommendation_snapshot_exposes_unmeasured_compatible_lanes(monkeypatch
     assert any("portable-fit" in command for command in calls)
 
 
-def test_slash_turbofit_rescans_hardware_and_returns_multiple_preferences(monkeypatch) -> None:
+def test_slash_turbofit_no_args_scans_and_auto_applies_top_recommendation(monkeypatch) -> None:
     plugin = _load_plugin_module()
     monkeypatch.setattr(plugin, "recommendation_snapshot", lambda preference=None: {
         "ok": True,
@@ -826,12 +826,23 @@ def test_slash_turbofit_rescans_hardware_and_returns_multiple_preferences(monkey
         "requested_preference": preference,
         "preferences": ["intelligence", "balanced", "speed"],
     })
+    monkeypatch.setattr(plugin, "_ladder", lambda preference="intelligence": [
+        {"profile": "quality"}
+    ])
+    monkeypatch.setattr(plugin, "_apply", lambda profile_id, **kwargs: {
+        "ok": True,
+        "shifted": True,
+        "profile": profile_id,
+        "reason": kwargs.get("reason", ""),
+        "snapshot": kwargs.get("extra", {}).get("snapshot"),
+    })
 
     payload = json.loads(plugin._slash_turbofit(""))
 
     assert payload["ok"] is True
-    assert payload["preferences"] == ["intelligence", "balanced", "speed"]
-    assert payload["hardware"]["system_ram_mb"] == 128000
+    assert payload["shifted"] is True
+    assert payload["profile"] == "quality"
+    assert payload["snapshot"]["hardware"]["system_ram_mb"] == 128000
 
 
 def test_slash_turbofit_tiers_returns_all_hardware_levels(monkeypatch) -> None:

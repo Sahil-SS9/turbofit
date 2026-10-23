@@ -17,7 +17,7 @@ from .plugin_tools import (
     launch_setup_screen,
     recommendation_snapshot,
 )
-from .product_ops import serve_status, serve_tailnet, shift_configuration, smoke_local_runtime, update_products
+from .product_ops import _apply, _ladder, serve_status, serve_tailnet, shift_configuration, smoke_local_runtime, update_products
 
 USAGE = "usage: /turbofit [scan|status|tiers|update|shift up|shift down|shift <model>|serve|smoke|intelligence|balanced|speed|setup]"
 
@@ -33,9 +33,21 @@ def _slash_turbofit(raw_args: str) -> str:
         return handle_status({})
     if lowered in {"", "scan", "rescan", "recommend"}:
         try:
-            return json.dumps(recommendation_snapshot())
+            snapshot = recommendation_snapshot()
         except Exception as exc:
             return json.dumps({"ok": False, "error": str(exc)})
+        try:
+            ladder = _ladder("intelligence")
+            if ladder:
+                applied = _apply(
+                    str(ladder[0]["profile"]),
+                    reason="auto-apply top intelligence recommendation from /turbofit",
+                    extra={"snapshot": snapshot},
+                )
+                return json.dumps(applied)
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc), "snapshot": snapshot})
+        return json.dumps({"ok": True, "snapshot": snapshot, "message": "no evidence-backed configuration fits this machine"})
     if lowered in {"intelligence", "quality", "balanced", "context", "speed"}:
         try:
             return json.dumps(recommendation_snapshot(lowered))

@@ -91,11 +91,14 @@ def parse_nvidia_memory_csv(raw: str) -> tuple[GPUSample, ...]:
 def probe_gpus() -> tuple[GPUSample, ...]:
     if platform.system() == "Windows":
         return probe_windows_gpus()
-    raw = subprocess.check_output([
-        "nvidia-smi",
-        "--query-gpu=index,memory.total,memory.used,memory.free,utilization.gpu",
-        "--format=csv,noheader,nounits",
-    ], text=True)
+    try:
+        raw = subprocess.check_output([
+            "nvidia-smi",
+            "--query-gpu=index,memory.total,memory.used,memory.free,utilization.gpu",
+            "--format=csv,noheader,nounits",
+        ], text=True)
+    except FileNotFoundError:
+        return ()
     return parse_nvidia_memory_csv(raw)
 
 
@@ -189,7 +192,7 @@ class GPUClearGate:
         while self._monotonic() - started <= timeout_s:
             snapshot = tuple(self._sample())
             observed += 1
-            clear = bool(snapshot) and all(
+            clear = not snapshot or all(
                 sample.used_mb <= effective_ceilings.get(sample.gpu, 1024)
                 for sample in snapshot
             )

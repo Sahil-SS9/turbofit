@@ -83,8 +83,6 @@ The currently-automated, downloadable set (`model-catalog.json`) — **62 models
 
 ### New models (canonical names)
 
-New additions this release, by exact canonical name (full variant/role/state table in [`skills/turbofit/README.md`](skills/turbofit/README.md)):
-
 - **Maple Preview 20B-A1B** — MoE main candidate (TQ2_0, 8 GB envelope)
 - **Qwen 3.8 27B GSQ-RCO** — near-lossless dense main (IQ3_S / IQ3_XXS / IQ2_S / IQ2_XS)
 - **Ornith 1.5 35A3B** — MoE auxiliary (Q4_K_M, oQ4e / oQ8e MTP)

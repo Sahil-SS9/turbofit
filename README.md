@@ -12,7 +12,7 @@ TurboFit is a first-class [Hermes Agent](https://github.com/NousResearch/hermes-
 
 ## Install
 
-**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) — you install one thing, not three. You don't download TurboSouth, download the pet, and combine them yourself; the package does that for you.
+**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) 
 
 The fastest path — **paste this into your Hermes** and it does the rest (enable, set as your provider on the `auto` model, install TurboSouth, select the pet):
 

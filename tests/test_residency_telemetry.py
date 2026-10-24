@@ -119,7 +119,12 @@ def test_real_child_owner_health_idle_failure_to_real_catalogue(catalogue, tmp_p
         models = GATEWAY.provider_models()
         assert all(m['metadata']['residency'] == 'unknown' for m in models)
         assert all(m['metadata']['backing_model'] == 'main' for m in models)
-        assert models[2]['metadata']['mode'] == 'shared-main'
+        # shared-main aux rides the main model: not a separate catalog
+        # entry (the catalog keys on id only), but its identity must still
+        # surface in the role metadata.
+        aux_meta = GATEWAY.provider_model_metadata()['aux']
+        assert aux_meta['mode'] == 'shared-main'
+        assert aux_meta['backing_model'] == 'main'
     finally:
         endpoint.stop()
         runtime.reset_managed()

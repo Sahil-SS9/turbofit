@@ -10,6 +10,13 @@ CommandRunner = Callable[[list[str]], subprocess.CompletedProcess[str]]
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
+    # Run the tailscale command directly. Tailscale Serve may require elevated
+    # privileges on some hosts; in that case the caller receives the (clear)
+    # permission error and can re-run with elevation manually.
+    # We deliberately do NOT auto-escalate privileges here: an automatic
+    # privilege escalation call trips the plugin security scanner and blocks
+    # install of the whole plugin. Escalation, when needed, is left to the
+    # operator.
     return subprocess.run(command, text=True, capture_output=True, timeout=30, check=False)
 
 

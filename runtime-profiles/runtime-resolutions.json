@@ -800,11 +800,11 @@
       }
     },
     "apple-32gb": {
-      "local-ornith-262k": {
+      "local-cyber-tiel-262k": {
         "main": {
-          "model_tag": "ornith-262k-main",
-          "expected_vram_mb": 16600,
-          "family": "Ornith 1.5 35A3B",
+          "model_tag": "cyber-tiel-262k-main",
+          "expected_vram_mb": 29600,
+          "family": "Cyber-Tiel Coder 35B-A3B",
           "gpu": "0",
           "port": 8092
         }

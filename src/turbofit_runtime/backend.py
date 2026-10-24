@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import shutil
 import signal
 import socket
 import subprocess
@@ -143,10 +144,13 @@ class CampaignBackend:
             return
         try:
             for service in services:
-                active = subprocess.run(
-                    ["systemctl", "--user", "is-active", "--quiet", service],
-                    capture_output=True,
-                ).returncode == 0
+                try:
+                    active = subprocess.run(
+                        ["systemctl", "--user", "is-active", "--quiet", service],
+                        capture_output=True,
+                    ).returncode == 0
+                except FileNotFoundError:
+                    active = False
                 if active:
                     self._production_services_to_restore.append(service)
             if self._production_services_to_restore:
@@ -154,6 +158,10 @@ class CampaignBackend:
                     ["systemctl", "--user", "stop", *self._production_services_to_restore],
                     check=True, capture_output=True, text=True,
                 )
+        except FileNotFoundError:
+            self._production_services_to_restore = []
+            self._production_suspended = True
+            return
         except Exception:
             self._production_services_to_restore = []
             self.campaign_lease_path.unlink(missing_ok=True)
@@ -285,6 +293,7 @@ class CampaignBackend:
                 "main_alias": recipe.main_alias,
                 "aux_alias": recipe.aux_alias,
                 "aux_mode": recipe.aux_mode,
+                "aux_residency": recipe.aux_residency,
             },
             "components": components,
             "activating": True,

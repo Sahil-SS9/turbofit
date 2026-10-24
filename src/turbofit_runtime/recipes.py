@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .allowed_lineup import expert_residency
 from .hardware import HardwareFingerprint
 from .schema import MatrixRow
 
@@ -163,6 +164,7 @@ class ResolvedRecipe:
     components: tuple[ResolvedComponent, ...]
     main_context: int = 0
     aux_context: int = 0
+    aux_residency: dict | None = None
 
 
 class RecipeBook:
@@ -368,9 +370,20 @@ class RecipeBook:
             command.extend(["--main-gpu", str(context_override["main_gpu"])])
         n_cpu_moe = context_override.get("n_cpu_moe", spec.get("n_cpu_moe"))
         if n_cpu_moe is not None:
-            command.extend(["--n-cpu-moe", str(n_cpu_moe)])
+            command.extend([ "--n-cpu-moe", str(n_cpu_moe)])
         if context_override.get("cpu_moe", spec.get("cpu_moe")) is True:
             command.append("--cpu-moe")
+        # Aux hard-drive/RAM streaming (allowed_lineup.expert_residency), applied to
+        # the auxiliary role only: offload MoE experts to the host and keep weights
+        # memory-mapped so the aux streams from the hard drive when host RAM is tight.
+        if role == "aux" and self.hardware is not None:
+            residency = expert_residency(host_ram_gb=self.hardware.system_ram_mb / 1024)
+            if residency.get("mmap") is True and "--no-mmap" in command:
+                command.remove("--no-mmap")
+            if residency.get("mlock") is True and "--mlock" not in command:
+                command.append("--mlock")
+            if residency.get("cpu_moe") is True and "--cpu-moe" not in command:
+                command.append("--cpu-moe")
         scaling = spec.get("context_scaling") or {}
         native_context = int(spec.get("native_context", context))
         host_kv = bool(
@@ -583,6 +596,11 @@ class RecipeBook:
             override_gpu or auto_main_gpu,
             port_override=11605,
         )
+        aux_residency = (
+            expert_residency(host_ram_gb=self.hardware.system_ram_mb / 1024)
+            if self.hardware is not None
+            else None
+        )
         return ResolvedRecipe(
             row_id=row_id,
             profile_name=row_id,
@@ -592,4 +610,5 @@ class RecipeBook:
             components=(aux, main),
             main_context=context,
             aux_context=aux_role_context,
+            aux_residency=aux_residency,
         )

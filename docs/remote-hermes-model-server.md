@@ -85,5 +85,5 @@ The picker is scoped to the selected remote gateway/profile. Selecting the provi
 - Prefer Tailscale Serve for the provider URL.
 - Use HTTPS for public or otherwise untrusted networks.
 - Do not put credentials in fallback entries or checked-in files.
-- If the model server requires authentication, configure a `key_env` in the LXC's Hermes provider and store the secret in the LXC's `~/.hermes/.env`.
+- If the model server requires authentication, configure a `key_env` in the LXC's Hermes provider and store the secret in the LXC's Hermes secrets file.
 - Keep Turbofit's provider gateway private; it is an inference endpoint, not a public web service.

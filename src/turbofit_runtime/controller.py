@@ -26,8 +26,14 @@ MAX_PERSISTED_WAIT_S = 3600.0
 class RungRequirements:
     profile_id: str
     required_mb_by_rung: tuple[tuple[int, ...], ...]
+    host_ram_mb_per_card: tuple[tuple[int, ...], ...] = ()
 
-    def __init__(self, profile_id: str, required_mb_by_rung: Sequence[Sequence[int]]) -> None:
+    def __init__(
+        self,
+        profile_id: str,
+        required_mb_by_rung: Sequence[Sequence[int]],
+        host_ram_mb_per_card: Sequence[Sequence[int]] | None = None,
+    ) -> None:
         values = tuple(tuple(row) for row in required_mb_by_rung)
         if not profile_id:
             raise ValueError("profile_id must be non-empty")
@@ -37,8 +43,20 @@ class RungRequirements:
             for value in row
         ):
             raise ValueError("rung requirements must be non-negative integers")
+        host_values = tuple(
+            tuple(row) for row in (host_ram_mb_per_card or ())
+        )
+        if len(host_values) not in (0, len(values)):
+            raise ValueError("host_ram_mb_per_card length must match required_mb_by_rung or be empty")
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value < 0
+            for row in host_values
+            for value in row
+        ):
+            raise ValueError("host RAM requirements must be non-negative integers")
         object.__setattr__(self, "profile_id", profile_id)
         object.__setattr__(self, "required_mb_by_rung", values)
+        object.__setattr__(self, "host_ram_mb_per_card", host_values)
 
 
 def load_rung_requirements(path: str | Path, profile: Turbofile) -> RungRequirements:
@@ -60,6 +78,7 @@ def load_rung_requirements(path: str | Path, profile: Turbofile) -> RungRequirem
             "rung_id",
             "evidence",
             "required_mb_per_card",
+            "host_ram_mb_per_card",
         }:
             raise ValueError(f"invalid requirement row {index}")
         rung_id = row["rung_id"]
@@ -70,6 +89,7 @@ def load_rung_requirements(path: str | Path, profile: Turbofile) -> RungRequirem
         by_rung[rung_id] = row
 
     values: list[tuple[int, ...]] = []
+    host_values: list[tuple[int, ...]] = []
     for index, rung in enumerate(profile.rungs):
         row = by_rung.get(rung.id)
         if row is None:
@@ -80,7 +100,14 @@ def load_rung_requirements(path: str | Path, profile: Turbofile) -> RungRequirem
         if not isinstance(required, list):
             raise ValueError(f"requirement row {index} must contain a list")
         values.append(tuple(required))
-    return RungRequirements(profile.id, values)
+        raw_host = row.get("host_ram_mb_per_card")
+        if raw_host is None:
+            host_values.append(())
+        else:
+            if not isinstance(raw_host, list):
+                raise ValueError(f"requirement row {index} host_ram_mb_per_card must be a list")
+            host_values.append(tuple(raw_host))
+    return RungRequirements(profile.id, values, host_values)
 
 
 def load_rung_requirements_any(
@@ -295,9 +322,11 @@ class AdaptiveController:
                 raise ValueError(
                     f"rung {index} requirement card count does not match pressure card count"
                 )
+        contended = tuple(card.contended for card in pressure.cards)
         capacity = CapacitySnapshot(
             available_mb_per_card=available,
             required_mb_by_rung=self.requirements.required_mb_by_rung,
+            contended_per_card=contended,
         )
         plan = reconcile(self.state.adaptive, capacity, self.profile, now)
         if plan.action is not ActionKind.ACTIVATE:

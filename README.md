@@ -1,6 +1,6 @@
 # TurboFit
 
-![Turbofit — unified backend, amber and mint aesthetic](wiki/assets/turbofit-hero.png)
+![Turbofit — unified backend, amber and mint aesthetic](assets/turbofit-hero.png)
 
 **One model provider. Every machine. The best local configuration the hardware can safely sustain.**
 
@@ -12,7 +12,7 @@ TurboFit is a first-class [Hermes Agent](https://github.com/NousResearch/hermes-
 
 ## Install
 
-**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) — you install one thing, not three. You don't download TurboSouth, download the pet, and combine them yourself; the package does that for you.
+**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) 
 
 The fastest path — **paste this into your Hermes** and it does the rest (enable, set as your provider on the `auto` model, install TurboSouth, select the pet):
 
@@ -35,8 +35,7 @@ Prefer a specific route? All five are supported.
 
 ---
 
-## The Fit — two ladders that converge on Flash Next (source of truth for the UI)
-![TurboFit hero](https://raw.githubusercontent.com/SouthpawIN/turbofit/main/assets/turbofit-hero.jpg)
+## The Fit — two towers
 
 > **Two ladders, not one.** Dense doesn't run well on CPU / Unified memory, so the tiers split into **two fit ladders** — the **GPU-dedicated ladder is dense**, the **Unified (CPU / Mac) ladder is MoE** — and **both converge on Qwen 3.8 Flash Next**. Flash Next is an MoE, and it's the *only* rung where the dense ladder switches to MoE.
 >
@@ -80,11 +79,9 @@ A native engine for **DeepSeek V4.1** (the **1017 update**) is in testing and me
 
 ### Live catalog (what `serve auto` ships today)
 
-The currently-automated, downloadable set (`model-catalog.json`) — **61 models in 13 families**: `Ternary Bonsai 2 27B` (3 variants), `Underdog 27B`, `Qwen 3.8 27B` (11, incl. GSQ-RCO), `Qwen 3.8 Flash Next`, `Maple Preview 20B-A1B`, `Cyber-Tiel Coder 35B-A3B` (5), `Ornith 1.5 35A3B` (3), `Ternary Bonsai 27B` (12), `Bonsai 27B` (18), `Carwin Nano` (2), `GLM 5.2`, `Laguna S2.1` (2), `MiniMax M3`. The two ladders above are the curated rungs `serve auto` promotes; the rest of the catalog is Model Zoo download-only.
+The currently-automated, downloadable set (`model-catalog.json`) — **62 models in 14 families**: `Ternary Bonsai 2 27B` (3 variants), `Underdog 27B`, `Qwen 3.8 27B` (11, incl. GSQ-RCO), `Qwen 3.8 Flash Next`, `Maple Preview 20B-A1B`, `Cyber-Tiel Coder 35B-A3B` (5), `Ornith 1.5 35A3B` (3), `Ternary Bonsai 27B` (12), `Bonsai 27B` (18), `Carwin Nano` (2), `GLM 5.2`, `Laguna S2.1` (2), `MiniMax M3`, `Darwin 180B RSI`. The two ladders above are the curated rungs `serve auto` promotes; the rest of the catalog is Model Zoo download-only.
 
 ### New models (canonical names)
-
-New additions this release, by exact canonical name (full variant/role/state table in [`skills/turbofit/README.md`](skills/turbofit/README.md)):
 
 - **Maple Preview 20B-A1B** — MoE main candidate (TQ2_0, 8 GB envelope)
 - **Qwen 3.8 27B GSQ-RCO** — near-lossless dense main (IQ3_S / IQ3_XXS / IQ2_S / IQ2_XS)
@@ -93,25 +90,13 @@ New additions this release, by exact canonical name (full variant/role/state tab
 - **NVIDIA Parakeet TDT 0.6B v3** — speech-to-text (pinned integration candidate)
 - **Soprano TTS** — text-to-speech (pinned integration candidate)
 
-### API lineup + named local picks (aux)
-
-Ranked by measured evidence, not heuristics:
-- **API** (Modest/Thin machines): `DeepSeek V4 Pro` (NIM, free, top open SWE-bench), `Qwen 3.7 MAX` (paid, #1 MMLU), `MiniMax M3` (NIM, free, vision, 1 M ctx).
-- **Named local picks** (MRI-Trust merges + MTP grafts): `Darwin 28B Reason` (89.4 % GPQA, smartest dense), `Prism Eagle 27B` (121 tok/s, fastest), `Carnice 35A3B` (small aux).
-
-**Pairing rules:** a text-only main **must** pair with a vision aux (never two blind models) · the aux offsets 40–85 % of token cost · the aux needs 262 K+ context to compress the main without losing info · free NIM pairs beat everything on cost.
-
 > Deep detail: [`references/fit-ladder.md`](references/fit-ladder.md) · [`references/model-lineup.md`](references/model-lineup.md) · the Fit UI: [`wiki/models/hardware-tiers.html`](wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](wiki/models/leaderboard.html) · Canonical data: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
 
 ---
 
 ## TurboSouth — your TurboFit service tech
 
-![TurboSouth — the sovthpaw pet](wiki/assets/turbosouth-hero.png)
-
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
-
-Installing TurboSouth **defaults to the sovthpaw pet** (`sovthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.
 
 What TurboSouth helps with:
 - **Install + setup** — resolves the right Auto-chain artifacts for your machine and gets the gateway up.
@@ -120,8 +105,6 @@ What TurboSouth helps with:
 - **Answer questions** — Q&A grounded in the wiki, with citations (not vibes).
 - **Troubleshooting** — `status`, `smoke`, `health`, and gateway checks.
 - **Send tested upstream PRs** — evidence-backed pull requests to TurboFit (never an autonomous publish).
-
-What it does *not* do: autonomously publish PRs, manage credentials, kill external GPU processes, or bypass the native runtime lifecycle.
 
 > **Reciprocal install** — TurboSouth installs TurboFit for you: `hermes profile install https://github.com/SouthpawIN/turbosouth.git` (Install TurboSouth, and it sets up TurboFit when it is missing). In-product: `install_turbosouth: true` (via `/turbofit` or the Desktop settings).
 
@@ -136,20 +119,6 @@ Local multimodal is the **hard frontier** — MoE + a vision tower + 300 K+ cont
 - **Full local multimodal** (image/video/music on-device) is the 2-GPU job — `Qwen3-Next-80B-A3B` (3.4 tok/s, 300 K ctx) needs ~2× 40 GB; the small always-on multimodal is `Qwen2.5-Omni-3B` (49 tok/s, 3 B).
 
 > Deep detail: [`references/multimodal.md`](references/multimodal.md)
-
----
-
-## Benchmarks (what we've measured, and the gaps)
-
-- **External (discovery only):** DeepSWE v1.1 (113 tasks). The only local Turbofit candidate on it is `glm-5-2-2-788bpw` — 0.438 pass@1 → **78.8 bpw**, a 2× jump over the previous local baseline.
-- **Local (the gap):** most local benchmark numbers are still missing. The only measured local numbers recorded: `GLM-5.1` at 1.75 tok/s on M1, `Qwen3-30B` 8.3 tok/s, `Qwen3.5-35B-A3B` 4.4 tok/s. The "all dashes" in the local tables is the **#1 evidence gap** — local candidates aren't yet benchmarked at Tier-S standard.
-- **Pending:** DeepSpec (39.1 tok/s draft, 1.77× on 3090) and DeepSWE 2.0.
-
-External results are discovery evidence only; a model is promoted to a local runtime profile only after a reproducible local run passes its gates.
-
-> Deep detail: [`references/benchmark-evidence.md`](references/benchmark-evidence.md)
-
----
 
 ## Tailscale — a built-in TurboFit backend
 
@@ -172,9 +141,6 @@ Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: 
 - **Multimodal adapters** — vision aux, TTS, and STT through the same gateway (full on-device multimodal is the frontier).
 - **Native engines** — CUDA, ROCm, Vulkan, Metal, and CPU backends chosen by your hardware.
 - **One package** — installing TurboFit brings TurboSouth (and its default sovthpaw pet) along automatically.
-
-![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](wiki/assets/hermes-desktop-turbofit-settings.png)
-
 ---
 
 ## Troubleshooting & upstream
@@ -195,17 +161,6 @@ This entry is the overview. The full evidence is one level down:
 - Raw sources: [`raw/inbox/`](raw/inbox/) (the raw inbox) · [`raw/sources/2026-10-18-universal-scope.md`](raw/sources/2026-10-18-universal-scope.md)
 - Canonical data in the product repo: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
 
----
-
-## Visual reference
-
-![Fit ladder — from low-VRAM rungs to the largest sustainable model](wiki/assets/scaling-ladder.png)
-![Provider integration](wiki/assets/provider-integration.png)
-![2.4 Spec-decode — Draft. Verify. Accept.](wiki/assets/turbofit-2.4-spec-decode.png)
-
 ## License
 
 MIT
-
----
-> _This README is generated from the [TurboFit wiki](https://github.com/SouthpawIN/agent-wiki/wiki-topics/turbofit/README.md) — the single source of truth. To change it, edit the wiki hub and re-run `tools/sync-wiki-readme.sh`._

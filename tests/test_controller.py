@@ -149,6 +149,91 @@ def test_controller_repairs_a_missing_persisted_local_rung_after_manager_restart
     assert backend.events.count(("local", original.profile.rungs[0].id)) == 2
 
 
+def test_apple_32gb_halo_ram_pressure_scales_down_and_heals_up() -> None:
+    from pathlib import Path
+
+    from turbofit_runtime.hardware import AcceleratorDevice, HardwareFingerprint
+    from turbofit_runtime.profile_io import load_profile
+    from turbofit_runtime.selection import ProfileChoice, SelectionMode
+
+    root = Path(__file__).resolve().parents[1]
+    profile = load_profile(root / "runtime-profiles/apple-32gb.yaml")
+    requirements = load_rung_requirements(
+        root / "runtime-profiles/rung-requirements.json", profile,
+    )
+    assert profile.id == "apple-32gb"
+    assert len(profile.rungs) == 3
+
+    choice = ProfileChoice(
+        mode=SelectionMode.AUTO,
+        profile=profile,
+        initial_rung_index=len(profile.rungs) - 1,
+        target_ceiling_index=0,
+    )
+    backend = Backend()
+    state = ControllerState.from_choice(choice)
+    controller = AdaptiveController(
+        profile=profile,
+        requirements=requirements,
+        backend=backend,
+        state=state,
+    )
+
+    now = 0
+    clear = (31_000,)
+    halo = (12_000,)
+    heavy = (8_000,)
+
+    assert controller.state.adaptive.current_index == 2
+
+    first = controller.tick(pressure(*clear), now=now)
+    assert first.transitioned is False
+    assert first.state.adaptive.current_index == 2
+
+    # Conservative mode: one heal step per 120 s of surplus.
+    # 2 -> 1 at 120 s, 1 -> 0 at 360 s.
+    healed = controller.tick(pressure(*clear), now=120)
+    assert healed.transitioned is True
+    assert healed.state.adaptive.current_index == 1
+
+    controller.tick(pressure(*clear), now=240)
+    full_heal = controller.tick(pressure(*clear), now=360)
+    assert full_heal.transitioned is True
+    assert full_heal.state.adaptive.current_index == 0
+
+    # Halo drops available unified RAM to ~12 GB — contract one rung.
+    controller.tick(pressure(*halo), now=391)
+    contracted = controller.tick(pressure(*halo), now=396)
+    assert contracted.transitioned is True
+    assert contracted.state.adaptive.current_index == 1
+
+    # More pressure drops available to ~8 GB — contract to the floor rung.
+    controller.tick(pressure(*heavy), now=427)
+    contracted_again = controller.tick(pressure(*heavy), now=432)
+    assert contracted_again.transitioned is True
+    assert contracted_again.state.adaptive.current_index == 2
+
+    # Halo closes — heal all the way back to the top rung (2->1->0).
+    controller.tick(pressure(*clear), now=463)
+    healed_back = controller.tick(pressure(*clear), now=583)
+    assert healed_back.transitioned is True
+    assert healed_back.state.adaptive.current_index == 1
+
+    controller.tick(pressure(*clear), now=703)
+    final = controller.tick(pressure(*clear), now=823)
+    assert final.transitioned is True
+    assert final.state.adaptive.current_index == 0
+
+    assert [event for event in backend.events if isinstance(event, tuple) and event[0] == "publish"] == [
+        ("publish", 1),
+        ("publish", 0),
+        ("publish", 1),
+        ("publish", 2),
+        ("publish", 1),
+        ("publish", 0),
+    ]
+
+
 @pytest.mark.parametrize(
     ("requested", "memory", "clear", "pressured"),
     [

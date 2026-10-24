@@ -813,7 +813,7 @@ def test_recommendation_snapshot_exposes_unmeasured_compatible_lanes(monkeypatch
     assert any("portable-fit" in command for command in calls)
 
 
-def test_slash_turbofit_rescans_hardware_and_returns_multiple_preferences(monkeypatch) -> None:
+def test_slash_turbofit_no_args_scans_and_auto_applies_top_recommendation(monkeypatch) -> None:
     plugin = _load_plugin_module()
     monkeypatch.setattr(plugin, "recommendation_snapshot", lambda preference=None: {
         "ok": True,
@@ -826,12 +826,23 @@ def test_slash_turbofit_rescans_hardware_and_returns_multiple_preferences(monkey
         "requested_preference": preference,
         "preferences": ["intelligence", "balanced", "speed"],
     })
+    monkeypatch.setattr(plugin, "_ladder", lambda preference="intelligence": [
+        {"profile": "quality"}
+    ])
+    monkeypatch.setattr(plugin, "_apply", lambda profile_id, **kwargs: {
+        "ok": True,
+        "shifted": True,
+        "profile": profile_id,
+        "reason": kwargs.get("reason", ""),
+        "snapshot": kwargs.get("extra", {}).get("snapshot"),
+    })
 
     payload = json.loads(plugin._slash_turbofit(""))
 
     assert payload["ok"] is True
-    assert payload["preferences"] == ["intelligence", "balanced", "speed"]
-    assert payload["hardware"]["system_ram_mb"] == 128000
+    assert payload["shifted"] is True
+    assert payload["profile"] == "quality"
+    assert payload["snapshot"]["hardware"]["system_ram_mb"] == 128000
 
 
 def test_slash_turbofit_tiers_returns_all_hardware_levels(monkeypatch) -> None:
@@ -1053,3 +1064,96 @@ def test_recommended_artifacts_follow_apple_mlx_lane() -> None:
     assert plugin_tools.recommended_artifact_families(hardware=hardware) == [
         "qwen3-8-27b-gsq-rco-iq3s"
     ]
+
+
+def test_aux_command_accepts_valid_aux_model(monkeypatch) -> None:
+    import sys
+    import types
+    import plugin_tools
+    from turbofit_runtime.allowed_lineup import ALLOWED_AUX
+
+    captured = {}
+    saved = {}
+
+    def fake_load_config():
+        return {"model": {"provider": "custom:turbofit", "default": "auto"}}
+
+    def fake_configure_aux_model(config, *, aux_model, base_url=None, context_length=None):
+        captured["config"] = config
+        captured["aux_model"] = aux_model
+        captured["base_url"] = base_url
+        captured["context_length"] = context_length
+        return dict(config, auxiliary_aux=aux_model)
+
+    def fake_save_config(config, *, merge_existing=False):
+        saved["config"] = config
+        saved["merge_existing"] = merge_existing
+
+    monkeypatch.setattr(plugin_tools, "configure_aux_model", fake_configure_aux_model)
+    hermes_pkg = types.ModuleType("hermes_cli")
+    hermes_cfg = types.ModuleType("hermes_cli.config")
+    hermes_cfg.load_config = fake_load_config
+    hermes_cfg.save_config = fake_save_config
+    original_cli = sys.modules.pop("hermes_cli", None)
+    original_cfg = sys.modules.pop("hermes_cli.config", None)
+    original_turbofit = sys.modules.pop("turbofit", None)
+    sys.modules["hermes_cli"] = hermes_pkg
+    sys.modules["hermes_cli.config"] = hermes_cfg
+    try:
+        from turbofit import _slash_turbofit
+
+        result = json.loads(_slash_turbofit("aux maple-preview-tq2"))
+        assert result["ok"] is True
+        assert result["aux_model"] == "maple-preview-tq2"
+        assert result["default_aux"] == "maple-preview-tq2"
+        assert "Restart Hermes" in result["message"]
+        assert saved["merge_existing"] is False
+        assert "auxiliary_aux" not in saved["config"]
+    finally:
+        if original_cli is not None:
+            sys.modules["hermes_cli"] = original_cli
+        else:
+            sys.modules.pop("hermes_cli", None)
+        if original_cfg is not None:
+            sys.modules["hermes_cli.config"] = original_cfg
+        else:
+            sys.modules.pop("hermes_cli.config", None)
+        if original_turbofit is not None:
+            sys.modules["turbofit"] = original_turbofit
+        else:
+            sys.modules.pop("turbofit", None)
+
+
+def test_aux_command_rejects_invalid_model(monkeypatch) -> None:
+    import sys
+    import types
+    import plugin_tools
+
+    hermes_pkg = types.ModuleType("hermes_cli")
+    hermes_cfg = types.ModuleType("hermes_cli.config")
+    hermes_cfg.load_config = lambda: {}
+    hermes_cfg.save_config = lambda *a, **kw: None
+    original_cli = sys.modules.pop("hermes_cli", None)
+    original_cfg = sys.modules.pop("hermes_cli.config", None)
+    original_turbofit = sys.modules.pop("turbofit", None)
+    sys.modules["hermes_cli"] = hermes_pkg
+    sys.modules["hermes_cli.config"] = hermes_cfg
+    try:
+        from turbofit import _slash_turbofit
+
+        result = json.loads(_slash_turbofit("aux not-a-model"))
+        assert result["ok"] is False
+        assert "unknown aux model" in result["error"]
+    finally:
+        if original_cli is not None:
+            sys.modules["hermes_cli"] = original_cli
+        else:
+            sys.modules.pop("hermes_cli", None)
+        if original_cfg is not None:
+            sys.modules["hermes_cli.config"] = original_cfg
+        else:
+            sys.modules.pop("hermes_cli.config", None)
+        if original_turbofit is not None:
+            sys.modules["turbofit"] = original_turbofit
+        else:
+            sys.modules.pop("turbofit", None)

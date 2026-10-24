@@ -82,9 +82,18 @@ def run(
         output.write(json.dumps({"configured": True, "selection": selection}, indent=2) + "\n")
         return 0
 
+    if command == "recommend":
+        from . import hermes_fit
+
+        result = hermes_fit.build_recommendation(
+            backend=argv[1] if len(argv) > 1 else "auto"
+        )
+        output.write(json.dumps(result.to_dict(), indent=2, default=str) + "\n")
+        return 0
+
     output.write(
         json.dumps(
-            {"error": "usage: turbofit-runtime [list|set auto|set PROFILE|use PROFILE|status]"},
+            {"error": "usage: turbofit-runtime [list|set auto|set PROFILE|use PROFILE|status|recommend [backend]]"},
             indent=2,
         )
         + "\n"

@@ -877,6 +877,105 @@
       "path": "Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
       "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "size_bytes": 931145760
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00001-of-00003.gguf",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00001-of-00003.gguf",
+      "size_bytes": 22155745872,
+      "sha256": "a2e760539586f3c366e8d28843f7237095b0498059b8229b59704a14e4e30479"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00002-of-00003.gguf",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00002-of-00003.gguf",
+      "size_bytes": 24177690864,
+      "sha256": "9776c2f7e64c33d6621888467e258d3355b6a009622e22e4118a93b49129c4d2"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00003-of-00003.gguf",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "MQ-Q5-SSD-PLE-BF16/Darwin-180B-RSI-MQ-Q5-SSD-PLE-BF16-00003-of-00003.gguf",
+      "size_bytes": 23488239432,
+      "sha256": "f4e07c0897781d3c9c191e0e03840c9336397d54a93b0600d8a87e634639b45e"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-fp8-00001-of-00004.bin",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-fp8-00001-of-00004.bin",
+      "size_bytes": 12800098304,
+      "sha256": "c142a2b9a48e2722b48254755862b40d7a5f353c86f9b171b57c53f253281987"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-fp8-00002-of-00004.bin",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-fp8-00002-of-00004.bin",
+      "size_bytes": 12800098304,
+      "sha256": "4e939f267346750081964f62d4870482c53b0a14d2b94357a372506338e48794"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-fp8-00003-of-00004.bin",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-fp8-00003-of-00004.bin",
+      "size_bytes": 12800098304,
+      "sha256": "3970d23f4267e554a42e28c942b829244a9a2478a13d1b07553c82889b567670"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-fp8-00004-of-00004.bin",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-fp8-00004-of-00004.bin",
+      "size_bytes": 12800098304,
+      "sha256": "e6e7b80b5833e2f5273682720603237a117756f8911e9a8695566290e4615a4f"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-fp8-weight-scale.bf16.bin",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-fp8-weight-scale.bf16.bin",
+      "size_bytes": 2,
+      "sha256": "04777a33e7b513e33f2d1232226f575f290746c992717c6e79233a6903790521"
+    },
+    {
+      "repo_id": "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+      "revision": "0caa1f4961fc9d1ef9de400df7f11dd7ac6a6cd1",
+      "destination": "Darwin-180B-RSI/PLE-FP8/ple-manifest.json",
+      "families": [
+        "darwin-180b-rsi-strata"
+      ],
+      "path": "PLE-FP8/ple-manifest.json",
+      "size_bytes": 83031,
+      "sha256": "2d8691368642a43a39d4008007b323e980194989a49428176d01645e54c2b0e6"
     }
   ]
 }

@@ -10,6 +10,7 @@ if str(_PLUGIN_SRC) not in sys.path:
     sys.path.insert(0, str(_PLUGIN_SRC))
 
 from . import schemas
+from . import plugin_tools
 from .plugin_tools import (
     handle_configure,
     handle_status,
@@ -17,9 +18,9 @@ from .plugin_tools import (
     launch_setup_screen,
     recommendation_snapshot,
 )
-from .product_ops import serve_status, serve_tailnet, shift_configuration, smoke_local_runtime, update_products
+from .product_ops import _apply, _ladder, serve_status, serve_tailnet, shift_configuration, smoke_local_runtime, update_products
 
-USAGE = "usage: /turbofit [scan|status|tiers|update|shift up|shift down|shift <model>|serve|smoke|intelligence|balanced|speed|setup]"
+USAGE = "usage: /turbofit [scan|status|tiers|update|shift up|shift down|shift <model>|serve|smoke|intelligence|balanced|speed|setup|aux <model>]"
 
 
 def check_available() -> bool:
@@ -33,9 +34,21 @@ def _slash_turbofit(raw_args: str) -> str:
         return handle_status({})
     if lowered in {"", "scan", "rescan", "recommend"}:
         try:
-            return json.dumps(recommendation_snapshot())
+            snapshot = recommendation_snapshot()
         except Exception as exc:
             return json.dumps({"ok": False, "error": str(exc)})
+        try:
+            ladder = _ladder("intelligence")
+            if ladder:
+                applied = _apply(
+                    str(ladder[0]["profile"]),
+                    reason="auto-apply top intelligence recommendation from /turbofit",
+                    extra={"snapshot": snapshot},
+                )
+                return json.dumps(applied)
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc), "snapshot": snapshot})
+        return json.dumps({"ok": True, "snapshot": snapshot, "message": "no evidence-backed configuration fits this machine"})
     if lowered in {"intelligence", "quality", "balanced", "context", "speed"}:
         try:
             return json.dumps(recommendation_snapshot(lowered))
@@ -78,6 +91,35 @@ def _slash_turbofit(raw_args: str) -> str:
                 "ok": True,
                 "setup": launch_setup_screen(),
                 "message": "Open Hermes Desktop → Turbofit. Dashboard is deprecated.",
+            })
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc)})
+    if lowered.startswith("aux "):
+        model = action[3:].strip()
+        if not model:
+            return json.dumps({"ok": False, "error": "usage: /turbofit aux <model>"})
+        try:
+            from turbofit_runtime.allowed_lineup import ALLOWED_AUX
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc)})
+        if model.lower() not in {m.lower() for m in ALLOWED_AUX}:
+            return json.dumps({"ok": False, "error": f"unknown aux model {model!r}; allowed: {ALLOWED_AUX}"})
+        try:
+            from turbofit_runtime.allowed_lineup import local_aux_for_host
+            default_aux = local_aux_for_host(vram_gb=32.0, host_ram_gb=32.0)
+        except Exception:
+            default_aux = None
+        try:
+            from hermes_cli.config import load_config
+            config = load_config()
+            result = plugin_tools.configure_aux_model(config, aux_model=model)
+            from hermes_cli.config import save_config
+            save_config(result, merge_existing=False)
+            return json.dumps({
+                "ok": True,
+                "aux_model": model,
+                "default_aux": default_aux,
+                "message": f"Auxiliary model set to {model}. Restart Hermes to apply.",
             })
         except Exception as exc:
             return json.dumps({"ok": False, "error": str(exc)})

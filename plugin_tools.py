@@ -81,6 +81,33 @@ RUNTIME_STATE_PATH = Path(
 _CONFIG_LOCK = threading.RLock()
 
 
+SOVTHPAW_PET_SLUG = "s0uthpaw"
+
+
+def install_sovthpaw_pet(*, hermes_home: Path | None = None) -> dict[str, Any]:
+    """Install and select the bundled Sovthpaw mascot pet (idempotent)."""
+    executable = shutil.which("hermes")
+    if not executable:
+        raise FileNotFoundError("hermes executable is not available")
+    root = Path(hermes_home or os.getenv("HERMES_HOME") or Path.home() / ".hermes")
+    environment = {**os.environ, "HERMES_HOME": str(root)}
+    result = subprocess.run(
+        [executable, "pets", "install", SOVTHPAW_PET_SLUG, "--select"],
+        text=True,
+        capture_output=True,
+        timeout=300,
+        check=False,
+        env=environment,
+    )
+    if result.returncode:
+        raise RuntimeError((result.stderr or result.stdout or "Sovthpaw pet installation failed").strip())
+    return {
+        "pet": SOVTHPAW_PET_SLUG,
+        "selected": True,
+        "path": str(root / "pets" / SOVTHPAW_PET_SLUG),
+    }
+
+
 def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, Any]:
     """Install or update TurboSouth from its canonical GitHub distribution."""
     executable = shutil.which("hermes")
@@ -120,6 +147,7 @@ def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, 
         manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
     except (OSError, ValueError) as exc:
         raise RuntimeError("installed TurboSouth distribution manifest is invalid") from exc
+    pet = install_sovthpaw_pet(hermes_home=root)
     return {
         "installed": True,
         "updated": updated,
@@ -127,6 +155,7 @@ def install_turbosouth_profile(*, hermes_home: Path | None = None) -> dict[str, 
         "path": str(target),
         "source": "https://github.com/SouthpawIN/turbosouth.git",
         "version": str(manifest.get("version") or "unknown"),
+        "pet": pet,
     }
 
 
@@ -512,20 +541,24 @@ def _model_entry(context_length: int | None = None) -> dict[str, Any]:
 def provider_definition(
     base_url: str | None = None,
     context_length: int | None = None,
+    aux_model: str = "active:aux",
 ) -> dict[str, Any]:
     """Return the canonical named custom-provider definition."""
     entry = _model_entry(context_length)
+    models = {
+        "auto": dict(entry),
+        "active:main": dict(entry),
+        "active:aux": dict(entry),
+    }
+    if aux_model not in models:
+        models[aux_model] = dict(entry)
     return {
         "name": "TurboFit",
         "api": _validated_base_url(base_url),
         "api_key": "not-needed",
         "transport": "chat_completions",
         "default_model": "auto",
-        "models": {
-            "auto": dict(entry),
-            "active:main": dict(entry),
-            "active:aux": dict(entry),
-        },
+        "models": models,
     }
 
 
@@ -540,6 +573,7 @@ def _align_compression_context(
     *,
     primary: bool,
     context_length: int | None,
+    aux_model: str = "active:aux",
 ) -> None:
     """Keep auxiliary.compression on the same context window as main."""
     raw_aux = config.get("auxiliary")
@@ -553,7 +587,7 @@ def _align_compression_context(
 
     if primary:
         compression["provider"] = "custom:turbofit"
-        compression["model"] = "active:aux"
+        compression["model"] = aux_model
         if context_length is not None:
             compression["context_length"] = int(context_length)
         auxiliary["compression"] = compression
@@ -593,16 +627,17 @@ def configure_hermes(
     fallback_chain: list[Mapping[str, Any]] | None = None,
     base_url: str | None = None,
     context_length: int | None = None,
+    aux_model: str = "active:aux",
 ) -> dict[str, Any]:
     """Return a copied Hermes config with Turbofit registered idempotently.
 
     Main and aux always receive the same context_length. When Turbofit is
-    primary, compression is pinned to active:aux at that same window. When
-    it is not primary, a leftover Turbofit compression target is rebound
-    to the configured main model so the two limits cannot drift.
+    primary, compression is pinned to the requested aux model at that same
+    window. When it is not primary, a leftover Turbofit compression target
+    is rebound to the configured main model so the two limits cannot drift.
     """
     updated = copy.deepcopy(dict(config))
-    provider = provider_definition(base_url, context_length=context_length)
+    provider = provider_definition(base_url, context_length=context_length, aux_model=aux_model)
 
     raw_providers = updated.get("providers")
     providers = copy.deepcopy(dict(raw_providers)) if isinstance(raw_providers, Mapping) else {}
@@ -631,7 +666,7 @@ def configure_hermes(
             model["context_length"] = int(context_length)
         updated["model"] = model
 
-    _align_compression_context(updated, primary=primary, context_length=context_length)
+    _align_compression_context(updated, primary=primary, context_length=context_length, aux_model=aux_model)
 
     if fallback_chain is not None:
         normalized_chain: list[dict[str, str]] = []
@@ -679,6 +714,35 @@ def configure_hermes(
             )
         updated["fallback_providers"] = chain
 
+    return updated
+
+
+def configure_aux_model(
+    config: Mapping[str, Any],
+    *,
+    aux_model: str,
+    base_url: str | None = None,
+    context_length: int | None = None,
+) -> dict[str, Any]:
+    """Rebind auxiliary.compression to a specific Turbofit model ID."""
+    updated = copy.deepcopy(dict(config))
+    provider = provider_definition(base_url, context_length=context_length, aux_model=aux_model)
+    raw_providers = updated.get("providers")
+    providers = copy.deepcopy(dict(raw_providers)) if isinstance(raw_providers, Mapping) else {}
+    providers["turbofit"] = provider
+    updated["providers"] = providers
+    existing = updated.get("custom_providers")
+    legacy = list(existing) if isinstance(existing, list) else []
+    legacy = [
+        item
+        for item in legacy
+        if not (isinstance(item, Mapping) and str(item.get("name", "")).lower() == "turbofit")
+    ]
+    if legacy:
+        updated["custom_providers"] = legacy
+    else:
+        updated.pop("custom_providers", None)
+    _align_compression_context(updated, primary=True, context_length=context_length, aux_model=aux_model)
     return updated
 
 

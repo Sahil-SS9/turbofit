@@ -9,6 +9,12 @@ from .fit_check import TierProfile, fit_tier, rung_is_banned, rung_matches_tier
 from .runtime_profile import Turbofile
 
 
+# Per-card VRAM left for a co-resident GPU app (game / media editor) when a
+# card is flagged contended. Keeps the resident app and our model from OOMing
+# each other; the policy down-shifts to a rung that fits inside this budget.
+CONTENTION_RESERVE_MB = 8192
+
+
 class ActionKind(str, Enum):
     NONE = "none"
     ACTIVATE = "activate"
@@ -75,6 +81,9 @@ class CapacitySnapshot:
     required_mb_by_rung: tuple[tuple[int, ...], ...]
     activation_succeeded: bool = False
     activation_failed: bool = False
+    contended_per_card: tuple[bool, ...] = ()
+    host_ram_available_mb: int = 0
+    host_ram_mb_by_rung: tuple[tuple[int, ...], ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "available_mb_per_card", tuple(self.available_mb_per_card))
@@ -82,6 +91,12 @@ class CapacitySnapshot:
             self,
             "required_mb_by_rung",
             tuple(tuple(item) for item in self.required_mb_by_rung),
+        )
+        object.__setattr__(self, "contended_per_card", tuple(self.contended_per_card))
+        object.__setattr__(
+            self,
+            "host_ram_mb_by_rung",
+            tuple(tuple(item) for item in self.host_ram_mb_by_rung),
         )
         if not self.available_mb_per_card:
             raise ValueError("available_mb_per_card must not be empty")
@@ -96,6 +111,20 @@ class CapacitySnapshot:
             for value in rung
         ):
             raise ValueError("rung requirements must be non-negative integers")
+        if len(self.contended_per_card) not in (0, len(self.available_mb_per_card)):
+            raise ValueError("contended_per_card must be empty or match card count")
+        if any(not isinstance(value, bool) for value in self.contended_per_card):
+            raise ValueError("contended_per_card must contain booleans")
+        if not isinstance(self.host_ram_available_mb, int) or self.host_ram_available_mb < 0:
+            raise ValueError("host_ram_available_mb must be a non-negative integer")
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value < 0
+            for rung in self.host_ram_mb_by_rung
+            for value in rung
+        ):
+            raise ValueError("host RAM rung requirements must be non-negative integers")
+        if self.host_ram_mb_by_rung and len(self.host_ram_mb_by_rung) != len(self.required_mb_by_rung):
+            raise ValueError("host_ram_mb_by_rung length must match required_mb_by_rung")
         if self.activation_succeeded and self.activation_failed:
             raise ValueError("activation cannot both succeed and fail")
 
@@ -122,14 +151,23 @@ def reconcile(
         return _none(state, "cooldown active")
 
     current_requirement = snapshot.required_mb_by_rung[state.current_index]
-    if not _fits(current_requirement, snapshot.available_mb_per_card, margin_mb=0):
+    current_host_ram = snapshot.host_ram_mb_by_rung[state.current_index] if snapshot.host_ram_mb_by_rung else ()
+    contended_occupied = _contended_occupied(current_requirement, snapshot)
+    vram_deficit = not _fits(current_requirement, snapshot.available_mb_per_card, margin_mb=0)
+    host_deficit = not _host_ram_fits(current_host_ram, snapshot.host_ram_available_mb)
+    if vram_deficit or contended_occupied or host_deficit:
         contracted_state = replace(state, surplus_since=None)
         if contracted_state.deficit_since is None:
             return _none(replace(contracted_state, deficit_since=now), "deficit dwell started")
         elapsed = now - contracted_state.deficit_since
         if elapsed < profile.policy.contraction_dwell_s:
             return _none(contracted_state, "deficit dwell active")
-        target = _contraction_target(state.current_index, snapshot, profile)
+        fit_snapshot = (
+            replace(snapshot, available_mb_per_card=_contended_budget(snapshot))
+            if contended_occupied
+            else snapshot
+        )
+        target = _contraction_target(state.current_index, fit_snapshot, profile)
         if target is None:
             return _none(contracted_state, "no contraction rung fits")
         planned = replace(
@@ -138,7 +176,12 @@ def reconcile(
             last_stable_index=state.current_index,
             deficit_since=None,
         )
-        return ActionPlan(ActionKind.ACTIVATE, target, "sustained capacity deficit", planned)
+        reason = (
+            "sustained GPU contention"
+            if contended_occupied
+            else "sustained capacity deficit"
+        )
+        return ActionPlan(ActionKind.ACTIVATE, target, reason, planned)
 
     stable_state = replace(state, deficit_since=None)
     if state.current_index <= state.target_ceiling_index:
@@ -223,7 +266,7 @@ def _contraction_target(
     """Live re-fit: select the rung for the tier that fits current usable memory.
 
     Usable memory comes from the pressure probe (CapacitySnapshot's
-    available_mb_per_card). The fit check maps it to a Fit List tier band;
+    available_mb_per_card and host_ram_available_mb). The fit check maps it to a Fit List tier band;
     the deepest-fitting rung carrying that tier's model identity is the
     target. Banned models (Bonsai, 9B) are never selected. Falls back to
     the pre-baked rung ladder only for profiles without tier-identified
@@ -240,6 +283,9 @@ def _contraction_target(
                 snapshot.required_mb_by_rung[index],
                 snapshot.available_mb_per_card,
                 margin_mb=0,
+            ) and _host_ram_fits(
+                snapshot.host_ram_mb_by_rung[index] if snapshot.host_ram_mb_by_rung else (),
+                snapshot.host_ram_available_mb,
             ):
                 return index
     return _first_unbanned_fitting_contraction(
@@ -247,6 +293,8 @@ def _contraction_target(
         snapshot.required_mb_by_rung,
         snapshot.available_mb_per_card,
         tuple(rung.id for rung in profile.rungs),
+        snapshot.host_ram_mb_by_rung,
+        snapshot.host_ram_available_mb,
     )
 
 
@@ -265,10 +313,16 @@ def _expansion_fit_target(
     for index in sorted(_rung_indices_for_tier(profile, tier)):
         if index >= current_index:
             break
-        if _fits(
-            snapshot.required_mb_by_rung[index],
-            snapshot.available_mb_per_card,
-            margin_mb=margin_mb,
+        if (
+            _fits(
+                snapshot.required_mb_by_rung[index],
+                snapshot.available_mb_per_card,
+                margin_mb=margin_mb,
+            )
+            and _host_ram_fits(
+                snapshot.host_ram_mb_by_rung[index] if snapshot.host_ram_mb_by_rung else (),
+                snapshot.host_ram_available_mb,
+            )
         ):
             best = index
     return best
@@ -301,11 +355,15 @@ def _first_unbanned_fitting_contraction(
     requirements: tuple[tuple[int, ...], ...],
     available: tuple[int, ...],
     rung_ids: tuple[str, ...],
+    host_requirements: tuple[tuple[int, ...], ...] = (),
+    host_available: int = 0,
 ) -> int | None:
     for index in range(current_index + 1, len(requirements)):
         if rung_is_banned(rung_ids[index]):
             continue
-        if _fits(requirements[index], available, margin_mb=0):
+        if _fits(requirements[index], available, margin_mb=0) and _host_ram_fits(
+            host_requirements[index] if host_requirements else (), host_available
+        ):
             return index
     return None
 
@@ -318,6 +376,32 @@ def _fits(requirement: tuple[int, ...], available: tuple[int, ...], margin_mb: i
     return all(
         required + margin_mb <= capacity
         for required, capacity in zip(requirement, available, strict=True)
+    )
+
+
+def _host_ram_fits(requirement: tuple[int, ...], available: int) -> bool:
+    if not requirement:
+        return True
+    return sum(requirement) <= available
+
+
+def _contended_occupied(requirement: tuple[int, ...], snapshot: CapacitySnapshot) -> bool:
+    """True when the current rung sits on a card a co-resident GPU app is using."""
+    count = min(
+        len(requirement), len(snapshot.available_mb_per_card), len(snapshot.contended_per_card)
+    )
+    return any(
+        requirement[index] > 0 and snapshot.contended_per_card[index] for index in range(count)
+    )
+
+
+def _contended_budget(snapshot: CapacitySnapshot) -> tuple[int, ...]:
+    """Per-card budget with the co-resident reserve subtracted on contended cards."""
+    return tuple(
+        max(0, value - CONTENTION_RESERVE_MB)
+        if index < len(snapshot.contended_per_card) and snapshot.contended_per_card[index]
+        else value
+        for index, value in enumerate(snapshot.available_mb_per_card)
     )
 
 

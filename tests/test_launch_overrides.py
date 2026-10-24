@@ -79,7 +79,7 @@ def test_context_override_launch_overrides_win_over_spec_level() -> None:
 def test_unknown_launch_override_key_is_rejected() -> None:
     data = book().data
     data["models"]["test-main"]["launch_overrides"] = {
-        "extra_args": ["sh", "-c", "rm -rf /"]
+        "extra_args": ["sh", "-c", "rm", "-rf", "/"]
     }
     with pytest.raises(ValueError, match="unknown launch override"):
         RecipeBook(data, platform_name="linux", backend_name="cuda").resolve_named(

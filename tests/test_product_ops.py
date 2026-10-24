@@ -185,7 +185,15 @@ def test_slash_update_and_shift_are_wired(monkeypatch) -> None:
     assert smoke["suite"] == "local-runtime-smoke-v1"
 
 
-def test_serve_tailnet_publishes_provider_url(monkeypatch) -> None:
+def test_serve_tailnet_publishes_provider_url(monkeypatch, tmp_path) -> None:
+    # Hermetic HERMES_HOME: the real _save_configuration_to_all_homes only fans
+    # out when $HERMES_HOME/profiles exists — the old test silently depended on
+    # the host's real ~/.hermes layout (KeyError 'saved' on machines without
+    # a profiles directory).
+    hermes_home = tmp_path / ".hermes"
+    (hermes_home / "profiles" / "default").mkdir(parents=True)
+    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+
     monkeypatch.setattr(
         product_ops.plugin_tools,
         "publish_tailnet",

@@ -56,6 +56,59 @@ def test_launchd_plist_is_serializable_and_targets_the_gateway() -> None:
     assert any("turbofit-gateway.py" in part for part in plist["ProgramArguments"])
 
 
+def test_controller_launchd_plist_targets_controller_and_keeps_alive() -> None:
+    # Fresh macOS installs must come up with BOTH agents: without the
+    # controller agent, no local rung ever starts and the fleet degrades
+    # to API-only.
+    module = _module()
+    plist = module.controller_launchd_plist()
+    assert plist["Label"] == "com.hermes.turbofit-controller"
+    assert any("turbofit-controller" in part for part in plist["ProgramArguments"])
+    assert plist["RunAtLoad"] is True
+    assert plist["KeepAlive"] is True
+    env = plist["EnvironmentVariables"]
+    assert "/usr/local/bin" in env["PATH"]
+    assert "src" in env["PYTHONPATH"]
+    dumped = plistlib.dumps(plist)
+    assert plistlib.loads(dumped)["Label"] == "com.hermes.turbofit-controller"
+
+
+def test_ensure_linger_reports_and_warns() -> None:
+    import subprocess as _sp
+
+    module = _module()
+
+    def completed(command, stdout="", returncode=0, err=""):
+        return _sp.CompletedProcess(command, returncode, stdout, err)
+
+    # enable succeeds -> True
+    calls = []
+    def ok(command):
+        calls.append(list(command))
+        return completed(command)
+    assert module.ensure_linger(command_runner=ok) is True
+    assert calls[0][0] == "loginctl" and calls[0][1] == "enable-linger"
+
+    # enable fails but state already Linger=yes -> True
+    def already_on(command):
+        if command[1] == "enable-linger":
+            return completed(command, returncode=1, err="polkit: not authorized")
+        return completed(command, stdout="Linger=yes")
+    assert module.ensure_linger(command_runner=already_on) is True
+
+    # both fail -> False + actionable warning
+    def denied(command):
+        if command[1] == "enable-linger":
+            return completed(command, returncode=1, err="polkit: not authorized")
+        return completed(command, stdout="Linger=no")
+    assert module.ensure_linger(command_runner=denied) is False
+
+    # loginctl missing entirely -> False, no crash
+    def no_loginctl(command):
+        raise FileNotFoundError("loginctl")
+    assert module.ensure_linger(command_runner=no_loginctl) is False
+
+
 def test_autoconfigure_tailnet_is_best_effort_and_never_raises() -> None:
     import json as _json
     import subprocess as _sp

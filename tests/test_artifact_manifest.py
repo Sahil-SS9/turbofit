@@ -31,10 +31,17 @@ def test_artifact_manifest_covers_every_executable_matrix_file() -> None:
         for item in payload["artifacts"]
         if "qwen3-8-27b-uncensored-mlx-8bit" in item.get("families", [])
     }
+    # Catalog entries tracked in the manifest before their recipe rows are
+    # automatable: MiniMax M3 has no local matrix row, and Darwin 180B RSI
+    # is a PLE/SSD-streamed checkpoint awaiting its dedicated runtime flavor.
+    known_non_matrix_repos = {
+        "unsloth/MiniMax-M3-GGUF",
+        "Baekpica/Darwin-180B-RSI-Mixed-Quant-GGUF",
+    }
     known_non_matrix_destinations = {
         item["destination"]
         for item in payload["artifacts"]
-        if item.get("repo_id") == "unsloth/MiniMax-M3-GGUF"
+        if item.get("repo_id") in known_non_matrix_repos
     }
 
     assert payload["schema"] == "turbofit.artifact-manifest/v1"
@@ -56,7 +63,7 @@ def test_artifact_manifest_covers_every_executable_matrix_file() -> None:
 def test_model_catalog_pins_every_source_revision() -> None:
     catalog = ModelCatalog.load(ROOT / "references/model-catalog.json")
 
-    assert len(catalog.models) == 61
+    assert len(catalog.models) == 62
     assert all(len(model.revision) == 40 for model in catalog.models)
 
 

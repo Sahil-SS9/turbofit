@@ -146,7 +146,7 @@ Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: 
 - **Native engines** — CUDA, ROCm, Vulkan, Metal, and CPU backends chosen by your hardware.
 - **One package** — installing TurboFit brings TurboSouth (and its default sovthpaw pet) along automatically.
 
-![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](assets/hermes-desktop-turbofit-settings.png)
+![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations]
 
 ---
 

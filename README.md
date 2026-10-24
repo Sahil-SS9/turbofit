@@ -35,7 +35,7 @@ Prefer a specific route? All five are supported.
 
 ---
 
-## The Fit — two ladders that converge on Flash Next (source of truth for the UI)
+## The Fit — two towers
 
 > **Two ladders, not one.** Dense doesn't run well on CPU / Unified memory, so the tiers split into **two fit ladders** — the **GPU-dedicated ladder is dense**, the **Unified (CPU / Mac) ladder is MoE** — and **both converge on Qwen 3.8 Flash Next**. Flash Next is an MoE, and it's the *only* rung where the dense ladder switches to MoE.
 >

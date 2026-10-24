@@ -93,14 +93,6 @@ New additions this release, by exact canonical name (full variant/role/state tab
 - **NVIDIA Parakeet TDT 0.6B v3** — speech-to-text (pinned integration candidate)
 - **Soprano TTS** — text-to-speech (pinned integration candidate)
 
-### API lineup + named local picks (aux)
-
-Ranked by measured evidence, not heuristics:
-- **API** (Modest/Thin machines): `DeepSeek V4 Pro` (NIM, free, top open SWE-bench), `Qwen 3.7 MAX` (paid, #1 MMLU), `MiniMax M3` (NIM, free, vision, 1 M ctx).
-- **Named local picks** (MRI-Trust merges + MTP grafts): `Darwin 28B Reason` (89.4 % GPQA, smartest dense), `Prism Eagle 27B` (121 tok/s, fastest), `Carnice 35A3B` (small aux).
-
-**Pairing rules:** a text-only main **must** pair with a vision aux (never two blind models) · the aux offsets 40–85 % of token cost · the aux needs 262 K+ context to compress the main without losing info · free NIM pairs beat everything on cost.
-
 > Deep detail: [`references/fit-ladder.md`](references/fit-ladder.md) · [`references/model-lineup.md`](references/model-lineup.md) · the Fit UI: [`wiki/models/hardware-tiers.html`](wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](wiki/models/leaderboard.html) · Canonical data: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
 
 ---
@@ -121,8 +113,6 @@ What TurboSouth helps with:
 - **Troubleshooting** — `status`, `smoke`, `health`, and gateway checks.
 - **Send tested upstream PRs** — evidence-backed pull requests to TurboFit (never an autonomous publish).
 
-What it does *not* do: autonomously publish PRs, manage credentials, kill external GPU processes, or bypass the native runtime lifecycle.
-
 > **Reciprocal install** — TurboSouth installs TurboFit for you: `hermes profile install https://github.com/SouthpawIN/turbosouth.git` (Install TurboSouth, and it sets up TurboFit when it is missing). In-product: `install_turbosouth: true` (via `/turbofit` or the Desktop settings).
 
 ---
@@ -136,20 +126,6 @@ Local multimodal is the **hard frontier** — MoE + a vision tower + 300 K+ cont
 - **Full local multimodal** (image/video/music on-device) is the 2-GPU job — `Qwen3-Next-80B-A3B` (3.4 tok/s, 300 K ctx) needs ~2× 40 GB; the small always-on multimodal is `Qwen2.5-Omni-3B` (49 tok/s, 3 B).
 
 > Deep detail: [`references/multimodal.md`](references/multimodal.md)
-
----
-
-## Benchmarks (what we've measured, and the gaps)
-
-- **External (discovery only):** DeepSWE v1.1 (113 tasks). The only local Turbofit candidate on it is `glm-5-2-2-788bpw` — 0.438 pass@1 → **78.8 bpw**, a 2× jump over the previous local baseline.
-- **Local (the gap):** most local benchmark numbers are still missing. The only measured local numbers recorded: `GLM-5.1` at 1.75 tok/s on M1, `Qwen3-30B` 8.3 tok/s, `Qwen3.5-35B-A3B` 4.4 tok/s. The "all dashes" in the local tables is the **#1 evidence gap** — local candidates aren't yet benchmarked at Tier-S standard.
-- **Pending:** DeepSpec (39.1 tok/s draft, 1.77× on 3090) and DeepSWE 2.0.
-
-External results are discovery evidence only; a model is promoted to a local runtime profile only after a reproducible local run passes its gates.
-
-> Deep detail: [`references/benchmark-evidence.md`](references/benchmark-evidence.md)
-
----
 
 ## Tailscale — a built-in TurboFit backend
 

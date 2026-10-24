@@ -196,8 +196,8 @@ def build_manual_profile_payload(
         "schema": "turbofit.rung-requirements/v1",
         "profiles": {
             profile_id: [
-                {"rung_id": "manual-exact", "evidence": evidence, "required_mb_per_card": required},
-                {"rung_id": "api", "evidence": api_evidence, "required_mb_per_card": []},
+                {"rung_id": "manual-exact", "evidence": evidence, "required_mb_per_card": required, "host_ram_mb_per_card": []},
+                {"rung_id": "api", "evidence": api_evidence, "required_mb_per_card": [], "host_ram_mb_per_card": []},
             ]
         },
     }

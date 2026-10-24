@@ -31,11 +31,11 @@ def test_eight_gb_without_32gb_ram_still_offers_ornith_from_disk() -> None:
 
 
 def test_eight_gb_aux_does_not_stack_two_models() -> None:
-    assert local_aux_for_host(vram_gb=8, host_ram_gb=16) == "auto"
+    assert local_aux_for_host(vram_gb=8, host_ram_gb=16) == "maple-preview-tq2"
     assert is_allowed_aux("auto:bonsai-27b")
-    assert local_aux_for_host(vram_gb=24, host_ram_gb=16) == "auto"
-    assert local_aux_for_host(vram_gb=48, host_ram_gb=64) == "ornith-1-5-oq4e-mtp"
-    assert local_aux_for_host(vram_gb=64, host_ram_gb=64) == "ornith-1-5-oq8e-mtp"
+    assert local_aux_for_host(vram_gb=24, host_ram_gb=16) == "maple-preview-tq2"
+    assert local_aux_for_host(vram_gb=48, host_ram_gb=64) == "maple-preview-tq2"
+    assert local_aux_for_host(vram_gb=64, host_ram_gb=64) == "maple-preview-tq2"
 
 
 def test_gsq_rco_bands() -> None:
@@ -78,11 +78,11 @@ def test_integrated_unified_uses_total_memory_bands() -> None:
     igpu = check_local_options(
         vram_gb=8, host_ram_gb=32, memory_pool="unified", backend="vulkan", vendor="amd"
     )
-    assert [item["alias"] for item in igpu] == ["qwen3-8-27b-gsq-rco-iq3s"]
+    assert [item["alias"] for item in igpu] == ["qwen3-8-27b-gsq-rco-iq3s", "maple-preview-tq2"]
     small = check_local_options(
         vram_gb=2, host_ram_gb=8, memory_pool="unified", backend="vulkan", vendor="amd"
     )
-    assert [item["alias"] for item in small] == ["maple-preview-tq2"]
+    assert [item["alias"] for item in small] == ["maple-preview-tq2", "maple-preview-tq2"]
 
 
 def test_filter_drops_nine_b() -> None:

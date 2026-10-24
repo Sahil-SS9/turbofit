@@ -9,7 +9,8 @@
           27340,
           27340,
           27340
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-262k",
@@ -19,7 +20,8 @@
           17400,
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-128k",
@@ -29,7 +31,8 @@
           13000,
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-12gb": [
@@ -38,21 +41,24 @@
         "evidence": "sha256:0323602de8a7f7aaca8e89535cd94fd82d1dfef2ca64656aae8c61762f947c74",
         "required_mb_per_card": [
           8400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-underdog-pq2-65536",
         "evidence": "sha256:0323602de8a7f7aaca8e89535cd94fd82d1dfef2ca64656aae8c61762f947c74",
         "required_mb_per_card": [
           7600
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-underdog-pq2-32768",
         "evidence": "sha256:0323602de8a7f7aaca8e89535cd94fd82d1dfef2ca64656aae8c61762f947c74",
         "required_mb_per_card": [
           7400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-16gb": [
@@ -61,21 +67,24 @@
         "evidence": "sha256:4237fae3f8855344dbe203a12d97eda11b2a7bbec554b8c53b34c3c3ee9936f7",
         "required_mb_per_card": [
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-32768",
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           12000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-192gb": [
@@ -87,7 +96,8 @@
           17400,
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
@@ -97,7 +107,8 @@
           13000,
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
@@ -107,7 +118,8 @@
           12200,
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-200gb": [
@@ -117,7 +129,8 @@
         "required_mb_per_card": [
           11200,
           11200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-131072",
@@ -125,7 +138,8 @@
         "required_mb_per_card": [
           8200,
           8200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-65536",
@@ -133,7 +147,8 @@
         "required_mb_per_card": [
           7400,
           7400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-24gb": [
@@ -142,21 +157,24 @@
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
         "evidence": "sha256:4237fae3f8855344dbe203a12d97eda11b2a7bbec554b8c53b34c3c3ee9936f7",
         "required_mb_per_card": [
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-256gb": [
@@ -172,7 +190,8 @@
           17400,
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
@@ -186,7 +205,8 @@
           13000,
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
@@ -200,7 +220,8 @@
           12200,
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-300gb": [
@@ -211,7 +232,8 @@
           11200,
           11200,
           11200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-131072",
@@ -220,7 +242,8 @@
           8200,
           8200,
           8200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-65536",
@@ -229,7 +252,8 @@
           7400,
           7400,
           7400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-32gb": [
@@ -238,21 +262,24 @@
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
         "evidence": "sha256:4237fae3f8855344dbe203a12d97eda11b2a7bbec554b8c53b34c3c3ee9936f7",
         "required_mb_per_card": [
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
         "evidence": "sha256:f215afc21c18bbad0ef3f4cb42d727c7f8b2ea28f39df021dc549a792ffe4d22",
         "required_mb_per_card": [
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-384gb": [
@@ -268,7 +295,8 @@
           17400,
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
@@ -282,7 +310,8 @@
           13000,
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
@@ -296,7 +325,8 @@
           12200,
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-48gb": [
@@ -306,7 +336,8 @@
         "required_mb_per_card": [
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-128k",
@@ -314,7 +345,8 @@
         "required_mb_per_card": [
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65k",
@@ -322,7 +354,8 @@
         "required_mb_per_card": [
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-262144",
@@ -330,7 +363,8 @@
         "required_mb_per_card": [
           11200,
           11200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-131072",
@@ -338,7 +372,8 @@
         "required_mb_per_card": [
           8200,
           8200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-bonsai-65536",
@@ -346,7 +381,8 @@
         "required_mb_per_card": [
           7400,
           7400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-64gb": [
@@ -356,7 +392,8 @@
         "required_mb_per_card": [
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
@@ -364,7 +401,8 @@
         "required_mb_per_card": [
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
@@ -372,7 +410,8 @@
         "required_mb_per_card": [
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "hardware-8gb": [
@@ -381,6 +420,9 @@
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           5900
+        ],
+        "host_ram_mb_per_card": [
+          2000
         ]
       },
       {
@@ -388,6 +430,9 @@
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           6451
+        ],
+        "host_ram_mb_per_card": [
+          3000
         ]
       }
     ],
@@ -400,7 +445,8 @@
           17400,
           17400,
           17400
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-131072",
@@ -410,7 +456,8 @@
           13000,
           13000,
           13000
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-gsq-rco-iq3s-65536",
@@ -420,7 +467,8 @@
           12200,
           12200,
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "apple-16gb": [
@@ -429,21 +477,24 @@
         "evidence": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "required_mb_per_card": [
           12200
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-maple-131k",
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           6700
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-maple-65k",
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           5900
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ],
     "apple-32gb": [
@@ -452,21 +503,24 @@
         "evidence": "sha256:b46c2f2ff185519910c72db6e7a433951c53dc9af0638e6d2f599797d4aec4db",
         "required_mb_per_card": [
           29600
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-maple-262k",
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           11100
-        ]
+        ],
+        "host_ram_mb_per_card": []
       },
       {
         "rung_id": "local-maple-131k",
         "evidence": "sha256:ddd40884720a46897608672bcd6735a57fdaf2bd07242924e9d86c07bc5f74f8",
         "required_mb_per_card": [
           6700
-        ]
+        ],
+        "host_ram_mb_per_card": []
       }
     ]
   },

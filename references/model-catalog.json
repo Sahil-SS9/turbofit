@@ -7,7 +7,9 @@
     1048576
   ],
   "auxiliary_options": [
+    "maple-preview-tq2",
     "ornith-1-5-35a3b",
+    "qwen3-8-flash-next-strata",
     "carwin-nano",
     "auto"
   ],
@@ -828,7 +830,8 @@
         "maple"
       ],
       "roles": [
-        "main"
+        "main",
+        "aux"
       ],
       "supported_contexts": [
         65536,
@@ -944,7 +947,13 @@
         "chunked-prefill"
       ],
       "roles": [
-        "main"
+        "main",
+        "aux"
+      ],
+      "supported_contexts": [
+        65536,
+        131072,
+        262144
       ],
       "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
@@ -1103,6 +1112,31 @@
       ],
       "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
       "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
+    },
+    {
+      "id": "deepseek-v4-1-flash",
+      "name": "DeepSeek V4.1 Flash",
+      "family": "DeepSeek V4.1",
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
+      "artifact": "deepseek-v4-1-flash-iq2_xs",
+      "quantization": "IQ2_XS",
+      "vision": false,
+      "moe": true,
+      "runtime_features": [
+        "expert-tiering",
+        "cpu-offload",
+        "engram-memory"
+      ],
+      "roles": [
+        "main",
+        "aux"
+      ],
+      "supported_contexts": [
+        262144,
+        1048576
+      ],
+      "revision": "0000000000000000000000000000000000000000",
+      "upstream_source": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash"
     },
     {
       "id": "cyber-tiel-coder-35b-a3b-ud-q8-k-xl",

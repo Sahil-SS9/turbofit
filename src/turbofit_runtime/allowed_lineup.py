@@ -40,6 +40,7 @@ ALLOWED_MAIN = (
 )
 
 ALLOWED_AUX = (
+    "maple-preview-tq2",
     "ornith-1-5-35a3b",
     "ornith-1-5-oq4e-mtp",
     "ornith-1-5-oq8e-mtp",
@@ -148,17 +149,14 @@ def shared_main_for_total_memory_gb(total_memory_gb: float) -> str:
 
 
 def local_aux_for_host(*, vram_gb: float, host_ram_gb: float) -> str:
-    """Default aux is MTP Ornith when the box can hold it next to main.
+    """Default aux is Maple Preview (fast RAM/disk-streaming 20B-A1B MoE).
 
-    oQ4e is 21.6 GB. oQ8e is 38.6 GB. A single 8/16/24 GB card cannot stack
-    either next to GSQ-RCO, so those stay `auto`. Dual-24 / 40 GB+ gets oQ4e.
-    64 GB+ gets oQ8e. GGUF Ornith remains in the catalog, not the default.
+    Maple TQ2_0 is tiny (~6 GB on disk), streams from host RAM / disk, and
+    never blocks the main model's VRAM — ideal as a lightweight auxiliary
+    across every VRAM tier. Ornith MTP variants remain available as an
+    explicit opt-in for boxes that can stack the extra model alongside main.
     """
-    if vram_gb >= 64:
-        return "ornith-1-5-oq8e-mtp"
-    if vram_gb >= 40:
-        return "ornith-1-5-oq4e-mtp"
-    return "auto"
+    return "maple-preview-tq2"
 
 
 def low_vram_moe_main() -> str:
@@ -222,7 +220,17 @@ def check_local_options(
                     else "Apple under 24 GB unified: Ornith 1.5, not MLX 2-bit."
                 ),
                 "residency": residency if main == "ornith-1-5-35a3b" else None,
-            }
+            },
+            {
+                "role": "aux",
+                "alias": "maple-preview-tq2",
+                "engine": "llama.cpp",
+                "why": (
+                    "Maple Preview 20B-A1B streams from host RAM / disk and "
+                    "never blocks the main model's VRAM — default auxiliary."
+                ),
+                "residency": {"mode": "ram", "cpu_moe": True, "mmap": True, "mlock": False},
+            },
         ]
 
     if unified:
@@ -237,7 +245,17 @@ def check_local_options(
                     "Maple at 8 GB, Ornith at 16 GB, GSQ-RCO at 24 GB+."
                 ),
                 "residency": residency if main == "ornith-1-5-35a3b" else None,
-            }
+            },
+            {
+                "role": "aux",
+                "alias": "maple-preview-tq2",
+                "engine": "llama.cpp",
+                "why": (
+                    "Maple Preview 20B-A1B streams from host RAM / disk and "
+                    "never blocks the main model's VRAM — default auxiliary."
+                ),
+                "residency": {"mode": "ram", "cpu_moe": True, "mmap": True, "mlock": False},
+            },
         ]
 
     if vram_gb < 16:

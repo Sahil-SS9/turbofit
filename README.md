@@ -171,17 +171,6 @@ This entry is the overview. The full evidence is one level down:
 - Raw sources: [`raw/inbox/`](raw/inbox/) (the raw inbox) · [`raw/sources/2026-10-18-universal-scope.md`](raw/sources/2026-10-18-universal-scope.md)
 - Canonical data in the product repo: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
 
----
-
-## Visual reference
-
-![Fit ladder — from low-VRAM rungs to the largest sustainable model](assets/scaling-ladder.png)
-![Provider integration](assets/provider-integration.png)
-![2.4 Spec-decode — Draft. Verify. Accept.](assets/turbofit-2.4-spec-decode.png)
-
 ## License
 
 MIT
-
----
-> _This README is generated from the [TurboFit wiki](https://github.com/SouthpawIN/agent-wiki/wiki-topics/turbofit/README.md) — the single source of truth. To change it, edit the wiki hub and re-run `tools/sync-wiki-readme.sh`._

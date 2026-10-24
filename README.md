@@ -98,8 +98,6 @@ The currently-automated, downloadable set (`model-catalog.json`) — **62 models
 
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
 
-Installing TurboSouth **defaults to the sovthpaw pet** (`sovthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.
-
 What TurboSouth helps with:
 - **Install + setup** — resolves the right Auto-chain artifacts for your machine and gets the gateway up.
 - **Landing on an untested machine** — evidence-based machine-fit comparison before committing to a rung. It shows the math; it never guesses.

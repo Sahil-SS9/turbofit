@@ -98,8 +98,6 @@ New additions this release, by exact canonical name (full variant/role/state tab
 
 ## TurboSouth — your TurboFit service tech
 
-![TurboSouth — the sovthpaw pet](assets/turbosouth-hero.png)
-
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
 
 Installing TurboSouth **defaults to the sovthpaw pet** (`sovthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.

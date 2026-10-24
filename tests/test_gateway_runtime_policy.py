@@ -83,6 +83,14 @@ def test_backend_state_rejects_a_healthy_listener_serving_the_wrong_model(monkey
     assert GATEWAY.backend_state(18081, "expected-model") == "down"
 
 
+def test_backend_state_returns_loading_when_server_is_up_but_model_not_listed(monkeypatch) -> None:
+    monkeypatch.setattr(GATEWAY, "port_is_open", lambda _port: True)
+    monkeypatch.setattr(GATEWAY, "check_port", lambda _port: True)
+    monkeypatch.setattr(GATEWAY, "served_model_ids", lambda _port: set(), raising=False)
+
+    assert GATEWAY.backend_state(18081, "expected-model") == "loading"
+
+
 def test_explicit_api_fallback_precedes_interactive_profile_provider(tmp_path, monkeypatch) -> None:
     preferences = tmp_path / "preferences.yaml"
     preferences.write_text(

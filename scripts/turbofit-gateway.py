@@ -861,8 +861,11 @@ def backend_state(port, expected_model_id=None):
     if not port_is_open(port):
         return "down"
     if check_port(port):
-        if expected_model_id and expected_model_id not in served_model_ids(port):
-            return "down"
+        ids = served_model_ids(port)
+        if expected_model_id and expected_model_id not in ids:
+            if ids:
+                return "down"
+            return "loading"
         return "ready"
     return "loading"
 

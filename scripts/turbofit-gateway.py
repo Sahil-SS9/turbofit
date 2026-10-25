@@ -25,6 +25,7 @@ import threading
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlsplit
+import urllib.error
 import urllib.request
 from urllib.request import urlopen
 
@@ -352,6 +353,7 @@ def _discover_remote_models() -> list[dict]:
                     if not model_id or model_id == "auto":
                         continue
                     host = urlsplit(peer).hostname or peer
+                    remote_role = str((item.get("metadata") or {}).get("role") or "main").strip()
                     models.append({
                         "id": f"{host}/{model_id}",
                         "object": "model",
@@ -362,7 +364,7 @@ def _discover_remote_models() -> list[dict]:
                         "base_url": peer,
                         "remote_model": model_id,
                         "metadata": {
-                            "role": "remote",
+                            "role": remote_role,
                             "backing_model": model_id,
                             "residency": "remote",
                             "mode": "tailnet",
@@ -1406,18 +1408,19 @@ class GatewayHandler(BaseHTTPRequestHandler):
             self._send_502(f"Local runtime error: {exc}")
 
     def _resolve_remote_model(self, model_id):
-        """Resolve a remote Tailscale model to its peer base_url and model name.
+        """Resolve a remote Tailscale model to its peer base_url, model name, and role.
 
-        Returns (base_url, remote_model) or None.
+        Returns (base_url, remote_model, role) or None.
         """
         for model in provider_models():
             if model["id"] == model_id and model.get("source") == "remote":
-                return model["base_url"], model["remote_model"]
+                role = str((model.get("metadata") or {}).get("role") or "main").strip()
+                return model["base_url"], model["remote_model"], role
         return None
 
-    def _proxy_remote(self, base_url, remote_model, path, body=None):
+    def _proxy_remote(self, base_url, remote_model, role, path, body=None):
         """Proxy a request to a remote TurboFit peer."""
-        upstream = f"{base_url}/v1/{path.lstrip('/')}"
+        upstream = f"{base_url}/{role}/v1/{path.lstrip('/')}"
         # Rewrite the model field so the remote gateway routes correctly
         if body:
             try:
@@ -1435,6 +1438,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
             )
             with urllib.request.urlopen(req, timeout=PROXY_BACKEND_TIMEOUT_S) as resp:
                 self._send_json(resp.status, json.loads(resp.read().decode()))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:400]
+            self._send_json(exc.code, {"error": {"message": detail, "type": "remote_peer_error"}})
         except Exception as exc:
             self._send_502(f"Remote peer error: {exc}")
 
@@ -1452,8 +1458,8 @@ class GatewayHandler(BaseHTTPRequestHandler):
         # Remote Tailscale model — proxy to the peer
         remote = self._resolve_remote_model(model)
         if remote:
-            base_url, remote_model = remote
-            self._proxy_remote(base_url, remote_model, path[len("/v1/"):], body=body)
+            base_url, remote_model, remote_role = remote
+            self._proxy_remote(base_url, remote_model, remote_role, path[len("/v1/"):], body=body)
             return
 
         # Local runtime alias — proxy straight to the serving port

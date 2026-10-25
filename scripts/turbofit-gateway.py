@@ -256,7 +256,7 @@ def _discover_local_models() -> list[dict]:
         })
     # Strata engine services run outside the controller (systemd-managed).
     # Discover them on well-known ports so they appear in /v1/models.
-    _STRATA_PORTS = (8082,)
+    _STRATA_PORTS = (8082, 8083)
     for port in _STRATA_PORTS:
         if not port_is_open(port):
             continue

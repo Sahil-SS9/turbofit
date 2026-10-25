@@ -254,6 +254,40 @@ def _discover_local_models() -> list[dict]:
                 "freshness": {"age_s": None, "max_age_s": 15.0, "stale": True},
             },
         })
+    # Strata engine services run outside the controller (systemd-managed).
+    # Discover them on well-known ports so they appear in /v1/models.
+    _STRATA_PORTS = (8082,)
+    for port in _STRATA_PORTS:
+        if not port_is_open(port):
+            continue
+        try:
+            with urlopen(f"http://127.0.0.1:{port}/v1/models", timeout=3) as response:
+                payload = json.load(response)
+        except Exception:
+            continue
+        for item in payload.get("data", []):
+            model_id = str(item.get("id") or "").strip()
+            if not model_id or model_id in seen:
+                continue
+            seen.add(model_id)
+            ctx = _positive_context((item.get("meta") or {}).get("n_ctx")) or 65536
+            models.append({
+                "id": model_id,
+                "object": "model",
+                "owned_by": "turbofit",
+                "description": f"Local — {model_id} (Strata)",
+                "context_length": ctx,
+                "source": "local",
+                "base_url": f"http://127.0.0.1:{port}",
+                "metadata": {
+                    "role": "main",
+                    "backing_model": model_id,
+                    "residency": "unknown",
+                    "mode": "local",
+                    "observed_at": None,
+                    "freshness": {"age_s": None, "max_age_s": 15.0, "stale": True},
+                },
+            })
     return models
 
 

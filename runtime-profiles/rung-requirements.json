@@ -522,6 +522,22 @@
         ],
         "host_ram_mb_per_card": []
       }
+    ],
+    "mac-unified-cyber-tiel-35b": [
+      {
+        "rung_id": "manual-exact",
+        "evidence": "sha256:b11c79a17036b0b00c7dfd670b046b68b6abbcf756425a12c78f64677c23f504",
+        "required_mb_per_card": [
+          22635
+        ],
+        "host_ram_mb_per_card": []
+      },
+      {
+        "rung_id": "api",
+        "evidence": "sha256:dc7c0b1e8a1d9eb9f6aea4f9d132a9b3daeca61d264ca616c1ef0191e8328432",
+        "required_mb_per_card": [],
+        "host_ram_mb_per_card": []
+      }
     ]
   },
   "schema": "turbofit.rung-requirements/v1"

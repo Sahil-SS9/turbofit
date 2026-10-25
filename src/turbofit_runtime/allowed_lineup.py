@@ -37,6 +37,8 @@ ALLOWED_MAIN = (
     "qwen3-8-27b-uncensored-mlx-6bit",
     "qwen3-8-27b-uncensored-mlx-8bit",
     "cyber-tiel-coder-35b-a3b",
+    "qwen3-8-flash-next-strata",
+    "darwin-180b-rsi-strata",
 )
 
 ALLOWED_AUX = (
@@ -46,6 +48,7 @@ ALLOWED_AUX = (
     "ornith-1-5-oq8e-mtp",
     "carwin-nano",
     "carwin-moe-nano",
+    "qwen3-8-flash-next-strata",
     "auto",
 )
 

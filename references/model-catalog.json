@@ -1114,31 +1114,6 @@
       "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
     },
     {
-      "id": "deepseek-v4-1-flash",
-      "name": "DeepSeek V4.1 Flash",
-      "family": "DeepSeek V4.1",
-      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
-      "artifact": "deepseek-v4-1-flash-iq2_xs",
-      "quantization": "IQ2_XS",
-      "vision": false,
-      "moe": true,
-      "runtime_features": [
-        "expert-tiering",
-        "cpu-offload",
-        "engram-memory"
-      ],
-      "roles": [
-        "main",
-        "aux"
-      ],
-      "supported_contexts": [
-        262144,
-        1048576
-      ],
-      "revision": "0000000000000000000000000000000000000000",
-      "upstream_source": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash"
-    },
-    {
       "id": "cyber-tiel-coder-35b-a3b-ud-q8-k-xl",
       "name": "Cyber-Tiel Coder 35B-A3B UD-Q8_K_XL",
       "family": "Cyber-Tiel Coder 35B-A3B",

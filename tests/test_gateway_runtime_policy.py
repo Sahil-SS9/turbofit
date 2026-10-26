@@ -174,6 +174,37 @@ def test_campaign_api_fallback_is_not_ready_without_credentials(tmp_path, monkey
     assert GATEWAY.resolve_main() is None
 
 
+def test_api_fallback_chain_prefers_explicit_then_discovered_free(tmp_path, monkeypatch) -> None:
+    preferences = tmp_path / "preferences.yaml"
+    preferences.write_text(
+        "api_fallback:\n"
+        "  main: explicit-model\n"
+        "  base_url: https://explicit.example.test\n"
+        "  provider: explicit-provider\n"
+    )
+    manifest = tmp_path / "fallback-manifest.yaml"
+    manifest.write_text(
+        "schema: turbofit.fallback-manifest/v1\n"
+        "models:\n"
+        "  free-model:\n"
+        "    context_length: 8192\n"
+        "    role: aux\n"
+        "    source: fallback-manifest:nous\n"
+        "    provider: nous\n"
+    )
+    monkeypatch.setattr(GATEWAY, "PREFS", str(preferences))
+    monkeypatch.setattr(GATEWAY, "HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setattr(GATEWAY, "FALLBACK_PATH", str(manifest))
+
+    chain = GATEWAY._api_fallback_chain()
+
+    assert len(chain) == 2
+    assert chain[0]["model_id"] == "explicit-model"
+    assert chain[0]["source"].endswith("preferences.yaml")
+    assert chain[1]["model_id"] == "free-model"
+    assert chain[1]["provider"] == "nous"
+
+
 def test_dynamic_local_main_and_dedicated_aux_routes(tmp_path, monkeypatch) -> None:
     state = tmp_path / "runtime-state.json"
     write_state(state, {

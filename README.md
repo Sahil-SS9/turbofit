@@ -1,6 +1,6 @@
 # TurboFit
 
-![Turbofit — unified backend, amber and mint aesthetic](assets/turbofit-hero.png)
+![Turbofit — unified backend, amber and mint aesthetic](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/turbofit-hero.png)
 
 **One model provider. Every machine. The best local configuration the hardware can safely sustain.**
 
@@ -12,7 +12,7 @@ TurboFit is a first-class [Hermes Agent](https://github.com/NousResearch/hermes-
 
 ## Install
 
-**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) 
+**One package.** Installing TurboFit brings **TurboSouth** along with it (and TurboSouth ships the **sovthpaw pet** as its default) — you install one thing, not three. You don't download TurboSouth, download the pet, and combine them yourself; the package does that for you.
 
 The fastest path — **paste this into your Hermes** and it does the rest (enable, set as your provider on the `auto` model, install TurboSouth, select the pet):
 
@@ -35,7 +35,8 @@ Prefer a specific route? All five are supported.
 
 ---
 
-## The Fit — two towers
+## The Fit — two ladders that converge on Flash Next (source of truth for the UI)
+![TurboFit hero](https://raw.githubusercontent.com/SouthpawIN/turbofit/main/assets/turbofit-hero.jpg)
 
 > **Two ladders, not one.** Dense doesn't run well on CPU / Unified memory, so the tiers split into **two fit ladders** — the **GPU-dedicated ladder is dense**, the **Unified (CPU / Mac) ladder is MoE** — and **both converge on Qwen 3.8 Flash Next**. Flash Next is an MoE, and it's the *only* rung where the dense ladder switches to MoE.
 >
@@ -83,6 +84,8 @@ The currently-automated, downloadable set (`model-catalog.json`) — **62 models
 
 ### New models (canonical names)
 
+New additions this release, by exact canonical name (full variant/role/state table in [`skills/turbofit/README.md`](https://github.com/SouthpawIN/turbofit/blob/main/skills/turbofit/README.md)):
+
 - **Maple Preview 20B-A1B** — MoE main candidate (TQ2_0, 8 GB envelope)
 - **Qwen 3.8 27B GSQ-RCO** — near-lossless dense main (IQ3_S / IQ3_XXS / IQ2_S / IQ2_XS)
 - **Ornith 1.5 35A3B** — MoE auxiliary (Q4_K_M, oQ4e / oQ8e MTP)
@@ -90,13 +93,25 @@ The currently-automated, downloadable set (`model-catalog.json`) — **62 models
 - **NVIDIA Parakeet TDT 0.6B v3** — speech-to-text (pinned integration candidate)
 - **Soprano TTS** — text-to-speech (pinned integration candidate)
 
-> Deep detail: [`references/fit-ladder.md`](references/fit-ladder.md) · [`references/model-lineup.md`](references/model-lineup.md) · the Fit UI: [`wiki/models/hardware-tiers.html`](wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](wiki/models/leaderboard.html) · Canonical data: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
+### API lineup + named local picks (aux)
+
+Ranked by measured evidence, not heuristics:
+- **API** (Modest/Thin machines): `DeepSeek V4 Pro` (NIM, free, top open SWE-bench), `Qwen 3.7 MAX` (paid, #1 MMLU), `MiniMax M3` (NIM, free, vision, 1 M ctx).
+- **Named local picks** (MRI-Trust merges + MTP grafts): `Darwin 28B Reason` (89.4 % GPQA, smartest dense), `Prism Eagle 27B` (121 tok/s, fastest), `Carnice 35A3B` (small aux).
+
+**Pairing rules:** a text-only main **must** pair with a vision aux (never two blind models) · the aux offsets 40–85 % of token cost · the aux needs 262 K+ context to compress the main without losing info · free NIM pairs beat everything on cost.
+
+> Deep detail: [`references/fit-ladder.md`](references/fit-ladder.md) · [`references/model-lineup.md`](references/model-lineup.md) · the Fit UI: [`wiki/models/hardware-tiers.html`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/models/leaderboard.html) · Canonical data: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
 
 ---
 
 ## TurboSouth — your TurboFit service tech
 
+![TurboSouth — the sovthpaw pet](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/turbosouth-hero.png)
+
 TurboSouth is the dedicated, self-updating customer-service bot for TurboFit. It's not a second model backend — it's the hands that get you from *"I have a machine"* to *"TurboFit is running the best model it can"* — and it keeps feeding improvements back upstream.
+
+Installing TurboSouth **defaults to the sovthpaw pet** (`sovthpaw`) — a chibi agent with big curly auburn hair, black sunglasses, a sleeveless black vest, and a pink strap — for both the default home and the TurboSouth profile.
 
 What TurboSouth helps with:
 - **Install + setup** — resolves the right Auto-chain artifacts for your machine and gets the gateway up.
@@ -105,6 +120,8 @@ What TurboSouth helps with:
 - **Answer questions** — Q&A grounded in the wiki, with citations (not vibes).
 - **Troubleshooting** — `status`, `smoke`, `health`, and gateway checks.
 - **Send tested upstream PRs** — evidence-backed pull requests to TurboFit (never an autonomous publish).
+
+What it does *not* do: autonomously publish PRs, manage credentials, kill external GPU processes, or bypass the native runtime lifecycle.
 
 > **Reciprocal install** — TurboSouth installs TurboFit for you: `hermes profile install https://github.com/SouthpawIN/turbosouth.git` (Install TurboSouth, and it sets up TurboFit when it is missing). In-product: `install_turbosouth: true` (via `/turbofit` or the Desktop settings).
 
@@ -118,18 +135,32 @@ Local multimodal is the **hard frontier** — MoE + a vision tower + 300 K+ cont
 - **TTS + STT** run through the same gateway.
 - **Full local multimodal** (image/video/music on-device) is the 2-GPU job — `Qwen3-Next-80B-A3B` (3.4 tok/s, 300 K ctx) needs ~2× 40 GB; the small always-on multimodal is `Qwen2.5-Omni-3B` (49 tok/s, 3 B).
 
-> Deep detail: [`references/multimodal.md`](references/multimodal.md)
+> Deep detail: [`references/multimodal.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/multimodal.md)
+
+---
+
+## Benchmarks (what we've measured, and the gaps)
+
+- **External (discovery only):** DeepSWE v1.1 (113 tasks). The only local Turbofit candidate on it is `glm-5-2-2-788bpw` — 0.438 pass@1 → **78.8 bpw**, a 2× jump over the previous local baseline.
+- **Local (the gap):** most local benchmark numbers are still missing. The only measured local numbers recorded: `GLM-5.1` at 1.75 tok/s on M1, `Qwen3-30B` 8.3 tok/s, `Qwen3.5-35B-A3B` 4.4 tok/s. The "all dashes" in the local tables is the **#1 evidence gap** — local candidates aren't yet benchmarked at Tier-S standard.
+- **Pending:** DeepSpec (39.1 tok/s draft, 1.77× on 3090) and DeepSWE 2.0.
+
+External results are discovery evidence only; a model is promoted to a local runtime profile only after a reproducible local run passes its gates.
+
+> Deep detail: [`references/benchmark-evidence.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/benchmark-evidence.md)
+
+---
 
 ## Tailscale — a built-in TurboFit backend
 
 Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: `/turbofit serve` exposes your gateway on a private tailnet with **no public ports**, and the model picker federates across it. Any user can enable it for their own devices — it's part of the product:
 
 - **Gateway binding:** your machine runs the Hermes Gateway on `0.0.0.0:8091`; Tailscale exposes it on your private tailnet (runs as a local service on each OS — launchd on macOS, systemd on Linux).
-- **Two gateways, don't confuse them:** the Turbofit model gateway on `127.0.0.1:8091` is separate from the Hermes messaging gateway. A refused `http://127.0.0.1:8091/v1/models` (on Windows: `WinError 10061`) means the Turbofit runtime is down — setup missing, not a firewall rule. Windows native path: [`docs/windows-native-install.md`](docs/windows-native-install.md).
+- **Two gateways, don't confuse them:** the Turbofit model gateway on `127.0.0.1:8091` is separate from the Hermes messaging gateway. A refused `http://127.0.0.1:8091/v1/models` (on Windows: `WinError 10061`) means the Turbofit runtime is down — setup missing, not a firewall rule. Windows native path: [`docs/windows-native-install.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/windows-native-install.md).
 - **Model-picker federation:** peers auto-discover over the tailnet — each machine advertises the models it can serve, so every machine's model list auto-populates with every other machine's models.
 - **The end state:** private remote access + auto-fed model lists, zero public exposure. The wiki becomes the single source of truth, centralized over Tailscale across all devices, organized top-down by the wiki's own standards.
 
-> Deep detail: [`references/tailscale.md`](references/tailscale.md)
+> Deep detail: [`references/tailscale.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/tailscale.md)
 
 ---
 
@@ -141,26 +172,45 @@ Tailscale is a **built-in backend**, not an add-on or a machine-specific setup: 
 - **Multimodal adapters** — vision aux, TTS, and STT through the same gateway (full on-device multimodal is the frontier).
 - **Native engines** — CUDA, ROCm, Vulkan, Metal, and CPU backends chosen by your hardware.
 - **One package** — installing TurboFit brings TurboSouth (and its default sovthpaw pet) along automatically.
+
+![Turbofit settings in Hermes Desktop, including fallback routing, multimodal model selection, and hardware-fit recommendations](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/hermes-desktop-turbofit-settings.png)
+
 ---
 
 ## Troubleshooting & upstream
 
-- **Troubleshooting** — VRAM OOM (walk the ladder, don't just restart), the local-benchmark gap, gateway reachability, blind-aux pairing. → [`references/troubleshooting.md`](references/troubleshooting.md)
-- **Upstream PR process** — TurboSouth converts recurring, evidence-backed support problems into PR *suggestions*; a real PR opens only with human approval, against the exact upstream, evidence attached. → [`references/upstream-pr-process.md`](references/upstream-pr-process.md)
+- **Troubleshooting** — VRAM OOM (walk the ladder, don't just restart), the local-benchmark gap, gateway reachability, blind-aux pairing. → [`references/troubleshooting.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/troubleshooting.md)
+- **Upstream PR process** — TurboSouth converts recurring, evidence-backed support problems into PR *suggestions*; a real PR opens only with human approval, against the exact upstream, evidence attached. → [`references/upstream-pr-process.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/upstream-pr-process.md)
 
 ---
 
 ## Where the deep data lives
 
-This entry is the overview. The full evidence is one level down:
+This entry is the overview. Everything else is one level down, and all of it lives in **this vault topic** — no knowledge is left only in a repo:
 
-- [`references/`](references/) — `fit-ladder.md`, `model-lineup.md`, `benchmark-evidence.md`, `hardware.md`, `multimodal.md`, `tailscale.md`, `troubleshooting.md`, `upstream-pr-process.md`
-- [`wiki/index.md`](wiki/index.md) — the generated public wiki (Model Zoo, the canonical TurboFit List, benchmarks)
-- The Fit UI: [`wiki/models/hardware-tiers.html`](wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](wiki/models/leaderboard.html) · [`wiki/models/external-benchmarks.html`](wiki/models/external-benchmarks.html)
-- [`ROADMAP.md`](ROADMAP.md) — the source-of-truth roadmap (the two ladders, phases, open gaps)
-- Raw sources: [`raw/inbox/`](raw/inbox/) (the raw inbox) · [`raw/sources/2026-10-18-universal-scope.md`](raw/sources/2026-10-18-universal-scope.md)
-- Canonical data in the product repo: [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/model-catalog.json)
+- **[`index.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/index.md)** — the full catalog: every page in the topic, plus the fit ladders generated from the canonical data.
+- **Core doctrine** — [`fit-ladder`](references/fit-ladder.md) · [`model-lineup`](references/model-lineup.md) · [`curated-lineup`](references/curated-lineup.md) · [`scaling-ladder`](references/scaling-ladder.md) · [`binary-selection`](references/binary-selection.md) · [`product-roadmap`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/product-roadmap.md)
+- **Benchmarks & evidence** — [`benchmark-evidence`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/benchmark-evidence.md) · [`benchmark-leaderboard`](references/benchmark-leaderboard.md) · [`external-benchmarks`](references/external-benchmarks.md) · [`research-report`](references/research-report.md) · [`model-intel`](references/model-intel.md) · [`api-model-rankings`](references/api-model-rankings.md) · [`api-tier-rankings`](references/api-tier-rankings.md) · [`api-pairing-matrix`](references/api-pairing-matrix.md)
+- **Hardware & runtime** — [`hardware-tiers`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/hardware-tiers.md) · [`hardware-tier-tps`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/hardware-tier-tps.md) · [`runtime-backends`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/runtime-backends.md) · [`model-matrix`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/model-matrix.md) · [`model-metadata`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/model-metadata.md) · [`multimodal`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/multimodal.md) · [`salt-core-integration`](references/salt-core-integration.md) · [`freetoken-runtime`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/freetoken-runtime.md)
+- **Installs & ops** — [`install-paths`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/install-paths.md) · [`windows-native-install`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/windows-native-install.md) · [`remote-hermes-model-server`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/remote-hermes-model-server.md) · [`apple-arm64-unmeasured-gap`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/apple-arm64-unmeasured-gap.md) · [`maple-small-device-validation`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/maple-small-device-validation.md) · [`turbofit-check`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/turbofit-check.md) · [`campaigns`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/campaigns.md) · [`workflows`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/workflows.md) · [`troubleshooting`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/troubleshooting.md) · [`tailscale`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/tailscale.md)
+- **Ecosystem** — [`ecosystem`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/ecosystem.md) maps every repo (turbofit, sirvir, SALT-core, model-momento, benchmark-infographics, turbohaul line) to its vault page; provenance for the 2026-10-28 absorption is in [`raw/sources/2026-10-28-github-consolidation.md`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/raw/sources/2026-10-28-github-consolidation.md)
+- **History & contracts** — [`changelog`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/changelog.md) · [`skill-contract`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/skill-contract.md) · [`upstream-pr-process`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/references/upstream-pr-process.md)
+- **Model pages & the fit UI** — `wiki/models/` (per-model pages) · [`wiki/models/hardware-tiers.html`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/models/hardware-tiers.html) · [`wiki/models/leaderboard.html`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/models/leaderboard.html)
+- **[`ROADMAP.md`](ROADMAP.md)** — the product roadmap (vision, phases, open gaps)
+- Raw sources: [`raw/inbox/`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/raw/inbox/) · [`raw/sources/`](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/raw/sources/)
+- Canonical machine data (stays in the repo, read at runtime): [`fit-lists.json`](https://github.com/SouthpawIN/turbofit/blob/main/references/fit-lists.json) · [`model-catalog.json`](https://github.com/SouthpawIN/turbofit/blob/main/references/model-catalog.json)
+
+---
+
+## Visual reference
+
+![Fit ladder — from low-VRAM rungs to the largest sustainable model](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/scaling-ladder.png)
+![Provider integration](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/provider-integration.png)
+![2.4 Spec-decode — Draft. Verify. Accept.](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/wiki/assets/turbofit-2.4-spec-decode.png)
 
 ## License
 
 MIT
+
+---
+> _This README is generated from the [TurboFit wiki](https://github.com/SouthpawIN/agent-wiki/blob/wiki/wiki-topics/turbofit/README.md) — the single source of truth. To change it, edit the wiki hub and re-run `tools/sync-wiki-readme.sh`._

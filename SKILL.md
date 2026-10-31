@@ -103,7 +103,9 @@ fails, because recipe paths and the invoker's home resolve differently.
 When the gateway — not a human shell — invokes the runtime CLI, it inherits the
 service user's home: pass `TURBOFIT_CONFIG_DIR` and `TURBOFIT_SELECTION_STATE`
 so profile lookup and the selection write land on the controller's config
-directory. Without them the CLI reports `unknown profile` for valid profiles
+directory. The same envs matter from an operator shell whenever the controller's
+config lives outside the default `~/.config/turbofit`: without them `status`
+answers `configured: false` beside a perfectly healthy controller. Without them the CLI reports `unknown profile` for valid profiles
 and the picker answers 400 even though the same command succeeds in a shell.
 Make the watched selection file's directory writable by the gateway user: the
 selection write is a tempfile-plus-rename inside that directory, so a
@@ -159,6 +161,33 @@ implementation detail behind those outcomes unless requested.
 Hardware fingerprints classify memory as `dedicated`, `unified`, or `cpu`. Turbofit reserves 5% of host RAM, bounded to 1–8 GiB, and never double-counts unified memory. Dedicated systems can combine VRAM and host RAM through llama.cpp offload; contexts beyond the model's native window move KV cache pressure to host RAM when at least 32 GiB is usable. Unified-memory systems suppress discrete split flags. CPU-only systems use pinned CPU runtimes with both model and draft GPU layers set to zero.
 
 Backend order is CUDA → ROCm → Vulkan → CPU on Linux/Windows and Metal on macOS. Build or verify the current machine's pinned backend with `scripts/install-native-runtimes --backend cuda|rocm|metal|vulkan|cpu`.
+
+## Switching a live profile on this rig
+
+- Measure the target's weights on disk before writing a selection. A profile
+  resolution's `expected_vram_mb` can sit far below the real artifact: a 125B
+  IQ3_XXS pack is ~76 GB of shards behind a 21.5 GB expectation, so the load
+  fills the card, aborts, and restarts. Sum `source_shards[].size` in the
+  pack's `conversions.json` (or stat the gguf) and compare against
+  `nvidia-smi` free: weights above the largest single pool mean the profile is
+  not runnable on this box whatever the resolution advertises.
+- A transition that dies mid-load parks the controller inside its
+  `--verification-timeout` wait (900 s by default) with no journal lines and a
+  frozen route state. It is not dead: at expiry it reconciles to whatever
+  `selection.json` holds at that moment, so an edit made during the stall
+  applies late. Poll the state file boundedly and do not signal the unit — a
+  clean stop exits successfully and `Restart=on-failure` never brings it back.
+- The dedicated aux rung needs the aux card free. Reclaim it from a
+  co-resident service through that service's own API rather than stopping the
+  service (ComfyUI: `POST /free {"unload_models":true,"free_memory":true}`
+  after `GET /queue` shows nothing running), then say the cost plainly: that
+  service has no headroom while the aux owns the card.
+- Prove a switch on both roles — one real chat completion to `active:main` and
+  one to `active:aux` — before reporting it active; the aux's first call may
+  include model load time.
+
+Exact selection/rung procedure, rollback and recovery sequence:
+`references/switch-and-recovery.md`.
 
 ## Non-negotiable safety
 

@@ -938,6 +938,7 @@ def status_snapshot(config: Mapping[str, Any], *, probe: bool = True) -> dict[st
         and isinstance(item.get("model"), str)
         and item.get("model")
     ]
+    usage = _live_usage() if probe else {"gpus": [], "host": {}, "tps": None}
     return {
         "ok": True,
         "provider": {
@@ -955,10 +956,25 @@ def status_snapshot(config: Mapping[str, Any], *, probe: bool = True) -> dict[st
         "gateway": gateway_health(endpoint) if probe else {"reachable": None, "endpoint": endpoint},
         "tailnet": tailnet_status(),
         "platform": {"os": os.name, "sys_platform": sys.platform},
-        "usage": _live_usage() if probe else {"gpus": [], "host": {}, "tps": None},
+        "usage": usage,
         "catalog": _provider_catalog(config),
         "scale_ladder": _local_scale_ladder(selection),
+        "dials": _dials(selection, usage),
     }
+
+
+def _dials(selection: Mapping[str, Any] | None, usage: Mapping[str, Any] | None) -> dict[str, Any]:
+    """The three dials: memory pressure, context window, and the fallback chain.
+
+    Never raises: a status call must still answer when the chain document is missing or
+    a probe came back empty.
+    """
+    try:
+        from turbofit_runtime.chain import dials_for_selection
+
+        return dials_for_selection(usage=usage, selection=selection)
+    except Exception as exc:  # pragma: no cover - defensive surface
+        return {"error": str(exc)}
 
 
 def select_profile(profile: str) -> dict[str, Any]:
@@ -1247,15 +1263,99 @@ def multimodal_snapshot(config: Mapping[str, Any] | None = None) -> dict[str, An
     return payload
 
 
-def _save_configuration_to_all_homes(config: dict, *, base_url: str | None = None) -> None:
+def _write_home_config(home: Path, config: Mapping[str, Any]) -> Path:
+    """Merge *config* into one home's config.yaml and write it.
+
+    Hermes' ``save_config`` always targets the *active* home (it resolves
+    ``get_config_path()``), so calling it once per profile rewrote the current
+    home N times and never reached a profile -- a serve/tailnet URL published
+    for a profile silently landed in the wrong file. Writing each home's own
+    config.yaml is the only way to reach them.
+    """
+    path = home / "config.yaml"
+    existing: dict[str, Any] = {}
+    if path.is_file():
+        try:
+            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            loaded = {}
+        if isinstance(loaded, Mapping):
+            existing = dict(loaded)
+    merged = _deep_merge_mapping(existing, config)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(merged, sort_keys=False, allow_unicode=True),
+                    encoding="utf-8")
+    return path
+
+
+def _deep_merge_mapping(base: Mapping[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:
+    """Overlay wins, except where both sides are mappings (then merge)."""
+    merged = dict(base)
+    for key, value in overlay.items():
+        current = merged.get(key)
+        if isinstance(current, Mapping) and isinstance(value, Mapping):
+            merged[key] = _deep_merge_mapping(current, value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def ensure_provider_registered(
+    *, hermes_home: Path | None = None, base_url: str | None = None,
+) -> list[str]:
+    """Give every Hermes home ``providers.turbofit``, idempotently.
+
+    A freshly created profile (TurboSouth included) has no Turbofit provider, so
+    ``custom:turbofit`` fails with "Unknown provider" on its first request. This
+    is the heal that runs at plugin registration.
+    """
+    touched: list[str] = []
+    for home in hermes_homes(hermes_home):
+        path = home / "config.yaml"
+        payload: dict[str, Any] = {}
+        if path.is_file():
+            try:
+                loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                loaded = {}
+            if isinstance(loaded, Mapping):
+                payload = dict(loaded)
+        providers = payload.get("providers")
+        if isinstance(providers, Mapping) and isinstance(providers.get("turbofit"), Mapping):
+            continue
+        try:
+            updated = configure_hermes(payload, base_url=base_url)
+        except Exception:  # noqa: BLE001 - a heal must never break registration
+            continue
+        touched.append(str(_write_home_config(home, updated)))
+    return touched
+
+
+def _save_configuration_to_all_homes(config: dict | str, *, base_url: str | None = None) -> None:
     """Fan a configuration out to every Hermes profile home."""
-    from hermes_cli.config import save_config
-    hermes_home = Path(os.getenv("HERMES_HOME") or Path.home() / ".hermes")
-    profiles_dir = hermes_home / "profiles"
-    if profiles_dir.is_dir():
-        for profile_dir in profiles_dir.iterdir():
-            if profile_dir.is_dir():
-                save_config(config, merge_existing=False)
+    if isinstance(config, str):
+        # Older callers passed the URL alone; treat it as the base URL.
+        config, base_url = {}, (base_url or config)
+    if base_url:
+        config = dict(config)
+        providers = config.get("providers")
+        if providers is None:
+            providers = {}
+        if isinstance(providers, Mapping):
+            merged_providers = dict(providers)
+            merged_providers["turbofit"] = provider_definition(
+                base_url,
+                context_length=None,
+                aux_model="active:aux",
+            )
+            config["providers"] = merged_providers
+        # A non-mapping providers section is not ours to rewrite: leave the
+        # configuration exactly as the caller built it.
+    for home in hermes_homes():
+        try:
+            _write_home_config(home, config)
+        except OSError:
+            continue
 
 
 def apply_configuration(

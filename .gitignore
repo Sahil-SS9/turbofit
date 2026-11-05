@@ -35,3 +35,10 @@ references/results/*-logs/
 promo/
 src/turbofit.egg-info/
 uv.lock
+
+# Vendored PyYAML drop (platform-specific .so) — keep on disk, never in the repo.
+src/yaml/_yaml*
+src/yaml/*.so
+src/yaml/__pycache__/
+__pycache__/
+build/

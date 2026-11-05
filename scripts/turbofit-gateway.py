@@ -45,6 +45,10 @@ FALLBACK_PATH = os.environ.get(
     "TURBOFIT_FALLBACK_MANIFEST",
     f"{HOME}/.config/turbofit/fallback-models.yaml",
 )
+CONTROLLER_STATUS = os.environ.get(
+    "TURBOFIT_CONTROLLER_STATUS",
+    f"{STATE_HOME}/turbofit/controller-status.json",
+)
 RUNTIME_STATE = os.environ.get(
     "TURBOFIT_RUNTIME_STATE",
     f"{STATE_HOME}/turbofit/runtime-state.json",
@@ -77,6 +81,9 @@ SELF_PORT = int(os.environ.get("TURBOFIT_GATEWAY_PORT", "8091"))  # never pick a
 ALLOW_API = os.environ.get("TURBOFIT_ALLOW_API", "").strip().lower() in {"1", "true", "yes"}
 
 _activation_lock = threading.Lock()
+# Profiles whose activation is still running detached: a request for one is a
+# retryable "loading", not an unknown model.
+_loading_profiles: set = set()
 _inflight_lock = threading.Lock()
 _inflight_requests: dict[str, float] = {}
 
@@ -129,6 +136,9 @@ def _peek_flags():
 STALL_TIMEOUT_S = float(os.environ.get("TURBOFIT_STALL_TIMEOUT", "90"))  # max wait while local loads
 STALL_POLL_S = float(os.environ.get("TURBOFIT_STALL_POLL", "2"))  # poll interval while waiting
 PROXY_BACKEND_TIMEOUT_S = float(os.environ.get("TURBOFIT_BACKEND_TIMEOUT", "300"))  # per-request upstream timeout
+# How long a request waits for a cold model to load before answering "retryable".
+# Fifteen minutes of silence is not a latency budget, it is a hang.
+ACTIVATION_WAIT_S = float(os.environ.get("TURBOFIT_ACTIVATION_WAIT_S", "25"))
 AUX_MAX_TOKENS = int(os.environ.get("TURBOFIT_AUX_MAX_TOKENS", "4096"))  # bound aux work to lifecycle deadlines
 AUX_ENABLE_THINKING = os.environ.get("TURBOFIT_AUX_ENABLE_THINKING", "0").lower() in ("1", "true", "yes")
 MAIN_ENABLE_THINKING = os.environ.get("TURBOFIT_MAIN_ENABLE_THINKING", "1").lower() in ("1", "true", "yes")
@@ -305,6 +315,18 @@ _remote_cache_lock = threading.Lock()
 _remote_discovery_lock = threading.Lock()
 
 
+def _remote_models_or_empty():
+    """Cached federated catalog for health reporting. Never triggers discovery."""
+    with _remote_cache_lock:
+        cached = dict(_remote_cache)
+    freshest = None
+    for payload in cached.values():
+        stamp = payload.get("ts") if isinstance(payload, dict) else None
+        if isinstance(stamp, (int, float)) and (freshest is None or stamp > freshest[0]):
+            freshest = (stamp, payload.get("models") or [])
+    return freshest[1] if freshest else []
+
+
 def _remote_peers_spec() -> tuple:
     """Stable identity of the peer configuration, used as cache key.
 
@@ -318,6 +340,46 @@ def _remote_peers_spec() -> tuple:
     if os.environ.get("TURBOFIT_PEER_DISCOVERY", "1") != "0":
         return ("auto", ())
     return ("off", ())
+
+
+def _peer_urls() -> list[str]:
+    """Peer gateway URLs from the explicit list or tailnet discovery."""
+    spec = _remote_peers_spec()
+    peers: list[str] = []
+    if spec[0] == "peers":
+        peers = list(spec[1])
+    elif spec[0] == "auto":
+        try:
+            from turbofit_runtime.tailnet import discover_turbofit_peers
+
+            peers = [f"{found['host']}:{found['port']}" for found in discover_turbofit_peers()]
+        except Exception:
+            peers = []
+    urls: list[str] = []
+    for peer in peers:
+        peer = str(peer).strip().rstrip("/")
+        if not peer:
+            continue
+        urls.append(peer if peer.startswith(("http://", "https://")) else f"http://{peer}")
+    return urls
+
+
+def _remote_auto_target() -> str | None:
+    """First peer that is healthy enough to answer a router-alias request.
+
+    A node with no GPU is still a legitimate TurboFit provider: it delegates the
+    whole ``auto`` decision to a peer that owns the hardware, instead of failing
+    the request because it holds no model itself.
+    """
+    for peer in _peer_urls():
+        try:
+            with urlopen(peer + "/health", timeout=3.0) as handle:
+                payload = json.loads(handle.read().decode())
+            if isinstance(payload, dict) and payload.get("ok"):
+                return peer
+        except Exception:
+            continue
+    return None
 
 
 def _discover_remote_models() -> list[dict]:
@@ -599,6 +661,25 @@ def parse_provider_model(model):
     return value, "main"
 
 
+ROUTER_ALIASES = frozenset({"", "auto", "active"})
+
+
+def api_fallback_permitted(model, backend=None):
+    """Whether a failed local backend may be answered by a hosted API instead.
+
+    A caller that names a specific model has asked for that model. Substituting a
+    hosted one and returning 200 is a lie the client cannot detect from the body, so
+    substitution is allowed only for the router aliases (``auto`` / ``active`` /
+    ``active:main`` / ``active:aux``), where the contract is "whatever is best here".
+    """
+    if not ALLOW_API:
+        return False
+    if isinstance(backend, dict) and backend.get("is_api"):
+        return False
+    requested, _role = parse_provider_model(model)
+    return str(requested).strip() in ROUTER_ALIASES
+
+
 def active_profile():
     try:
         with open(RUNTIME_STATE, encoding="utf-8-sig") as f:
@@ -622,9 +703,16 @@ def recommend_profile():
             capture_output=True,
             text=True,
             timeout=60,
-            check=True,
+            check=False,
         )
-        rows = json.loads(result.stdout)
+        # 3 means "evaluated, nothing fits here" - a normal answer on a node with no
+        # accelerator, not a crash worth an error line.
+        if result.returncode not in (0, 3):
+            raise RuntimeError(
+                (result.stderr or result.stdout or "").strip()
+                or f"recommender exited {result.returncode}"
+            )
+        rows = json.loads(result.stdout or "[]")
         profile = rows[0].get("profile") if rows else None
         return profile if profile in runtime_profiles() else None
     except Exception as exc:
@@ -632,21 +720,42 @@ def recommend_profile():
         return None
 
 
-def activate_profile(profile):
-    """Activate one tested main+aux pair by its universal catalog ID."""
+def activate_profile(profile, *, wait_s=None):
+    """Activate one tested main+aux pair by its universal catalog ID.
+
+    A cold profile can take minutes to load. The request path waits at most
+    ``wait_s`` seconds and then reports "loading, retry" while activation keeps
+    running detached — a client should never sit blocked for the whole load.
+    """
+    limit = ACTIVATION_WAIT_S if wait_s is None else wait_s
     try:
-        subprocess.run(
+        proc = subprocess.Popen(
             [RUNTIME_CLI, "use", profile],
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=900,
-            check=True,
+            start_new_session=True,
         )
-        _cache.update({"main": None, "aux": None, "ts": 0})
-        return True
     except Exception as exc:
-        log.error("Profile activation failed for %s: %s", profile, exc)
+        log.error("Profile activation could not start for %s: %s", profile, exc)
         return False
+    deadline = time.time() + max(0.0, limit)
+    while time.time() < deadline:
+        if proc.poll() is not None:
+            _loading_profiles.discard(profile)
+            _cache.update({"main": None, "aux": None, "ts": 0})
+            if proc.returncode == 0:
+                return True
+            output = (proc.stdout.read() if proc.stdout else "") or ""
+            log.error("Profile activation failed for %s (rc=%s): %s",
+                      profile, proc.returncode, output.strip()[:400])
+            return False
+        time.sleep(0.5)
+    # Still loading: leave it running so the next request finds it warm.
+    _loading_profiles.add(profile)
+    log.info("Profile %s is loading; answered early instead of blocking", profile)
+    _cache.update({"main": None, "aux": None, "ts": 0})
+    return False
 
 
 def resolve_requested_profile(model):
@@ -1313,6 +1422,9 @@ from turbofit_runtime.native_lifecycle import leased_request
 
 
 class GatewayHandler(BaseHTTPRequestHandler):
+    # The model the caller named, so an API substitution can be refused later.
+    _requested_model = None
+
     server_version = "turbofit-gateway/2.0"
 
     def do_GET(self):
@@ -1452,6 +1564,27 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 return model["base_url"], model["remote_model"], role
         return None
 
+    def _resolve_bare_remote_model(self, model_id):
+        """Resolve a bare model name that this node does not serve but a peer does.
+
+        A user who saw `cyber-tiel-coder-35b-a3b` on their laptop should be able to
+        name it on their phone. The peer-prefixed form still wins when given; this
+        only fills the gap when the node itself holds no such model.
+        """
+        wanted = str(model_id or "").strip()
+        if not wanted or "/" in wanted:
+            return None
+        matches = [
+            model
+            for model in _discover_remote_models()
+            if str(model.get("remote_model")) == wanted
+        ]
+        if not matches:
+            return None
+        chosen = matches[0]
+        role = str((chosen.get("metadata") or {}).get("role") or "main").strip()
+        return chosen["base_url"], chosen["remote_model"], role
+
     def _proxy_remote(self, base_url, remote_model, role, path, body=None):
         """Proxy a request to a remote TurboFit peer."""
         upstream = f"{base_url}/{role}/v1/{path.lstrip('/')}"
@@ -1488,6 +1621,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             except Exception:
                 self.send_error(400, "Request body must be valid JSON")
                 return
+        self._requested_model = model
 
         # Remote Tailscale model — proxy to the peer
         remote = self._resolve_remote_model(model)
@@ -1503,9 +1637,30 @@ class GatewayHandler(BaseHTTPRequestHandler):
             self._proxy_local_port(port, path[len("/v1/"):], body=body)
             return
 
+        # No local model here: a router alias delegates to a peer that has one, so
+        # `auto` keeps meaning "whatever is best on this tailnet" instead of 400.
+        if str(model).strip() in {"auto", "active", "active:main"}:
+            peer = _remote_auto_target()
+            if peer:
+                self._proxy_remote(peer, "auto", "main", path[len("/v1/"):], body=body)
+                return
+
+        bare_remote = self._resolve_bare_remote_model(model)
+        if bare_remote:
+            base_url, remote_model, remote_role = bare_remote
+            self._proxy_remote(base_url, remote_model, remote_role, path[len("/v1/"):], body=body)
+            return
+
         profile_id, role = parse_provider_model(model)
         selected = resolve_requested_profile(model)
         if not selected:
+            if profile_id in _loading_profiles or "auto" in _loading_profiles:
+                self._send_503(
+                    f"Model {profile_id} is loading; retry shortly",
+                    tried=profile_id,
+                    retryable=True,
+                )
+                return
             self.send_error(400, f"Unknown or unavailable Turbofit model: {profile_id}")
             return
         suffix = path[len("/v1/"):]
@@ -1549,8 +1704,13 @@ class GatewayHandler(BaseHTTPRequestHandler):
                                    tried=f"local :{port} ({new_state})")
                     return
                 if backend.get("state") == "loading":
-                    # Still loading after the stall timeout. API use remains opt-in.
-                    api_chain = _api_fallback_chain(exclude=backend.get("source")) if ALLOW_API else []
+                    # Still loading after the stall timeout. API use remains opt-in, and an
+                    # explicitly requested model is never substituted.
+                    api_chain = (
+                        _api_fallback_chain(exclude=backend.get("source"))
+                        if api_fallback_permitted(self._requested_model, backend)
+                        else []
+                    )
                     for api in api_chain:
                         backend = {**api, "state": "ready"}
                         break
@@ -1565,8 +1725,9 @@ class GatewayHandler(BaseHTTPRequestHandler):
         if result.get("response_sent"):
             return
 
-        # API fallback is disabled by default; explicit opt-in preserves legacy behavior.
-        if status >= 400 and not backend.get("is_api") and ALLOW_API:
+        # API fallback is disabled by default; explicit opt-in preserves legacy behavior,
+        # and never overrides a model the caller named.
+        if status >= 400 and api_fallback_permitted(self._requested_model, backend):
             for api in _api_fallback_chain(exclude=backend.get("source")):
                 if api.get("source") in tried:
                     continue
@@ -1578,7 +1739,13 @@ class GatewayHandler(BaseHTTPRequestHandler):
                     return
 
         if status >= 400:
-            self._send_503(f"All backends failed (last status {status})", tried=" → ".join(tried))
+            asked = (self._requested_model or "auto").strip()
+            detail = (
+                f"{asked} is local-only and cannot be substituted"
+                if not api_fallback_permitted(asked, backend)
+                else "All backends failed"
+            )
+            self._send_503(f"{detail} (last status {status})", tried=" → ".join(tried))
 
     @leased_request("aux")
     def _handle_aux(self, path, body=None, required=False):
@@ -1759,10 +1926,12 @@ class GatewayHandler(BaseHTTPRequestHandler):
                         "transfer-encoding",
                         "connection",
                         "content-length",
-                        "content-encoding",
                         "access-control-allow-origin",
                         "access-control-allow-credentials",
                     ):
+                        # content-encoding is relayed: the body below is the upstream's
+                        # bytes, and dropping the header hands the client gzip it cannot
+                        # decode (observed against a hosted backend that compresses).
                         continue
                     if normalized in sent_headers:
                         continue
@@ -1923,14 +2092,19 @@ class GatewayHandler(BaseHTTPRequestHandler):
     def _send_502(self, message):
         self._send_json(502, {"error": {"message": message, "type": "bad_gateway"}})
 
-    def _send_503(self, reason, tried=None):
-        log.error(f"503: {reason} (tried={tried})")
-        self._send_json(503, {
+    def _send_503(self, reason, tried=None, retryable=False):
+        payload = {
             "error": "no_backend",
             "message": reason,
             "tried": tried,
             "hint": "If this persists, run `scripts/turbofit-runtime status` and verify the configured API login.",
-        }, {"Retry-After": "5"})
+        }
+        if retryable:
+            payload["retryable"] = True
+            log.info(f"503 (retryable): {reason} (tried={tried})")
+        else:
+            log.error(f"503: {reason} (tried={tried})")
+        self._send_json(503, payload, {"Retry-After": "15" if retryable else "5"})
 
     def _send_status(self):
         main = resolve_main()
@@ -1944,15 +2118,76 @@ class GatewayHandler(BaseHTTPRequestHandler):
         }
         self._send_json(200, response)
 
+    @staticmethod
+    def _declared_local_route(role: str) -> dict | None:
+        """The local backend the controller published for this role, if any."""
+        try:
+            with open(RUNTIME_STATE, encoding="utf-8-sig") as handle:
+                state = json.load(handle)
+        except (OSError, ValueError):
+            return None
+        if not isinstance(state, dict):
+            return None
+        route = (state.get("routes") or {}).get(role)
+        if isinstance(route, dict) and route.get("kind") == "local":
+            return {**route, "rung_id": state.get("rung_id")}
+        return None
+
+    @staticmethod
+    def _controller_released() -> bool:
+        try:
+            with open(CONTROLLER_STATUS, encoding="utf-8-sig") as handle:
+                return bool(json.load(handle).get("released"))
+        except (OSError, ValueError, AttributeError):
+            return False
+
     def _send_health(self):
         main = resolve_main()
         aux = resolve_aux()
-        ok = (main is not None) or (aux is not None)
-        self._send_json(200 if ok else 503, {
+        remote = _remote_models_or_empty()
+        ok = (main is not None) or (aux is not None) or bool(remote)
+        declared = self._declared_local_route("main")
+        is_api = bool((main or {}).get("is_api"))
+        if main is None and remote:
+            # A federation node holds no local model of its own; it is healthy when
+            # at least one peer is serving one, and saying "down" there is wrong.
+            main_state = "federated"
+        elif is_api and declared:
+            # The controller published a local rung but it is not serving: either it
+            # yielded residency to external GPU pressure or it fell back. Saying
+            # "ready" here hid a hosted answer behind a local promise (observed on
+            # omarchy: main=ready while every token came from the Nous API).
+            main_state = "yielded" if self._controller_released() else "api-fallback"
+        else:
+            main_state = (main or {}).get("state", "down")
+        payload = {
             "ok": ok,
-            "main": (main or {}).get("state", "down"),
+            "main": main_state,
             "aux": (aux or {}).get("state", "down"),
-        })
+            "remote_models": len(remote),
+            "backend": "api-fallback" if is_api else ("local" if main else "none"),
+            "local": bool(main) and not is_api,
+            "cloud_fallback": is_api,
+        }
+        try:
+            from turbofit_runtime import hermes_bridge
+
+            bridge = hermes_bridge.report()
+            payload["hermes_runtime"] = {
+                "summary": bridge["summary"],
+                "adopted": bridge["adopted"],
+            }
+        except Exception:  # noqa: BLE001 - health must answer even if the bridge does not
+            payload["hermes_runtime"] = {"summary": "unavailable"}
+        if declared and is_api:
+            payload["declared_rung"] = declared.get("rung_id")
+            payload["note"] = (
+                "the local rung yielded to external GPU pressure; this node is "
+                "answering from a hosted API"
+                if main_state == "yielded"
+                else "the local rung is not serving; this node is answering from a hosted API"
+            )
+        self._send_json(200 if ok else 503, payload)
 
     def _send_json(self, status, payload, extra_headers=None):
         body = json.dumps(payload, indent=2).encode()

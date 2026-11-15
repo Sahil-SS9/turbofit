@@ -279,6 +279,12 @@ If `http://127.0.0.1:8091/v1/models` is connection-refused, the Turbofit provide
 
 After a controller restart `/v1/models` reports `residency=unknown` until the first request loads the model (about 20-40 s). That is normal on a quiet service, not a fault: send one small chat request, then re-check residency before diagnosing.
 
+### Residency yielded while other GPU work holds the cards
+
+- A request answering `no_backend` / "Local residency controller unavailable" means the adaptive chain has contracted to the yield rung (residency released because no model rung fits beside whatever occupies the cards), not a crashed process. Confirm with `turbofit_status` (`dials.chain` active level `d6`, kind `yield`) and treat it as designed contraction: never restart the controller, the gateway or the occupying job, and never hand-load a rung whose `needs_mb_per_card` exceeds the free memory.
+- Delegation children whose provider chain ends at `custom:turbofit-local` fail at their very first API call while residency is yielded, and retries change nothing. Re-dispatch their work to a cloud-provider profile or run it from a session already on a working provider, and keep rig-side GPU batches as background scripts the driving session executes itself — never hold a GPU batch hostage to local model availability.
+- Count the provider healthy only after a real one-token chat POST (model `active:main`) returns text; the gateway can list every model in `/v1/models` while residency is yielded.
+
 If the platform reports a driver/runtime mismatch, stop the real pressure test. Do not attempt blind driver reloads or disruptive accelerator work.
 
 Full architecture and schema: `README.md`.

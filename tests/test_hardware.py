@@ -220,6 +220,63 @@ def test_probe_falls_back_to_vulkan_on_windows_with_dedicated_heap_capacity() ->
     assert fingerprint.backends == ("vulkan",)
 
 
+def test_vulkan_probe_drops_integrated_gpu_when_discrete_gpus_present() -> None:
+    # A desktop box with discrete cards: the iGPU's device-local heap is
+    # shared system RAM (Arrow Lake reports ~46 GiB from a 64 GB machine),
+    # so it must not inflate device counts or VRAM totals.
+    raw = """GPU0:
+    vendorID           = 0x8086
+    deviceType         = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+    deviceName         = Intel(R) Graphics (BMG G31)
+    deviceUUID         = 868023e2-0000-0000-0400-000000000000
+    memoryHeaps: count = 1
+    memoryHeaps[0]:
+        size   = 34242297856
+        budget = 34242297856
+        flags: count = 1
+            MEMORY_HEAP_DEVICE_LOCAL_BIT
+    memoryTypes: count = 2
+GPU1:
+    vendorID           = 0x8086
+    deviceType         = PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+    deviceName         = Intel(R) Graphics (ARL)
+    deviceUUID         = 8680677d-0600-0000-0002-000000000000
+    memoryHeaps: count = 1
+    memoryHeaps[0]:
+        size   = 49976927232
+        budget = 49976927232
+        flags: count = 1
+            MEMORY_HEAP_DEVICE_LOCAL_BIT
+    memoryTypes: count = 2
+"""
+
+    devices = parse_vulkaninfo_text(raw)
+
+    assert [device.name for device in devices] == ["Intel(R) Graphics (BMG G31)"]
+    assert devices[0].memory_total_mb == 32656
+
+
+def test_vulkan_probe_keeps_integrated_gpu_when_no_discrete_gpus() -> None:
+    raw = """GPU0:
+    vendorID           = 0x8086
+    deviceType         = PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+    deviceName         = Intel(R) Graphics (ARL)
+    deviceUUID         = 8680677d-0600-0000-0002-000000000000
+    memoryHeaps: count = 1
+    memoryHeaps[0]:
+        size   = 49976927232
+        budget = 49976927232
+        flags: count = 1
+            MEMORY_HEAP_DEVICE_LOCAL_BIT
+    memoryTypes: count = 2
+"""
+
+    devices = parse_vulkaninfo_text(raw)
+
+    assert len(devices) == 1
+    assert devices[0].name == "Intel(R) Graphics (ARL)"
+
+
 def test_probe_falls_back_to_vulkan_on_linux_when_cuda_and_rocm_are_absent() -> None:
     raw = """GPU0:
     vendorID           = 0x1002
@@ -562,3 +619,12 @@ def test_probe_gb10_survives_a_libc_without_the_sysconf_names(
     assert fingerprint.system_ram_mb == 131072
     assert fingerprint.devices[0].memory_total_mb == 131072
     assert fingerprint.memory_pool_kind == "unified"
+
+def test_apple_silicon_without_enumerated_gpu_is_unified_not_cpu() -> None:
+    """A MacBook reports no discrete device; its RAM is still the GPU's memory."""
+    unified = HardwareFingerprint(os="darwin", architecture="arm64", system_ram_mb=32768)
+    assert unified.memory_pool_kind == "unified"
+    intel_mac = HardwareFingerprint(os="darwin", architecture="x86_64", system_ram_mb=32768)
+    assert intel_mac.memory_pool_kind == "cpu"
+    linux = HardwareFingerprint(os="linux", architecture="x86_64", system_ram_mb=32768)
+    assert linux.memory_pool_kind == "cpu"

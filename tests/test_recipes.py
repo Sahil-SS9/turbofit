@@ -228,7 +228,7 @@ def test_every_resolved_component_has_bounded_turbohaul_microbatching() -> None:
     book = RecipeBook.load(RECIPES, platform_name="linux")
     cases = (
         row("Carwin Nano", "auto", 131_072),
-        row("qwen3-8-27b-q4-mtp", "ornith-1-5-35a3b", 262_144),
+        row("qwen3-8-27b-q4-mtp", "cyber-tiel-coder-35b-a3b-ud-q4-k-xl", 262_144),
         row("qwen3-8-27b-gsq-rco-iq3s", "auto", 65_536),
     )
 
@@ -282,16 +282,16 @@ def test_every_catalog_configuration_compiles_to_an_actual_jinja_launch_recipe()
 
 
 
-def test_ornith_aux_compiles_with_expert_offload() -> None:
+def test_cyber_tiel_aux_compiles_with_expert_offload() -> None:
     recipe = RecipeBook.load(RECIPES).resolve_catalog_configuration({
-        "id": "qwen3-8-27b-gsq-rco-iq3s--ornith-1-5-35a3b--64k",
+        "id": "qwen3-8-27b-gsq-rco-iq3s--cyber-tiel-coder-35b-a3b-ud-q4-k-xl--64k",
         "main": "qwen3-8-27b-gsq-rco-iq3s",
-        "auxiliary": "ornith-1-5-35a3b",
+        "auxiliary": "cyber-tiel-coder-35b-a3b-ud-q4-k-xl",
         "context": 65_536,
         "status": "candidate",
     })
     aux = next(item for item in recipe.components if item.role == "aux")
-    assert aux.model_path.endswith("Ornith-1.5-35B-Q4_K_M.gguf")
+    assert aux.model_path.endswith("Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_M.gguf")
     assert "--cpu-moe" in aux.command
 
 
@@ -425,3 +425,127 @@ def test_unified_memory_qwen_1m_uses_one_shared_pool_without_host_gpu_double_cou
         context=1_048_576,
     )
     assert direct.gpu == "0"
+
+def test_vllm_flavor_serves_a_checkpoint_directory(tmp_path) -> None:
+    payload = json.loads(RECIPES.read_text())
+    model_dir = tmp_path / "Inkling-2-Small"
+    model_dir.mkdir()
+    payload["models"]["Inkling Test"] = {
+        "alias": "inkling-test",
+        "kind": "process",
+        "binary": "/opt/vllm/bin/vllm",
+        "model_root": str(model_dir.parent),
+        "model": model_dir.name,
+        "port": 11999,
+        "native_context": 131072,
+        "max_context": 131072,
+        "runtime_flavor": "vllm",
+        "tensor_parallel_size": 2,
+        "gpu_memory_utilization": 0.9,
+        "methods": {"131072": "baseline"},
+    }
+    payload["variants"]["inkling-test"] = {
+        "family": "Inkling Test",
+        "alias": "inkling-test",
+        "model": str(model_dir),
+        "draft": "",
+        "methods": {"131072": "baseline"},
+    }
+    path = tmp_path / "recipes.json"
+    path.write_text(json.dumps(payload))
+    component = RecipeBook.load(path, platform_name="linux").resolve(
+        row("Inkling Test", "auto", 131_072)
+    ).components[0]
+    command = list(component.command)
+    assert command[1] == "serve"
+    assert command[2] == str(model_dir)
+    assert command[command.index("--served-model-name") + 1] == "inkling-test"
+    assert command[command.index("--max-model-len") + 1] == "131072"
+    assert command[command.index("--tensor-parallel-size") + 1] == "2"
+    assert command[command.index("--gpu-memory-utilization") + 1] == "0.9"
+
+
+def test_vllm_flavor_rejects_a_gguf_file(tmp_path) -> None:
+    payload = json.loads(RECIPES.read_text())
+    payload["models"]["Inkling Test"] = {
+        "alias": "inkling-test", "kind": "process", "binary": "/opt/vllm/bin/vllm",
+        "model_root": str(tmp_path), "model": "model.gguf", "port": 11998,
+        "native_context": 65536, "max_context": 65536, "runtime_flavor": "vllm",
+        "methods": {"65536": "baseline"},
+    }
+    payload["variants"]["inkling-test"] = {
+        "family": "Inkling Test", "alias": "inkling-test",
+        "model": str(tmp_path / "model.gguf"), "draft": "",
+        "methods": {"65536": "baseline"},
+    }
+    path = tmp_path / "recipes.json"
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="vllm flavor"):
+        RecipeBook.load(path, platform_name="linux").resolve(row("Inkling Test", "auto", 65_536))
+
+
+def _runtime_layout(tmp_path: Path, directories: dict[str, str]) -> Path:
+    root = tmp_path / "runtimes"
+    for directory, body in directories.items():
+        binary = root / directory / "build-cuda" / "bin" / "llama-server"
+        binary.parent.mkdir(parents=True)
+        binary.write_text(body)
+    return root
+
+
+def test_bare_runtime_name_resolves_to_the_revision_suffixed_install(tmp_path: Path) -> None:
+    """The installer writes `<name>-<sha>`; manifests may name the bare `<name>`."""
+    root = _runtime_layout(tmp_path, {"prism-llama.cpp-9ca265a5": "pinned"})
+
+    resolved = resolve_native_binary(
+        root / "prism-llama.cpp" / "build-cuda" / "bin" / "llama-server",
+        platform_name="linux",
+        manifest_path=tmp_path / "absent.json",
+    )
+
+    assert Path(resolved) == root / "prism-llama.cpp-9ca265a5" / "build-cuda" / "bin" / "llama-server"
+
+
+def test_pinned_revision_wins_over_a_stale_sibling_install(tmp_path: Path) -> None:
+    root = _runtime_layout(
+        tmp_path, {"prism-llama.cpp-aaaaaaaa": "stale", "prism-llama.cpp-bbbbbbbb": "pinned"}
+    )
+    manifest = tmp_path / "native-runtimes.json"
+    manifest.write_text(json.dumps({"schema": "turbofit.native-runtimes/v1", "runtimes": [
+        {"id": "prism-llama.cpp", "revision": "bbbbbbbb"}
+    ]}))
+
+    resolved = resolve_native_binary(
+        root / "prism-llama.cpp-aaaaaaaa" / "build-cuda" / "bin" / "llama-server",
+        platform_name="linux",
+        manifest_path=manifest,
+    )
+
+    assert Path(resolved) == root / "prism-llama.cpp-bbbbbbbb" / "build-cuda" / "bin" / "llama-server"
+
+
+def test_manifest_flavor_prefix_matches_the_bare_checkout_name(tmp_path: Path) -> None:
+    """`mainline-llama.cpp` is installed as `runtimes/llama.cpp-<sha>/`."""
+    root = _runtime_layout(
+        tmp_path, {"llama.cpp-cccccccc": "mainline", "llama.cpp-dddddddd": "old"}
+    )
+    manifest = tmp_path / "native-runtimes.json"
+    manifest.write_text(json.dumps({"schema": "turbofit.native-runtimes/v1", "runtimes": [
+        {"id": "mainline-llama.cpp", "revision": "cccccccc"}
+    ]}))
+
+    resolved = resolve_native_binary(
+        root / "llama.cpp" / "build-cuda" / "bin" / "llama-server",
+        platform_name="linux",
+        manifest_path=manifest,
+    )
+
+    assert Path(resolved) == root / "llama.cpp-cccccccc" / "build-cuda" / "bin" / "llama-server"
+
+
+def test_absent_runtime_install_keeps_the_requested_path_for_the_error(tmp_path: Path) -> None:
+    requested = tmp_path / "runtimes" / "prism-llama.cpp" / "build-cuda" / "bin" / "llama-server"
+
+    assert resolve_native_binary(
+        requested, platform_name="linux", manifest_path=tmp_path / "absent.json"
+    ) == str(requested)

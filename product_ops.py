@@ -13,6 +13,8 @@ try:
 except ImportError:  # pytest and scripts import this as a top-level module
     import plugin_tools
 
+from turbofit_runtime.artifacts import inspect_file
+
 TURBOFIT_GIT = "https://github.com/SouthpawIN/turbofit.git"
 PREFERENCE_ALIASES = {
     "intelligence": "intelligence",
@@ -205,8 +207,6 @@ def serve_tailnet(
     provider_https_port: int = 9443,
 ) -> dict[str, Any]:
     """Publish the local Turbofit /v1 gateway on the private tailnet."""
-    from hermes_cli.config import load_config
-
     publication = plugin_tools.publish_tailnet(
         dashboard_local_port=dashboard_local_port,
         provider_local_port=provider_local_port,
@@ -214,14 +214,9 @@ def serve_tailnet(
         provider_https_port=provider_https_port,
     )
     with plugin_tools._CONFIG_LOCK:
-        canonical = plugin_tools.configure_hermes(
-            load_config(),
-            base_url=publication["provider_base_url"],
-        )
-        # Fan the tailnet URL to every profile home (same fix as
-        # plugin_tools.apply_configuration — see _save_configuration_to_all_homes).
+        # Merge just the Turbofit provider into each home's own configuration.
         plugin_tools._save_configuration_to_all_homes(
-            canonical,
+            {},
             base_url=publication["provider_base_url"],
         )
     return {
@@ -273,14 +268,24 @@ def _family_files(family: str) -> list[dict[str, Any]]:
         if family not in families:
             continue
         destination = module.safe_destination(root, str(item["destination"]))
-        present = destination.is_file()
+        expected_raw = item.get("size_bytes")
+        expected = (
+            int(expected_raw)
+            if isinstance(expected_raw, int) and not isinstance(expected_raw, bool) and expected_raw > 0
+            else None
+        )
+        # A 15-byte placeholder is not an installed model: engines report a
+        # bare "failed to load model" and the dashboard claimed it was present.
+        state = inspect_file(destination, expected)
         found.append(
             {
                 "family": family,
                 "destination": str(item["destination"]),
                 "path": str(destination),
-                "present": present,
-                "size_bytes": destination.stat().st_size if present else 0,
+                "present": state.present,
+                "size_bytes": state.size_bytes,
+                "expected_bytes": state.expected_bytes,
+                "reason": state.reason,
             }
         )
     return found
@@ -364,4 +369,59 @@ def retire_local_model(family: str, action: str) -> dict[str, Any]:
             if action == "archive"
             else f"Deleted {len(deleted)} file(s) for {token}."
         ),
+    }
+
+
+def available_models() -> dict[str, Any]:
+    """Every catalog model the user can choose, with on-disk presence.
+
+    `local_model_replacement` answers a different question ("should we retire
+    what you have?"), so the dashboard was showing one family instead of the
+    catalog. This returns the whole list, default first.
+    """
+    import json
+
+    root = Path(__file__).resolve().parent
+    catalog = json.loads((root / "references/model-catalog.json").read_text())
+    import os
+
+    model_root = Path(os.environ.get("TURBOFIT_MODEL_ROOT", Path.home() / "Models/storage/gguf"))
+    present_families: set[str] = set()
+    for item in _artifact_rows():
+        destination = item.get("destination") or ""
+        target = model_root / destination if destination else None
+        if target is None or not target.exists():
+            continue
+        expected_raw = item.get("size_bytes")
+        expected = (
+            int(expected_raw)
+            if isinstance(expected_raw, int) and not isinstance(expected_raw, bool) and expected_raw > 0
+            else None
+        )
+        if not inspect_file(target, expected).present:
+            continue
+        for family in item.get("families") or []:
+            present_families.add(str(family))
+    rows = []
+    for model in catalog.get("models") or []:
+        if not isinstance(model, Mapping):
+            continue
+        rows.append({
+            "id": model.get("id"),
+            "name": model.get("name"),
+            "family": model.get("family"),
+            "quantization": model.get("quantization"),
+            "engine": (model.get("runtime_features") or ["llama.cpp"])[0],
+            "contexts": list(model.get("supported_contexts") or []),
+            "roles": list(model.get("roles") or []),
+            "present": model.get("id") in present_families,
+            "auxiliary_default": bool(model.get("roles") and "aux" in model["roles"]
+                                      and catalog.get("auxiliary_options", [None])[0] == model.get("id")),
+        })
+    return {
+        "ok": True,
+        "total": len(rows),
+        "installed": sum(1 for row in rows if row["present"]),
+        "auxiliary_options": list(catalog.get("auxiliary_options") or []),
+        "models": rows,
     }

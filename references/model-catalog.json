@@ -7,11 +7,7 @@
   1048576
  ],
  "auxiliary_options": [
-  "maple-preview-tq2",
-  "ornith-1-5-35a3b",
-  "qwen3-8-flash-next-strata",
-  "carwin-nano",
-  "auto"
+  "maple-preview-tq2"
  ],
  "models": [
   {
@@ -152,41 +148,6 @@
    "upstream_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
   },
   {
-   "id": "carwin-nano",
-   "name": "Carwin MoE Nano MTP",
-   "family": "Carwin Nano",
-   "source": "https://huggingface.co/isneezekittens/Carwin-MoE-Nano-GGUF",
-   "artifact": "carwin-moe-Nano.gguf",
-   "quantization": "native",
-   "vision": false,
-   "moe": true,
-   "runtime_features": [
-    "mtp",
-    "expert-offload"
-   ],
-   "roles": [
-    "aux"
-   ],
-   "revision": "ae4705a9b6c6051fa59615665eb2d2d1e2884557"
-  },
-  {
-   "id": "carwin-nano-no-mtp",
-   "name": "Carwin MoE Nano No MTP",
-   "family": "Carwin Nano",
-   "source": "https://huggingface.co/isneezekittens/Carwin-MoE-Nano-GGUF",
-   "artifact": "carwin-moe-Nano.gguf",
-   "quantization": "native",
-   "vision": false,
-   "moe": true,
-   "runtime_features": [
-    "expert-offload"
-   ],
-   "roles": [
-    "aux"
-   ],
-   "revision": "ae4705a9b6c6051fa59615665eb2d2d1e2884557"
-  },
-  {
    "id": "ternary-bonsai-27b",
    "name": "Ternary Bonsai 27B Q2_0",
    "family": "Ternary Bonsai 27B",
@@ -200,7 +161,7 @@
     "main",
     "aux"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-dspark-bf16",
@@ -218,7 +179,7 @@
     "main",
     "aux"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-dspark",
@@ -236,7 +197,7 @@
     "main",
     "aux"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-compact-vision-bf16",
@@ -253,7 +214,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-compact-vision-bf16-dspark-bf16",
@@ -271,7 +232,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-compact-vision-bf16-dspark-q4",
@@ -289,7 +250,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16",
@@ -304,7 +265,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16-dspark-bf16",
@@ -321,7 +282,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16-dspark-q4",
@@ -338,7 +299,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16-vision-bf16",
@@ -355,7 +316,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16-vision-dspark",
@@ -373,7 +334,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "ternary-bonsai-27b-fp16-vision-bf16-dspark-q4",
@@ -391,7 +352,7 @@
    "roles": [
     "main"
    ],
-   "revision": "abbae723028d71be674e71e1a71201a6f43fab22"
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9"
   },
   {
    "id": "bonsai-27b",
@@ -779,45 +740,6 @@
    "upstream_source": "https://huggingface.co/unsloth/Laguna-S-2.1-GGUF"
   },
   {
-   "id": "ornith-1-5-35a3b",
-   "name": "Ornith 1.5 35B-A3B Q4_K_M",
-   "family": "Ornith 1.5 35A3B",
-   "source": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-GGUF",
-   "artifact": "Ornith-1.5-35B-Q4_K_M.gguf",
-   "quantization": "Q4_K_M",
-   "vision": true,
-   "moe": true,
-   "runtime_features": [
-    "expert-offload",
-    "vision-projector"
-   ],
-   "roles": [
-    "aux"
-   ],
-   "revision": "fbbaed45c2f0e200276ffa51701a24d45dc7f57e",
-   "upstream_source": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B"
-  },
-  {
-   "id": "ornith-1-5-oq4e-mtp",
-   "name": "Ornith 1.5 35B-A3B oQ4e MTP",
-   "family": "Ornith 1.5 35A3B",
-   "source": "https://huggingface.co/dotyerts/Ornith-1.5-35B-A3B-oQ4e-mtp",
-   "artifact": "Ornith-1.5-35B-A3B-oQ4e-mtp",
-   "quantization": "oQ4e-MTP",
-   "vision": true,
-   "moe": true,
-   "runtime_features": [
-    "mtp",
-    "mlx"
-   ],
-   "roles": [
-    "aux",
-    "main"
-   ],
-   "revision": "74d4e12c62e9bcd7b69cb290dee4eed76222e308",
-   "upstream_source": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B"
-  },
-  {
    "id": "maple-preview-tq2",
    "name": "Maple Preview 20B-A1B TQ2_0",
    "family": "Maple Preview 20B-A1B",
@@ -841,26 +763,6 @@
    "upstream_source": "https://huggingface.co/deepgrove/maple-preview"
   },
   {
-   "id": "ornith-1-5-oq8e-mtp",
-   "name": "Ornith 1.5 35B-A3B oQ8e MTP",
-   "family": "Ornith 1.5 35A3B",
-   "source": "https://huggingface.co/dotyerts/Ornith-1.5-35B-A3B-oQ8e-mtp",
-   "artifact": "Ornith-1.5-35B-A3B-oQ8e-mtp",
-   "quantization": "oQ8e-MTP",
-   "vision": true,
-   "moe": true,
-   "runtime_features": [
-    "mtp",
-    "mlx"
-   ],
-   "roles": [
-    "aux",
-    "main"
-   ],
-   "revision": "867508b47eb34dc273f98c3dabad0012373b2b90",
-   "upstream_source": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B"
-  },
-  {
    "id": "qwen3-8-27b-gsq-rco-iq3s",
    "name": "Qwen 3.8 27B GSQ-RCO IQ3_S",
    "family": "Qwen 3.8 27B",
@@ -875,7 +777,7 @@
    "roles": [
     "main"
    ],
-   "revision": "b71b542000a34ed0eb1e6a3a92f906e593728c65",
+   "revision": "d562806dbafae37109975e970aae91b43e73b440",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -893,7 +795,7 @@
    "roles": [
     "main"
    ],
-   "revision": "b71b542000a34ed0eb1e6a3a92f906e593728c65",
+   "revision": "d562806dbafae37109975e970aae91b43e73b440",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -911,7 +813,7 @@
    "roles": [
     "main"
    ],
-   "revision": "b71b542000a34ed0eb1e6a3a92f906e593728c65",
+   "revision": "d562806dbafae37109975e970aae91b43e73b440",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -929,7 +831,7 @@
    "roles": [
     "main"
    ],
-   "revision": "b71b542000a34ed0eb1e6a3a92f906e593728c65",
+   "revision": "d562806dbafae37109975e970aae91b43e73b440",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -975,7 +877,7 @@
     "main",
     "aux"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -995,7 +897,7 @@
     "main",
     "aux"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -1014,7 +916,7 @@
    "roles": [
     "main"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "839bd57023c1558945afea70a74fa83c054f35f9",
    "upstream_source": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },
   {
@@ -1034,7 +936,7 @@
     "main",
     "aux"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "8383719435ce568d77a96495a8fc008190463e93",
    "upstream_source": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf"
   },
   {
@@ -1061,8 +963,8 @@
    "name": "Cyber-Tiel Coder 35B-A3B UD-Q4_K_XL",
    "family": "Cyber-Tiel Coder 35B-A3B",
    "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
-   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
-   "quantization": "UD-Q4_K_XL",
+   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_M.gguf",
+   "quantization": "UD-Q4_K_M",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1070,9 +972,10 @@
     "expert-offload"
    ],
    "roles": [
-    "main"
+    "main",
+    "aux"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "e59f05c5bda27883c2846bd6163acba3f5e00a8e",
    "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
   },
   {
@@ -1080,8 +983,8 @@
    "name": "Cyber-Tiel Coder 35B-A3B UD-Q5_K_XL",
    "family": "Cyber-Tiel Coder 35B-A3B",
    "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
-   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q5_K_XL.gguf",
-   "quantization": "UD-Q5_K_XL",
+   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q4_K_S.gguf",
+   "quantization": "UD-Q4_K_S",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1091,7 +994,7 @@
    "roles": [
     "main"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "e59f05c5bda27883c2846bd6163acba3f5e00a8e",
    "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
   },
   {
@@ -1099,8 +1002,8 @@
    "name": "Cyber-Tiel Coder 35B-A3B UD-Q6_K_XL",
    "family": "Cyber-Tiel Coder 35B-A3B",
    "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
-   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q6_K_XL.gguf",
-   "quantization": "UD-Q6_K_XL",
+   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q3_K_XL.gguf",
+   "quantization": "UD-Q3_K_XL",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1110,7 +1013,7 @@
    "roles": [
     "main"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "e59f05c5bda27883c2846bd6163acba3f5e00a8e",
    "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
   },
   {
@@ -1118,8 +1021,8 @@
    "name": "Cyber-Tiel Coder 35B-A3B UD-Q8_K_XL",
    "family": "Cyber-Tiel Coder 35B-A3B",
    "source": "https://huggingface.co/peculiar-ragdoll/Cyber-Tiel-Coder-35B-A3B-GGUF",
-   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-Q8_K_XL.gguf",
-   "quantization": "UD-Q8_K_XL",
+   "artifact": "Cyber-Tiel-Coder-35B-A3B-UD-IQ4_XS.gguf",
+   "quantization": "GSQ-RCO-IQ4_XS",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1129,7 +1032,7 @@
    "roles": [
     "main"
    ],
-   "revision": "0669b98607d47046c7c2b3f801011d54a08cfccf",
+   "revision": "e59f05c5bda27883c2846bd6163acba3f5e00a8e",
    "upstream_source": "https://huggingface.co/peculiar-ragdoll/Tiel-Coder-35B-A3B"
   },
   {
@@ -1286,9 +1189,9 @@
    "id": "flint-40a2-5b-mix12g",
    "name": "Flint 40A2.5B Mix-12G",
    "family": "Flint 40A2.5B",
-   "source": "https://huggingface.co/orcarouter/Flint-abliterated-GGUF",
-   "artifact": "Flint-abliterated-Mix-12G.gguf",
-   "quantization": "Mix-12G",
+   "source": "https://huggingface.co/dima6312/Flint-40B-A2.5B-abliterated-GGUF",
+   "artifact": "Flint-40B-A2.5B-abliterated-Q4_K_M.gguf",
+   "quantization": "Q4_K_M",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1298,7 +1201,7 @@
     "main",
     "aux"
    ],
-   "revision": "4d618d1cb1d7782d4b08762fb664487bf5e4d3c4",
+   "revision": "1be756925ce786f5d7eb10725195764a46d596fc",
    "supported_contexts": [
     65536,
     131072
@@ -1308,9 +1211,9 @@
    "id": "flint-40a2-5b-mix24g",
    "name": "Flint 40A2.5B Mix-24G",
    "family": "Flint 40A2.5B",
-   "source": "https://huggingface.co/orcarouter/Flint-abliterated-GGUF",
-   "artifact": "Flint-abliterated-Mix-24G.gguf",
-   "quantization": "Mix-24G",
+   "source": "https://huggingface.co/dima6312/Flint-40B-A2.5B-abliterated-GGUF",
+   "artifact": "Flint-40B-A2.5B-abliterated-Q5_K_M.gguf",
+   "quantization": "Q5_K_M",
    "vision": false,
    "moe": true,
    "runtime_features": [
@@ -1319,7 +1222,7 @@
    "roles": [
     "main"
    ],
-   "revision": "4d618d1cb1d7782d4b08762fb664487bf5e4d3c4",
+   "revision": "1be756925ce786f5d7eb10725195764a46d596fc",
    "supported_contexts": [
     65536,
     131072,
@@ -1736,6 +1639,32 @@
     65536,
     131072,
     262144
+   ]
+  },
+  {
+   "id": "inkling-2-small",
+   "name": "Inkling 2 Small (vLLM)",
+   "family": "Inkling 2 Small",
+   "source": "https://huggingface.co/thinkingmachines/Inkling-2-Small",
+   "artifact": "Inkling-2-Small",
+   "quantization": "bf16",
+   "vision": true,
+   "moe": true,
+   "runtime_features": [
+    "vllm",
+    "vision",
+    "mtp",
+    "expert-offload"
+   ],
+   "roles": [
+    "main"
+   ],
+   "revision": "ef5bf64c1b8e7d0e57b284e10c6891f8db6304c4",
+   "supported_contexts": [
+    65536,
+    131072,
+    262144,
+    1048576
    ]
   }
  ]

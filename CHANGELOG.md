@@ -1,5 +1,214 @@
 # Changelog
 
+## Unreleased — the index is the four Hermes suites, and nothing else
+
+- **`intelligence_score` is now the Hermes Index**: the equal-weight mean pass@1
+  across `hermes-bench`, `terminal-bench-4`, `terminal-bench-science` and
+  `skills-bench` — the same four suites Nous Research averages — over the suites
+  actually measured, with `suite_coverage` reporting `N of 4` on every record.
+- **`deep-swe` and `agentic-pair` are retired as scores.** They remain harnesses
+  (`scripts/turbofit-deepswe` is untouched), but a measurement carrying either
+  name is rejected by validation, so no DeepSWE number can become an index. The
+  one committed record scored that way is archived as `superseded` with its
+  provenance intact, and the README renders `no measurements yet` for it.
+- **New `scripts/turbofit-hermes-suite`** prepares, runs and summarizes one suite
+  against a TurboFit-served local OpenAI-compatible endpoint, pinned by harness
+  version and dataset revision: Harbor `0.26.0` for
+  `terminal-bench/terminal-bench@4.1.0` and
+  `terminal-bench-science/terminal-bench-science@0.1.0`, benchflow `0.6.3` for
+  `skillsbench@1.1` (`b63b7b2`, all 87 task digests re-verified).
+- **Hermes Bench is recorded as `unavailable: nous-internal`** with the reason and
+  the fix, never as a zero, so a local index always states 3/4 coverage honestly.
+- **The campaign runs the suites per level** (screening = one task per suite;
+  release = 66/70/87) and refuses to score a suite whose trials lack a verifier
+  reward: that is an infrastructure failure with `status: invalid`, not a model
+  scoring zero.
+- `docs/hermes-index.md` documents the definition, pins, commands and evidence
+  format; `docs/hermes-index-results.md` carries the first real local run.
+
+## Unreleased — first run scans, recommends one model, downloads only that
+
+- **`scripts/turbofit-onboard`** is the first-run entry point: it detects the
+  host, takes the capacity band from `tier_report.native_tier`, recommends the
+  measured winner for that band (or, where nothing is measured, the first
+  fallback-chain rung that fits, labelled `portable-fit`), and prints exactly
+  what it would fetch — each artifact with its byte size, which files are
+  already verified on disk, the optional fallback-chain rungs with their own
+  sizes, and the total. Dry run by default; `--download` fetches that same
+  list; `--include-fallback N|all` opts into rungs.
+- **It never downloads the library**: the plan is the recommendation plus the
+  rungs the user accepted, and `--all` is refused on this path. Presence is
+  never assumed — complete files are skipped and counted, stubs are replaced,
+  absent files are sized — and a model whose recipe resolves a file the pinned
+  manifest cannot fetch is reported as un-fetchable instead of silently
+  skipped.
+- **The dashboard Fit card shows the plan**: `/fit` now carries an `onboard`
+  block (`download_bytes`, rungs, placement, message), `GET /onboard` returns
+  the full plan, and `POST /onboard/download` runs exactly it. The card renders
+  "This run would download N GiB" and a `Download N GiB` button, with a toggle
+  for the fallback rungs.
+- **Offload is labelled where it is shown**: fit-view recommendations now carry
+  `placement` (`kind`, `n_cpu_moe`, `ram_requirement`, label), so an
+  expert-offload row states the system RAM it needs instead of only failing
+  later.
+
+## Unreleased — a missing engine binary waits, it does not fail
+
+- **`waiting-runtime` row status**: the catalog campaign resolves each
+  recipe's engine binary before selecting a row. If the build is not installed
+  (`~/.local/share/turbofit/runtimes/<engine>/build-<backend>/bin/…` missing,
+  or a bare command absent from `PATH`), the row is recorded as
+  `waiting-runtime` with the binary path and the install hint, excluded from
+  `pending`/`runnable`, and counted next to `waiting_download` and
+  `waiting_memory` in `scripts/turbofit-catalog-campaign status`, so a
+  one-command prerequisite is no longer reported as a model failure.
+  `pending + resolved + deferred + waiting_download + waiting_memory +
+  waiting_runtime` still equals all active rows. The launch-time
+  `engine binary not found` error is unchanged.
+## Unreleased — the local video pipeline actually runs
+
+- **`animatediff` runtime with a real receipt**: `turbofit_runtime.media_pipeline`
+  declares every catalog runtime, probes it (`waiting-runtime`,
+  `waiting-download`, `waiting-memory`, `ready`) and builds the exact
+  invocation; `turbofit_runtime.animatediff_worker` is the only module that
+  imports torch and runs as a subprocess. `scripts/generate-local-video` renders
+  a prompt manifest into shots and assembles them with ffmpeg. First verified
+  output: `promo/local-video/`, two 16-frame shots, 640x384, 3.5 s, 5.6 GB peak
+  VRAM, 1 min 50 s wall clock on one RTX 3090.
+- **A missing engine or missing weights is an actionable error, not an
+  `ImportError`**: the raised `MediaRuntimeError` names the runtime, the status
+  and the `uv pip install` / pinned `hf download` line that fixes it. A worker
+  that exits 0 without writing its output is reported as a failure instead of a
+  silent no-op.
+- **`recommend_multimodal` can no longer overclaim**: it accepts probed runtime
+  states and downgrades any entry whose engine or weights are absent to
+  `install-adapter` with `blocked_by` and `fix_command`. `minimax-h3` is now a
+  `candidate` (its 498 GB weights were never materialized and no clip was ever
+  produced) instead of advertising `run-turbofit-local` on memory fit alone.
+- **Catalog entries can pin multiple components** (`components: [{role, source,
+  revision}]`), so a video model that needs a base plus a motion adapter is
+  reproducible rather than half-specified.
+
+## Unreleased — Q4 is a quantization ceiling, not a target
+
+- **Nothing above the Q4 class is a default answer**: one policy module
+  (`turbofit_runtime/quant_policy.py`) classifies every catalog quant as
+  `allowed` (everything at or below Q4 — Q1/Q2/Q3/IQ2/IQ3/IQ4 and native
+  sub-24GB builds are first-class), `allowed-exception` (Q8_0 and
+  F16/BF16/FP16), or `excluded-by-default` (Q5/Q6 and equivalents). Low quants
+  are never ranked below, warned on, or scored against higher ones.
+- **Applied once, consumed everywhere**: tournament candidacy/placement
+  (`tier_fit.plan_candidates`), tournament validation, recommendation
+  (`recommend.recommend`, `intel_leaderboard`, `tier_report`, `allowed_lineup`),
+  and catalog-campaign row selection (`catalog_campaign.quant_policy_rows`).
+- **Exceptions state their reason**: a Q8/full-precision entry is offered only
+  when it fits the band (`fits-fully-in-vram`) or is marked `accuracy_tier`; the
+  tournament file records it in `quant_exceptions`. A Q5/Q6 entry is only ever
+  a candidate when its catalog entry carries a `quantization_justification`,
+  and the text is echoed in the output.
+- **Visible, not silent**: held-out families appear in each tier's
+  `quant_excluded` list with the reason; `turbofit-catalog-campaign status`
+  reports excluded campaign rows; leaderboard tiers record `quant_skipped`.
+- **Ladders stop escalating the quant with memory**: the unified ladder's
+  32–63 GB rungs are gone; 24–63 GB stays on Cyber-Tiel `UD-Q4_K_XL`, because
+  more RAM buys context headroom, not a wider build. Catalog entries and
+  artifacts for Q5/Q6 builds are untouched and remain explicitly runnable.
+- Tournaments are schema v2 (`quant_exceptions`, `quant_excluded`), regenerated
+  by `scripts/generate-hardware-tier-tournaments`; the tier report is
+  regenerated by `scripts/turbofit-hardware-tiers`.
+
+## Unreleased — downloads fetch every shard and survive a bad family
+
+- **Missing shards are downloaded, not fatal**: `scripts/download-artifacts`
+  no longer aborts with `ShardSetError` when a repo listing does not carry a
+  shard of a known set. The shard becomes a work item, is probed before the
+  rest of the set (so a genuinely removed shard fails fast instead of after
+  hundreds of GiB), and is verified against the weights floor when the repo
+  pins no size or hash for it. A shard the listing omits but upstream still
+  serves is now installed instead of ending the run.
+- **`--all` isolates per-family failures**: each family is attempted
+  independently; a gated/404/truncated artifact marks that family failed with
+  its reason and remaining bytes, and every remaining family still runs. The
+  exit status is non-zero only after the whole run, with a
+  `N families failed: …` summary.
+- **`check-artifact-existence --local`** now judges shard sets by filename, so
+  one shard of six on disk is reported as `incomplete-shard-set` rather than
+  complete because the pinned row matched.
+## Unreleased — tier placement is VRAM *and* system RAM
+
+- **Placement is two-dimensional.** A catalog main no longer has to fit the
+  tier's VRAM band to be offered: if it is MoE and its measured expert bytes fit
+  alongside the band in a stated RAM budget, it is published as an
+  **offload option** (`placement: "offload"`) with the GiB in RAM, the GiB left
+  on the GPU and the `--n-cpu-moe N/L` it needs. Full-GPU and offloaded
+  configurations are separate lists (`candidates` vs `offload_candidates`), so
+  "runs entirely on the GPU" can never be confused with "runs with 67 GiB of
+  experts in RAM". The arithmetic is `experts.plan_expert_offload` — the same
+  function the launcher uses — not a second fit model.
+- **RAM is a stated assumption, not a machine.** The committed tournaments and
+  report carry `ram_assumption`/`ram_budget` (default **128 GiB of available
+  system RAM**), overridable per run with `--ram-gb` or globally with
+  `TURBOFIT_RAM_GIB`; `scripts/turbofit-hardware-tiers` with no flag reads the
+  host's real `MemAvailable`. No personal RAM figure is committed.
+- **Expert bytes are measured.** `scripts/generate-model-footprints
+  --measure-experts` reads each pinned MoE artifact's GGUF header over HTTP
+  Range (no weights downloaded) and records `expert_bytes`/`expert_layers`
+  against the pinned revision; 29 of 30 MoE mains are measured, Inkling 2 Small
+  is unmeasured (repo unavailable) and is therefore never advertised as
+  offloadable. DeepSeek V4.1 Flash 1017, GLM 5.3 Flash (XS/S24/M/L) and Qwen 3.8
+  Flash Next become placeable at 48 GB and below for the first time.
+  See `docs/tier-placement.md`.
+
+## Unreleased — expert offload measured per host
+
+- **Models bigger than VRAM now run**: `auto_cpu_moe: true` on a recipe
+  measures the GGUF's real expert footprint (tensor table, not a size guess) and
+  this host's free VRAM/`MemAvailable`, then passes llama.cpp `--n-cpu-moe N`.
+  Models that fit still plan zero offload; an infeasible plan refuses to launch
+  with the planner's reason instead of an OOM. Strata/vLLM recipes never receive
+  the flag. Laguna S2.1, MiniMax M3 and Qwen 3.8 Flash Next Abliterated use it.
+  See `docs/expert-offload.md`.
+
+## Unreleased — one MoE family, one 64K floor
+
+- **`GET /api/plugins/turbofit/fit`**: one answer per hardware tier — the
+  configuration the intelligence leaderboard measured, its engine, whether every
+  artifact that configuration actually opens is present and complete, and the
+  Maple auxiliary. Tiers with no measurement say `no-measurements` instead of
+  borrowing a neighbour's recommendation, and a tier that cannot run states why
+  in one sentence (missing GiB, AVX-512 the engine needs, no measurements), not
+  a status code. `?tier=<gb>` narrows to one tier. The dashboard renders it as
+  "Fit · what to run on this machine".
+
+- **Catalog**: the retired 35B-A3B MoE family is gone. **Maple Preview TQ2_0
+  (`maple-preview-tq2`) is the only auxiliary** — `auxiliary_options` names one
+  concrete model, the sweep generates 290 rows (84 mains × Maple × their own
+  contexts), and Carwin Nano's two aux-only entries are retired. `auto` stays a
+  runtime routing mode (share the main process) and is never a matrix column.
+- **64K floor**: `context_floor` defaults to 65536 in `chain.py`,
+  `fallback-chain.json`, the Strata installer and every runtime profile; nothing
+  plans or ships a window below 64K. `context_steps()` raises a sub-floor window
+  to 64K rather than shedding below it.
+- **Data**: measurements, tournaments, tier reports, campaign state and download
+  groups for the retired family were removed rather than relabelled, so no
+  benchmark row is attributed to a model that never ran.
+- **`scripts/download-artifacts`**: imports the HuggingFace client lazily, so the
+  module loads (and tests run) without the network client installed.
+- **README**: a generated Hermes-Index table (`src/turbofit_runtime/intelligence_readme.py`)
+  now shows every measured configuration per memory tier — interim suite mean as
+  `index`, `suites measured / total`, tok/s, and `s/task @1k` in place of a dollar
+  cost. Unmeasured tiers stay listed as `no measurements yet`. `tools/sync-wiki-readme.sh`
+  re-renders it after the wiki copy, so the table survives a README sync.
+- **Tailnet federation**: the gateway now binds `0.0.0.0` by default (a loopback
+  gateway is invisible to every peer) and admits loopback/LAN/tailnet clients
+  only. Peer probes run concurrently under a deadline and classify `open` /
+  `refused` (peer up, gateway down) / `unreachable` / `unresolved` instead of
+  collapsing every failure into "no peers"; `TURBOFIT_TAILSCALE_SOCKET` is
+  honoured so rootless daemons are not reported as unavailable. `/v1/models`
+  advertises the node's RAM/VRAM bands, and remote entries are no longer
+  overwritten with local role metadata. Verified inventory and probe commands:
+  `docs/tailnet-federation.md`.
+
 ## 2.4.1 — pressure yield, external-unit rungs, naming
 
 - **Yield under external GPU pressure**: when a card is contended and no cheaper
@@ -65,20 +274,20 @@
 
 - Version surfaces are `2.3.0`.
 - Dedicated VRAM and integrated/RAM-only total memory are separate Fit List dimensions. 8 GB of VRAM is not 8 GB of RAM.
-- Dedicated 8 GB main candidate is Maple Preview 20B-A1B TQ2_0. Ornith remains the alternative when host RAM can hold offloaded experts. Bonsai stays in the catalog but is no longer the 8 GB default.
-- Shared total memory: Maple at 8–15 GB, Ornith 1.5 35A3B at 16–23 GB, Unleashed UD-Q3_K_XL at 24 GB+.
+- Dedicated 8 GB main candidate is Maple Preview 20B-A1B TQ2_0. Cyber-Tiel Coder remains the alternative when host RAM can hold offloaded experts. Bonsai stays in the catalog but is no longer the 8 GB default.
+- Shared total memory: Maple at 8–15 GB, Cyber-Tiel Coder 35B-A3B at 16–23 GB, Unleashed UD-Q3_K_XL at 24 GB+.
 - Maple is native 64K/128K only and needs the Maple llama.cpp fork. Auto on 8 GB is Maple 128K → 64K.
 - README is the whole-product 2.4 surface: Check, List, Desktop, slash, TurboSouth, Tailscale, engines, multimodal. Campaign depth stays in `docs/`.
 - Posters use the existing gold/mint starfield language.
 - Desktop shows a gold **New model recommended** card when Check suggests a replacement and the old weights are still installed: Keep both, Archive old model, or Delete old model.
 - Auto on `hardware-8gb` is Maple TQ2_0 at 128K, contracting to Maple 64K. Bonsai is no longer the 8 GB Auto floor.
 - Check now auditions llama.cpp, MLX, SGLang, vLLM, FreeToken, and Turbohaul Manager against the selected model pair. Maple GGUF is fork-only; vLLM/SGLang stay HF/FP8/NVFP4.
-- Compatible lanes are Fit List mains only. 8 GB VRAM + any host RAM is Maple or Ornith. Host-spill of a dense 27B is not a recommendation.
-- Default aux is Ornith oQ4e MTP at 40 GB+ total VRAM and oQ8e MTP at 64 GB+. Speed preference ranks Ornith over dense Qwen 27B. Unleashed stays the intelligence pick on 16/24 GB.
-- Unleashed Qwen 27B now serves with DFlash2 (`n_max=7`) on the pinned z-lab fork. Ornith oQ is MTP. Spec decode is the default where a draft exists.
+- Compatible lanes are Fit List mains only. 8 GB VRAM + any host RAM is Maple or Cyber-Tiel Coder. Host-spill of a dense 27B is not a recommendation.
+- Default aux is Cyber-Tiel Coder UD-Q4_K_XL at 40 GB+ total VRAM and UD-Q5_K_XL at 64 GB+. Speed preference ranks Cyber-Tiel Coder over dense Qwen 27B. Unleashed stays the intelligence pick on 16/24 GB.
+- Unleashed Qwen 27B now serves with DFlash2 (`n_max=7`) on the pinned z-lab fork. Cyber-Tiel Coder UD-Q is MTP. Spec decode is the default where a draft exists.
 - Desktop opens with speed/VRAM/RAM graphs, the live scale-down/up ladder, subscriptions, and Nous keyless free models instead of fallback JSON.
 
-## 2.3 — Unleashed / Ornith / Nous free fallback
+## 2.3 — Unleashed / Cyber-Tiel Coder / Nous free fallback
 
 ### Setup / troubleshooting
 
@@ -97,7 +306,7 @@
 
 ### Recommendations
 
-- Auto/Check will never recommend a 9B. Low-VRAM dedicated devices get Bonsai 27B and/or Ornith 1.5 35A3B. Ornith experts mmap from disk when host RAM is under 32 GB. Apple Silicon uses OrcaRouter Uncensored MLX 4/6/8-bit (never 2-bit). Integrated/unified non-Apple uses Ornith 1.5.
+- Auto/Check will never recommend a 9B. Low-VRAM dedicated devices get Bonsai 27B and/or Cyber-Tiel Coder 35B-A3B. Cyber-Tiel Coder experts mmap from disk when host RAM is under 32 GB. Apple Silicon uses OrcaRouter Uncensored MLX 4/6/8-bit (never 2-bit). Integrated/unified non-Apple uses Cyber-Tiel Coder 35B-A3B.
 
 ### Model runtime
 
@@ -106,7 +315,7 @@
 - Added an evidence-gated Qwen 3.8 27B DFlash2 candidate: pinned Inco Q4_K_M draft artifact, pinned z-lab llama.cpp PR runtime, 64K/128K/262K/1M recipes, and a hard no-cross-family guard preserving Bonsai's own DSpark sidecar.
 - Removed DeepSeek V4 Flash 0731 from the active catalog, recipes, downloads, and hardware-tier candidates.
 - Main Auto chain is now Bonsai 27B at 8GB, Qwen 3.8 27B Unleashed UD-IQ3_XXS at 16GB, UD-Q3_K_XL at 24–95GB, and the existing Qwen 3.8 27B 16-bit recipe at 96GB+ until an Unleashed FP16 GGUF is published.
-- Auxiliary authority is Ornith 1.5 35A3B, optional Carwin Nano, or auto. Ornith is MoE: scale-down offloads experts, then lowers context, then switches aux to auto, then a listed Unleashed quant, then Bonsai.
+- Auxiliary authority is Cyber-Tiel Coder 35B-A3B, optional Carwin Nano, or auto. Cyber-Tiel Coder is MoE: scale-down offloads experts, then lowers context, then switches aux to auto, then a listed Unleashed quant, then Bonsai.
 - Replaced the API fallback chain with the five looked-up Nous free/keyless models from the current Hermes-Agent catalog: `stealth/ox-alpha` (Ox Alpha, $0/$0 curated), `stepfun/step-3.7-flash:free`, `tencent/hy3:free`, `poolside/laguna-s-2.1:free`, `poolside/laguna-xs-2.1:free`. No Hermes-branded models. No NVIDIA NIM.
 
 ### Hermes plugin install

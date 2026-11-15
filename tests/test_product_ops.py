@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import yaml
-
 import json
 from pathlib import Path
+import sys
+from types import ModuleType
+
+import yaml
 
 import product_ops
 
@@ -123,7 +125,7 @@ def test_update_products_updates_plugin_desktop_and_turbosouth(monkeypatch, tmp_
 def test_recommended_families_follow_auto_memory_bands() -> None:
     import plugin_tools
 
-    assert plugin_tools.recommended_artifact_families(8 * 1024) == ["maple-preview-tq2", "ornith-1-5-35a3b"]
+    assert plugin_tools.recommended_artifact_families(8 * 1024) == ["maple-preview-tq2"]
     assert plugin_tools.recommended_artifact_families(16 * 1024)[0] == "qwen3-8-27b-gsq-rco-iq3xxs"
     assert plugin_tools.recommended_artifact_families(24 * 1024)[0] == "qwen3-8-27b-gsq-rco-iq3s"
     assert plugin_tools.recommended_artifact_families(96 * 1024)[0] == "qwen3-8-27b-bf16"
@@ -136,12 +138,13 @@ def test_retire_archives_old_family_and_refuses_recommended(tmp_path, monkeypatc
     monkeypatch.setenv("TURBOFIT_MODEL_ROOT", str(tmp_path))
     old = tmp_path / "Bonsai-27B" / "old.gguf"
     old.parent.mkdir(parents=True)
-    old.write_bytes(b"old-weights")
+    # Presence requires real weight sizes now; a placeholder counts as absent.
+    old.write_bytes(b"old-weights" + b"\0" * (1024 * 1024))
     monkeypatch.setattr(product_ops, "_artifact_rows", lambda: [
         {"destination": "Bonsai-27B/old.gguf", "families": ["bonsai-27b"]},
         {"destination": "Maple-Preview/maple-tq2_0.gguf", "families": ["maple-preview-tq2"]},
     ])
-    monkeypatch.setattr(product_ops.plugin_tools, "recommended_artifact_families", lambda usable_memory_mb=None: ["maple-preview-tq2", "ornith-1-5-35a3b"])
+    monkeypatch.setattr(product_ops.plugin_tools, "recommended_artifact_families", lambda usable_memory_mb=None: ["maple-preview-tq2", "cyber-tiel-coder-35b-a3b-ud-q4-k-xl"])
 
     offer = product_ops.local_model_replacement()
     assert offer["offer"] is True
@@ -188,13 +191,23 @@ def test_slash_update_and_shift_are_wired(monkeypatch) -> None:
 
 
 def test_serve_tailnet_publishes_provider_url(monkeypatch, tmp_path) -> None:
-    # Hermetic HERMES_HOME: the real _save_configuration_to_all_homes only fans
-    # out when $HERMES_HOME/profiles exists — the old test silently depended on
-    # the host's real ~/.hermes layout (KeyError 'saved' on machines without
-    # a profiles directory).
     hermes_home = tmp_path / ".hermes"
-    (hermes_home / "profiles" / "default").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    work = hermes_home / "profiles" / "work"
+    personal = hermes_home / "profiles" / "personal"
+    non_profiles = [hermes_home / "profiles" / name for name in ("desktop-plugins", ".deleted")]
+    for directory in non_profiles:
+        directory.mkdir(parents=True)
+    originals = {}
+    for home in (hermes_home, work, personal):
+        home.mkdir(parents=True, exist_ok=True)
+        originals[home] = {
+            "model": {"provider": "local", "default": home.name},
+            "fallback_providers": [{"provider": "other", "model": home.name}],
+            "providers": {home.name: {"api": f"https://{home.name.lstrip('.')}.example"}},
+        }
+        (home / "config.yaml").write_text(yaml.safe_dump(originals[home]), encoding="utf-8")
+    monkeypatch.setenv("HERMES_HOME", str(work))
+    tailnet_url = "https://box.tailnet.ts.net:9443/v1"
 
     monkeypatch.setattr(
         product_ops.plugin_tools,
@@ -202,38 +215,39 @@ def test_serve_tailnet_publishes_provider_url(monkeypatch, tmp_path) -> None:
         lambda **kwargs: {
             "ok": True,
             "dns_name": "box.tailnet.ts.net",
-            "provider_base_url": "https://box.tailnet.ts.net:9443/v1",
+            "provider_base_url": tailnet_url,
             "dashboard_url": "https://box.tailnet.ts.net:9444/",
         },
     )
-    saved = {}
-
-    class Lock:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *args):
-            return False
-
-    monkeypatch.setattr(product_ops.plugin_tools, "_CONFIG_LOCK", Lock())
-    monkeypatch.setattr(product_ops.plugin_tools, "configure_hermes", lambda config, **kwargs: saved.setdefault("url", kwargs.get("base_url")) or config)
-    import types
-    hermes_cli = types.ModuleType("hermes_cli")
-    config = types.ModuleType("hermes_cli.config")
-    config.load_config = lambda: {}
-    config.save_config = lambda *a, **k: saved.setdefault("saved", True)  # unused now
-    monkeypatch.setitem(__import__("sys").modules, "hermes_cli", hermes_cli)
-    monkeypatch.setitem(__import__("sys").modules, "hermes_cli.config", config)
+    # Emulate the old path's load of the active profile when reproducing the regression.
+    hermes_cli = ModuleType("hermes_cli")
+    config = ModuleType("hermes_cli.config")
+    config.load_config = lambda: yaml.safe_load((work / "config.yaml").read_text(encoding="utf-8"))
+    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli)
+    monkeypatch.setitem(sys.modules, "hermes_cli.config", config)
 
     result = product_ops.serve_tailnet()
 
     assert result["served"] is True
-    assert result["provider_base_url"].endswith(":9443/v1")
-    assert saved["url"] == "https://box.tailnet.ts.net:9443/v1"
-    # Every home gets its own config.yaml with the tailnet URL. The old stub called
-    # save_config (which always targets the active home) once per profile, so the
-    # URL never reached a profile at all.
-    for home in (hermes_home, hermes_home / "profiles" / "default"):
-        payload = yaml.safe_load((home / "config.yaml").read_text())
-        assert payload["providers"]["turbofit"]["api"] == "https://box.tailnet.ts.net:9443/v1"
+    assert result["provider_base_url"] == tailnet_url
+    for home, original in originals.items():
+        payload = yaml.safe_load((home / "config.yaml").read_text(encoding="utf-8"))
+        assert payload["providers"].pop("turbofit")["api"] == tailnet_url
+        assert payload == original
+    for directory in non_profiles:
+        assert not (directory / "config.yaml").exists()
 
+
+def test_available_models_lists_the_whole_catalog() -> None:
+    listing = product_ops.available_models()
+    catalog_models = json.loads(
+        (Path(product_ops.__file__).resolve().parent / "references/model-catalog.json").read_text()
+    )["models"]
+
+    assert listing["total"] == len(catalog_models)
+    assert len(listing["models"]) == len(catalog_models)
+    # the selector bug: one family is not a model list
+    assert listing["total"] > 50
+    assert all({"id", "family", "present"} <= set(row) for row in listing["models"])
+    # presence depends on whether the model root is materialized on this host
+    assert isinstance(listing["installed"], int)

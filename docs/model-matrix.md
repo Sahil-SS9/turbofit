@@ -13,8 +13,8 @@ scripts/expand-multipart-artifacts
 
 Current generated scope:
 
-- **43 main configurations**
-- **3 auxiliary choices** (`ornith-1-5-35a3b`, `carwin-nano`, `auto`)
+- **84 main configurations**
+- **1 auxiliary choice** (`maple-preview-tq2`, the Colibri build) on every configuration
 - **4 exact context tiers**
 - Maple Preview TQ2_0 is the 8 GB Fit List candidate and is native 64K/128K only
 - DeepSeek V4 Flash 0731 is **not** in the active catalog
@@ -23,7 +23,7 @@ Current generated scope:
 
 #### Maple Preview 20B-A1B
 
-`stamsam/maple-preview-gguf` `maple-tq2_0.gguf` is the dedicated 8 GB and RAM-only 8–15 GB Fit List candidate. It is a 20B-A1B ternary MoE with native 131,072 context and requires the Maple llama.cpp fork. It is not Auto-promoted until exact physical 8 GB-device evidence exists. Details: [`maple-small-device-validation.md`](maple-small-device-validation.md).
+`stamsam/maple-preview-gguf` `maple-tq2_0.gguf` is the dedicated 8 GB and RAM-only 8–15 GB Fit List candidate. It is a 20B-A1B ternary MoE with native 131,072 context and requires the Maple llama.cpp fork. It is not Auto-promoted until exact physical 8 GB-device evidence exists. Details: [`maple-small-device-validation.md`](maple-small-device-validation.md). The published GGUFs omit `maple.attention.sliding_window_pattern`; the runtime patch that derives it (and why `--override-kv` cannot) is in [`maple-sliding-window-pattern.md`](maple-sliding-window-pattern.md).
 
 #### Qwen 3.8 27B GSQ-RCO
 
@@ -82,9 +82,9 @@ Only artifacts actually published by the pinned upstream revision enter the matr
 
 ### Auxiliary choices
 
-- Ornith 1.5 35A3B (default MoE aux; scale-down offloads experts first)
-- Carwin MoE Nano
-- Automatic auxiliary selection
+- Maple Preview 20B-A1B TQ2_0 (`maple-preview-tq2`) — the only auxiliary, at every tier
+
+`auto` (share the main process) remains a runtime routing mode, not a model: it is never a matrix column. No Cyber-Tiel Coder, Carwin Nano, or Flash Next auxiliary is offered.
 
 Auxiliary recipes do not load vision projectors. Visual input is routed to the main model.
 

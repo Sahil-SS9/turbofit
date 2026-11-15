@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import hashlib
 import platform
 import shutil
@@ -9,19 +10,25 @@ import subprocess
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Callable, Protocol
 
 from .campaign import RawBenchmark
 from .gpu import GPUClearEvent
 from .hardware import HardwareFingerprint, probe_hardware
-from .recipes import RecipeBook, ResolvedComponent, ResolvedRecipe
+from .recipes import (
+    RecipeBook,
+    ResolvedComponent,
+    ResolvedRecipe,
+    UnknownRecipeError,
+)
 from .schema import MatrixRow
 
 
 class RuntimeBackend(Protocol):
     def start(self, component: ResolvedComponent): ...
+    def claim_port(self, component: ResolvedComponent, *, reserved: set[int] | None = None) -> ResolvedComponent: ...
     def wait_ready(self, component: ResolvedComponent, handle) -> dict: ...
     def route(self, recipe: ResolvedRecipe, handles: dict[str, object]) -> dict: ...
     def infer(self, role: str, recipe: ResolvedRecipe) -> dict: ...
@@ -190,6 +197,31 @@ class LocalPairExecutor:
         acquire = getattr(self.backend, "acquire_campaign_lease", None)
         if acquire is not None:
             acquire()
+        try:
+            recipe = self.recipes.resolve(item)
+        except UnknownRecipeError:
+            # Catalog matrix rows carry display names ('LFM3 Omni 2B Q4_K_M')
+            # that do not address a recipe family; the catalog adapter resolves
+            # the real configuration and reconciles those ports itself.
+            return
+        self.reconcile_ports(recipe)
+
+    def reconcile_ports(self, recipe: ResolvedRecipe) -> None:
+        """Make each component's pinned port launchable before the GPU gate.
+
+        A residual engine from a killed run still holds its VRAM, so the clear
+        gate would wait out its whole budget *before* any launch could reclaim
+        the port. Reconciling here kills the two birds: an owned leftover is
+        terminated (freeing the GPU) and a foreign listener moves this run to
+        another port.
+        """
+        claim: Callable[..., ResolvedComponent] | None = getattr(self.backend, "claim_port", None)
+        if not callable(claim):
+            return
+        reserved: set[int] = set()
+        for component in recipe.components:
+            effective = claim(component, reserved=reserved)
+            reserved.add(int(effective.port))
 
     def finish(self, item: MatrixRow) -> None:
         release = getattr(self.backend, "release_campaign_lease", None)
@@ -224,7 +256,7 @@ class LocalPairExecutor:
                     "sha256": hashlib.sha256(destination.read_bytes()).hexdigest(),
                 }
         path = failure_dir / "failure.json"
-        path.write_text(json.dumps({
+        payload = ({
             "schema": "turbofit.catalog-failure/v1",
             "timestamp": timestamp,
             "row": {
@@ -236,7 +268,13 @@ class LocalPairExecutor:
             "gpu_clear_after": asdict(after) if after is not None else None,
             "raw_result": raw_record,
             "logs": logs,
-        }, indent=2) + "\n", encoding="utf-8")
+        })
+        # Write-then-rename: a run killed mid-write must never leave an empty or
+        # half-written failure.json. A reader that finds a truncated file learns
+        # nothing, and the path in the error points at it as if it were evidence.
+        temporary = path.with_suffix(".json.tmp")
+        temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        os.replace(temporary, path)
         return str(path)
 
     def execute(self, item: MatrixRow) -> RawBenchmark:
@@ -270,12 +308,26 @@ class LocalPairExecutor:
         failure_traceback = ""
         physical_hardware: dict = {}
         try:
+            # An engine the offload planner refused must never be started; the
+            # refusal carries the planner's arithmetic into the failure record.
+            recipe.assert_launchable()
             physical_hardware = self.physical_hardware_probe()
             validate_physical_hardware(physical_hardware)
             self._current_physical_fingerprint = str(physical_hardware["fingerprint_sha256"])
+            claimed: list[ResolvedComponent] = []
+            reserved: set[int] = set()
+            claim: Callable[..., ResolvedComponent] | None = getattr(self.backend, "claim_port", None)
             for component in recipe.components:
-                handle = self.backend.start(component)
-                started.append((component, handle))
+                effective = component
+                if callable(claim):
+                    # A port left behind by an earlier run must not fail the row:
+                    # reclaim it when we can prove it is ours, otherwise move on.
+                    effective = claim(component, reserved=reserved)
+                    reserved.add(int(effective.port))
+                claimed.append(effective)
+                handle = self.backend.start(effective)
+                started.append((effective, handle))
+            recipe = replace(recipe, components=tuple(claimed))
             for component, handle in started:
                 checks[component.role] = self.backend.wait_ready(component, handle)
             route = self.backend.route(recipe, {component.role: handle for component, handle in started})

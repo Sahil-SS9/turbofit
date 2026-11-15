@@ -288,3 +288,11 @@ After a controller restart `/v1/models` reports `residency=unknown` until the fi
 If the platform reports a driver/runtime mismatch, stop the real pressure test. Do not attempt blind driver reloads or disruptive accelerator work.
 
 Full architecture and schema: `README.md`.
+
+- Stable model IDs are `auto`, `active:main`, and `active:aux`.
+- FreeToken support is candidate-only: no active Qwen 3.8/Cyber-Tiel Coder replacement, no source TPS inheritance, and no Auto promotion without exact hardware/model evidence.
+- External GPU processes are read-only pressure signals and are never terminated or signaled.
+- The hardware recommendation remains the healing ceiling; transient pressure changes only the effective rung.
+- Runtime activation and model lifecycle remain owned by `NativeRuntimeBackend`, which signals only PID-verified children it launched.
+- Plain HTTP provider endpoints are limited to loopback or Tailscale addresses; all other endpoints require HTTPS.
+- Every native llama.cpp command includes `--jinja`; DSpark variants include target, draft, projector, and draft-attention arguments.

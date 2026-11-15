@@ -1,6 +1,7 @@
 """Durable state machine for production configuration intelligence benchmarks."""
 from __future__ import annotations
 
+import copy
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,10 +9,24 @@ from typing import Any, Mapping
 
 SCHEMA = "turbofit.intelligence-campaign-state/v1"
 LEVELS = ("screening", "promotion", "release")
+#: Per-suite task counts per level. Full-suite sizes are pinned to what each
+#: dataset actually ships today: TerminalBench 4 = 66 tasks, TerminalBench
+#: Science v0.1 = 70, SkillsBench v1.1 = 87 (digest-verified at resolve time).
+#: Screening is deliberately one task per suite: a real single-task run beats a
+#: fabricated full-suite claim.
 LEVEL_PARAMETERS = {
-    "screening": {"deepswe_tasks": 1, "deepswe_repetitions": 1, "agentic_repetitions": 1},
-    "promotion": {"deepswe_tasks": 30, "deepswe_repetitions": 3, "agentic_repetitions": 3},
-    "release": {"deepswe_tasks": 113, "deepswe_repetitions": 3, "agentic_repetitions": 5},
+    "screening": {
+        "suite_tasks": {"terminal-bench-4": 1, "terminal-bench-science": 1, "skills-bench": 1},
+        "suite_repetitions": 1,
+    },
+    "promotion": {
+        "suite_tasks": {"terminal-bench-4": 33, "terminal-bench-science": 35, "skills-bench": 43},
+        "suite_repetitions": 1,
+    },
+    "release": {
+        "suite_tasks": {"terminal-bench-4": 66, "terminal-bench-science": 70, "skills-bench": 87},
+        "suite_repetitions": 1,
+    },
 }
 
 
@@ -51,7 +66,7 @@ def build_state(configurations: Mapping[str, Any]) -> dict[str, Any]:
                 "context": int(row["context"]),
                 "level": level,
                 "priority": priority,
-                "parameters": dict(LEVEL_PARAMETERS[level]),
+                "parameters": copy.deepcopy(LEVEL_PARAMETERS[level]),
                 "status": status,
                 "attempts": 0,
                 "result": None,
@@ -193,6 +208,46 @@ def refresh_dependencies(state: dict[str, Any]) -> None:
                 release["status"] = "waiting-promotion"
                 release["result"] = None
                 release["error"] = None
+
+
+ENVIRONMENTAL_FAILURE_MARKERS = (
+    "filenotfounderror",
+    "no such file or directory",
+    "not installed",
+    "install the",
+    "modulenotfounderror",
+    "prepare",
+    "docker",
+    "connectionerror",
+    "connection refused",
+    "timed out",
+)
+
+
+def reclaim_environmental_failures(
+    state: dict[str, Any], *, max_attempts: int = 3
+) -> tuple[str, ...]:
+    """Requeue runs that failed on the host, not on the model.
+
+    A missing installer, a docker daemon that was not up, or a prepare step that
+    timed out used to leave a run marked `failed` forever: the defect gets fixed,
+    and the campaign then reports `idle` until someone remembers `retry-failed`.
+    Environment failures are retried automatically up to max_attempts.
+    """
+    reclaimed: list[str] = []
+    for run_id, run in (state.get("runs") or {}).items():
+        if run.get("status") != "failed":
+            continue
+        if int(run.get("attempts") or 0) >= max_attempts:
+            continue
+        error = str(run.get("error") or "").lower()
+        if any(marker in error for marker in ENVIRONMENTAL_FAILURE_MARKERS):
+            run["status"] = "ready"
+            run["error"] = None
+            reclaimed.append(run_id)
+    if reclaimed:
+        state["updated_at"] = datetime.now(timezone.utc).isoformat()
+    return tuple(reclaimed)
 
 
 def next_ready_run(state: Mapping[str, Any]) -> dict[str, Any] | None:

@@ -65,6 +65,9 @@ def candidate(
     tps: float = 30,
     evidence: str | None = EVIDENCE,
     variant: str = "quality-first",
+    quantization: str | None = None,
+    justification: str | None = None,
+    accuracy_tier: bool = False,
 ) -> EvidenceCandidate:
     return EvidenceCandidate(
         profile=item,
@@ -72,6 +75,9 @@ def candidate(
         min_tps=tps,
         evidence_digest=evidence,
         policy_variant=variant,
+        quantization=quantization,
+        quantization_justification=justification,
+        accuracy_tier=accuracy_tier,
     )
 
 
@@ -106,6 +112,23 @@ def test_topology_constraint_distinguishes_one_48_from_two_24() -> None:
 
     assert result.recommended.profile.id == "two-24"
     assert tuple(item.profile.id for item in result.eligible) == ("two-24",)
+
+
+def test_reported_heap_just_under_card_size_still_matches_class() -> None:
+    # A 32 GiB card (Battlemage B70) exposes a device-local heap of 32656 MiB
+    # (31.89 GiB): ~112 MiB under the binary 32768 MiB boundary because the
+    # driver/runtime reserves memory. A fixed 16 MiB tolerance mis-classified
+    # a 2x32 box as 2x24; a class-scaled tolerance must keep it in 2x32.
+    two_thirty_two = profile("two-32", topology="2x32")
+    two_twenty_four = profile("two-24", topology="2x24")
+
+    b70_box = hardware(32656, 32656)
+    assert hardware_satisfies(b70_box, two_thirty_two.hardware)
+    # The lower class still matches too; selection ranks the higher class.
+    assert hardware_satisfies(b70_box, two_twenty_four.hardware)
+
+    # A card genuinely below the class (29 GiB usable) must NOT match 2x32.
+    assert not hardware_satisfies(hardware(29696, 29696), two_thirty_two.hardware)
 
 
 def test_portable_llama_cpp_profile_matches_cuda_and_metal_backends() -> None:
@@ -230,3 +253,61 @@ def test_accelerator_pair_match_does_not_cross_product_mixed_devices() -> None:
     )
 
     assert hardware_satisfies(mixed, constraint) is False
+
+
+def test_q5_evidence_profile_is_not_recommended_by_default() -> None:
+    physical = hardware(24576)
+    candidates = (
+        candidate(profile("q5-fast", topology="1x24"), quality=40, quantization="Q5_K_M"),
+        candidate(profile("q3-solid", topology="1x24"), quality=30, quantization="IQ3_S"),
+    )
+
+    result = recommend(live(physical, (24576,)), candidates)
+
+    assert result.recommended.profile.id == "q3-solid"
+    assert [item["profile"] for item in result.quant_skipped] == ["q5-fast"]
+    assert "Q5_K_M" in result.quant_skipped[0]["reason"]
+
+
+def test_q5_evidence_profile_with_a_recorded_justification_is_eligible() -> None:
+    physical = hardware(24576)
+    candidates = (
+        candidate(
+            profile("q5-justified", topology="1x24"),
+            quality=40,
+            quantization="Q5_K_M",
+            justification="only build carrying the required tool-use patch",
+        ),
+    )
+
+    result = recommend(live(physical, (24576,)), candidates)
+
+    assert result.recommended.profile.id == "q5-justified"
+    assert result.quant_reason == "justified: only build carrying the required tool-use patch"
+
+
+def test_q8_profile_carries_its_exception_reason() -> None:
+    physical = hardware(24576)
+    candidates = (
+        candidate(profile("q8-accurate", topology="1x24"), quality=50, quantization="Q8_0"),
+    )
+
+    result = recommend(live(physical, (24576,)), candidates)
+
+    assert result.recommended.profile.id == "q8-accurate"
+    assert result.quant_reason is not None
+    assert result.quant_reason.startswith("fits-fully-in-vram")
+
+
+def test_low_quant_is_never_penalised_in_ranking() -> None:
+    """Fit and measured quality decide; quant width is not a ranking input."""
+    physical = hardware(24576)
+    candidates = (
+        candidate(profile("q4-good", topology="1x24"), quality=35, quantization="Q4_K_M"),
+        candidate(profile("iq2-better", topology="1x24"), quality=45, quantization="IQ2_XXS"),
+    )
+
+    result = recommend(live(physical, (24576,)), candidates)
+
+    assert result.recommended.profile.id == "iq2-better"
+    assert result.quant_skipped == ()

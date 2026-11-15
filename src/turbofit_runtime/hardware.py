@@ -113,6 +113,11 @@ class HardwareFingerprint:
     @property
     def memory_pool_kind(self) -> str:
         if not self.devices:
+            # Apple Silicon has no discrete device to enumerate, but its RAM *is*
+            # the GPU's memory: classify it as unified so the MoE ladder engages
+            # instead of falling through to the CPU chain.
+            if self.os == "darwin" and self.architecture.lower() in {"arm64", "aarch64"}:
+                return "unified"
             return "cpu"
         return "unified" if self.unified_memory else "dedicated"
 
@@ -253,6 +258,7 @@ def parse_vulkaninfo_text(raw: str) -> tuple[AcceleratorDevice, ...]:
     )
     devices: list[AcceleratorDevice] = []
     vendor_names = {"0x1002": "amd", "0x10de": "nvidia", "0x8086": "intel"}
+    integrated_indices: set[int] = set()
     for block in blocks:
         body = block.group("body")
         name_match = re.search(r"^\s*deviceName\s*=\s*(.+)$", body, re.MULTILINE)
@@ -261,6 +267,7 @@ def parse_vulkaninfo_text(raw: str) -> tuple[AcceleratorDevice, ...]:
         heaps_match = re.search(r"^\s*memoryHeaps:.*?\n(?P<heaps>.*?)(?=^\s*memoryTypes:)", body, re.MULTILINE | re.DOTALL)
         if not (name_match and uuid_match and vendor_match and heaps_match):
             continue
+        integrated = "PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU" in body
         device_local_bytes = 0
         for heap in re.finditer(
             r"^\s*memoryHeaps\[\d+\]:\s*$\n(?P<body>.*?)(?=^\s*memoryHeaps\[\d+\]:|\Z)",
@@ -273,6 +280,8 @@ def parse_vulkaninfo_text(raw: str) -> tuple[AcceleratorDevice, ...]:
                 device_local_bytes += int(size_match.group(1))
         if device_local_bytes <= 0:
             continue
+        if integrated:
+            integrated_indices.add(int(block.group("index")))
         vendor_id = vendor_match.group(1).lower()
         devices.append(AcceleratorDevice(
             index=int(block.group("index")),
@@ -284,6 +293,14 @@ def parse_vulkaninfo_text(raw: str) -> tuple[AcceleratorDevice, ...]:
             compute_capability=None,
             bus_id=None,
         ))
+    if not devices:
+        raise ValueError("no Vulkan devices with dedicated memory heaps")
+    # An integrated GPU's device-local heap is system RAM: it is a display
+    # device, not dedicated inference VRAM. Drop it only when discrete GPUs
+    # are present; keep it on iGPU-only machines where it is the pool.
+    discrete_indices = {device.index for device in devices} - integrated_indices
+    if integrated_indices and discrete_indices:
+        devices = [device for device in devices if device.index not in integrated_indices]
     if not devices:
         raise ValueError("no Vulkan devices with dedicated memory heaps")
     return tuple(sorted(devices, key=lambda item: item.index))
@@ -311,7 +328,21 @@ def probe_hardware(
             devices = parse_rocm_smi_json(runner(list(ROCM_INVENTORY_QUERY)))
         except (FileNotFoundError, OSError, ValueError, subprocess.SubprocessError):
             devices = ()
-    if not devices and normalized_os in {"windows", "linux"}:
+    # Intel discrete GPUs answer to xpu-smi; when it reports devices they are
+    # authoritative, because vulkaninfo device-local heaps charge an integrated
+    # part's shared aperture as dedicated VRAM. Integrated parts are excluded
+    # and counted through host RAM only.
+    xpu_answered = False
+    if not devices and normalized_os == "linux":
+        from .intel_xpu import probe_xpu_devices  # local import: avoids cycle
+        try:
+            rows = probe_xpu_devices(runner)
+        except (FileNotFoundError, OSError, ValueError, subprocess.SubprocessError):
+            rows = ()
+        if rows:
+            xpu_answered = True
+            devices = tuple(row.device for row in rows if not row.integrated)
+    if not devices and normalized_os in {"windows", "linux"} and not xpu_answered:
         try:
             devices = parse_vulkaninfo_text(runner(list(VULKAN_INVENTORY_QUERY)))
         except (FileNotFoundError, OSError, ValueError, subprocess.SubprocessError):

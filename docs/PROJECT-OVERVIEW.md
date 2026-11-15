@@ -35,7 +35,7 @@ Hermes Agent  ──provider custom:turbofit──▶  TurboFit gateway  :8091
   userspace HTTP proxy. Its keep-alive wrapper lives outside the repo
   (`/opt/data/bin/turbofit-gateway-up.py`), because it is deployment glue, not product.
 - **omarchy (2× RTX 3090)**: the real host. Controller + gateway + Strata unit; profile
-  `omarchy-2x3090` with rungs `strata-flashnext-32k` (unit-managed) → `iq3s-262k` → `iq3s-65k`.
+  `omarchy-2x3090` with rungs `strata-flashnext-64k` (unit-managed) → `iq3s-262k` → `iq3s-65k`.
 - **MacBook**: gateway + native Metal/MLX runtimes, federated into the same surface.
 - **Phone**: consumes the tailnet gateway; does not serve models.
 
@@ -128,7 +128,7 @@ Outside `src/`: `plugin_tools.py` (1.4k lines — Hermes-facing configure/status
 | Band | Model | Context |
 |---|---|---|
 | 8–15 GB | Maple Preview 20B-A1B (TQ2_0) | 131k |
-| 16–23 GB | Cyber-Tiel Coder 35B-A3B (UD-IQ3_XXS / Q4 / Q5 / Q6 by band) | 262k |
+| 16–63 GB | Cyber-Tiel Coder 35B-A3B (UD-IQ3_XXS, UD-Q4_K_XL at the ceiling) | 262k |
 | 64 GB+ | Qwen 3.8 Flash Next (Strata) | 262k |
 
 Cross-cutting rules: MTP on wherever the model supports it; **IQ3_S is lossless**, so 32 GB and
@@ -163,7 +163,7 @@ those would falsify evidence of what actually ran on 2026-08-22/10-19.
   `scripts/release-check [--real]`, `scripts/turbofit-hardware-tiers`, `scripts/turbofit-list`.
 - **Dashboard**: FastAPI router (`/status`, `/profiles`, `/combinations`, `/backends`,
   `/tournaments`, `/hardware-tiers`, `/leaderboard`, `/auxiliary-tiers`, `/recommendations`,
-  `/multimodal`, `/configure`, `/update`) plus a static `index.html`.
+  `/multimodal`, `/fit`, `/configure`, `/update`) plus a static `index.html`.
 - **Desktop**: `desktop/plugin.js` settings surface.
 - **Skill**: `skills/turbofit/SKILL.md` + the plugin-root `SKILL.md` (same doctrine, agent-facing).
 

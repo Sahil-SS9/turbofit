@@ -25,6 +25,17 @@
     return h(Badge, { className: ok ? "tf-ok" : "tf-muted" }, ok ? yes : no);
   }
 
+  const FIT_STATUS_LABELS = {
+    "missing-artifacts": "needs downloads",
+    "engine-unsupported": "engine unsupported",
+    "no-measurements": "no measurements yet",
+    unresolvable: "cannot be resolved",
+  };
+
+  function statusLabel(status) {
+    return FIT_STATUS_LABELS[status] || status || "unknown";
+  }
+
   function Field(props) {
     return h("div", { className: "tf-field" },
       h(Label, { htmlFor: props.id }, props.label),
@@ -52,6 +63,7 @@
     const [hardwareTiers, setHardwareTiers] = useState(null);
     const [auxiliaryTiers, setAuxiliaryTiers] = useState(null);
     const [leaderboard, setLeaderboard] = useState(null);
+    const [fit, setFit] = useState(null);
     const [multimodal, setMultimodal] = useState(null);
     const [multimodalSelections, setMultimodalSelections] = useState({});
     const [primary, setPrimary] = useState(false);
@@ -75,11 +87,12 @@
     const [providerHttpsPort, setProviderHttpsPort] = useState("9443");
     const [busy, setBusy] = useState(false);
     const [message, setMessage] = useState("");
+    const [includeFallback, setIncludeFallback] = useState(false);
 
     const load = useCallback(async function () {
       setMessage("");
       try {
-        const [nextStatus, nextCombinations, nextBackends, nextTournaments, nextHardwareTiers, nextAuxiliaryTiers, nextMultimodal, nextLeaderboard] = await Promise.all([
+        const [nextStatus, nextCombinations, nextBackends, nextTournaments, nextHardwareTiers, nextAuxiliaryTiers, nextMultimodal, nextLeaderboard, nextFit] = await Promise.all([
           SDK.fetchJSON("/api/plugins/turbofit/status"),
           SDK.fetchJSON("/api/plugins/turbofit/combinations"),
           SDK.fetchJSON("/api/plugins/turbofit/backends"),
@@ -88,6 +101,7 @@
           SDK.fetchJSON("/api/plugins/turbofit/auxiliary-tiers"),
           SDK.fetchJSON("/api/plugins/turbofit/multimodal"),
           SDK.fetchJSON("/api/plugins/turbofit/leaderboard"),
+          SDK.fetchJSON("/api/plugins/turbofit/fit"),
         ]);
         setStatus(nextStatus);
         const exact = nextCombinations.combinations || [];
@@ -97,6 +111,7 @@
         setHardwareTiers(nextHardwareTiers);
         setAuxiliaryTiers(nextAuxiliaryTiers);
         setLeaderboard(nextLeaderboard);
+        setFit(nextFit);
         setMultimodal(nextMultimodal);
         const selectedModalities = Object.assign({}, nextMultimodal.selected || {});
         ["image", "video", "music", "tts", "stt"].forEach((modality) => {
@@ -143,6 +158,24 @@
     const contexts = [...new Set(pairRows.map((item) => item.context))].sort((a, b) => a - b);
     const selectedCombination = pairRows.find((item) => String(item.context) === String(context));
 
+    async function downloadFit() {
+      setBusy(true);
+      setMessage("");
+      try {
+        const result = await SDK.fetchJSON("/api/plugins/turbofit/onboard/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ include_fallback: includeFallback ? "all" : "none" }),
+        });
+        setMessage(result.message || "Download finished.");
+        await load();
+      } catch (error) {
+        setMessage(String(error.message || error));
+      } finally {
+        setBusy(false);
+      }
+    }
+
     async function save() {
       setBusy(true);
       setMessage("");
@@ -185,6 +218,12 @@
     const runtime = value(status, "runtime", null);
     const selection = value(status, "selection", null);
     const routes = value(runtime, "routes", {});
+    const onboard = value(fit, "onboard", null);
+    const fallbackRungBytes = value(fit, "onboard.rungs", []).reduce(
+      (total, rung) => total + (rung.download_bytes || 0), 0);
+    const onboardTotalGib = (
+      (value(fit, "onboard.download_bytes", 0) + (includeFallback ? fallbackRungBytes : 0)) / 1073741824
+    ).toFixed(2);
 
     return h("div", { className: "tf-page" },
       h("div", { className: "tf-hero" },
@@ -424,6 +463,53 @@
                 h("small", null, value(routes, role + ".mode", value(routes, role + ".kind", "—"))),
               )),
             ),
+          ),
+        ),
+
+        h(Card, { className: "tf-card tf-span-2" },
+          h(CardHeader, null, h(CardTitle, null, "Fit · what to run on this machine")),
+          h(CardContent, null,
+            h("p", { className: "tf-help" }, value(fit, "summary", "Checking this machine…")),
+            h("dl", { className: "tf-stats" },
+              value(fit, "tiers", []).map((tier) => h("div", { key: tier.hardware_tier_gb },
+                h("dt", null,
+                  tier.hardware_tier_gb + " GB · " +
+                  (tier.status === "ready" ? "ready" : statusLabel(tier.status))
+                ),
+                h("dd", null, tier.message),
+              )),
+            ),
+            value(fit, "cpu.statement", null)
+              ? h("p", { className: "tf-help" }, value(fit, "cpu.statement", ""))
+              : null,
+            onboard
+              ? h("div", { className: "tf-onboard" },
+                  h("p", { className: "tf-help" }, value(onboard, "message", "")),
+                  value(onboard, "placement.label", null)
+                    ? h("p", { className: "tf-help" }, "Placement: " + value(onboard, "placement.label", ""))
+                    : null,
+                  value(onboard, "rungs", []).length
+                    ? h(Toggle, {
+                        checked: includeFallback,
+                        onChange: setIncludeFallback,
+                        label: "Also download the fallback-chain rungs (" +
+                          value(onboard, "rungs", []
+                          ).map((rung) => rung.model + " · " + (rung.download_bytes / 1073741824).toFixed(1) + " GiB").join(", ") + ")",
+                      })
+                    : null,
+                  h("p", { className: "tf-help" },
+                    "This run would download " + onboardTotalGib + " GiB in " +
+                    value(onboard, "artifacts_to_download", 0) + " file(s)."
+                  ),
+                  h("div", { className: "tf-actions" },
+                    h(Button, {
+                      variant: "outline",
+                      onClick: downloadFit,
+                      disabled: busy || !value(onboard, "artifacts_to_download", 0),
+                    }, "Download " + onboardTotalGib + " GiB"),
+                  ),
+                )
+              : null,
           ),
         ),
 

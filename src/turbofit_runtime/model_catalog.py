@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from .quant_policy import classify
+
 CATALOG_SCHEMA = "turbofit.model-catalog/v2"
 MATRIX_SCHEMA = "turbofit.configuration-matrix/v1"
 CONTEXTS = (65_536, 131_072, 262_144, 1_048_576)
@@ -29,6 +31,11 @@ class ModelVariant:
     upstream_source: str | None = None
     upstream_revision: str | None = None
     supported_contexts: tuple[int, ...] = CONTEXTS
+    # Quantization policy inputs. ``quantization_justification`` is the only way
+    # an above-Q4 (Q5/Q6) entry can be selected by default; ``accuracy_tier``
+    # marks a Q8/full-precision entry whose point is accuracy, not footprint.
+    quantization_justification: str | None = None
+    accuracy_tier: bool = False
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "ModelVariant":
@@ -36,7 +43,10 @@ class ModelVariant:
             "id", "name", "family", "source", "revision", "artifact", "quantization",
             "vision", "moe", "runtime_features", "roles",
         }
-        optional = {"upstream_source", "upstream_revision", "supported_contexts"}
+        optional = {
+            "upstream_source", "upstream_revision", "supported_contexts",
+            "quantization_justification", "accuracy_tier",
+        }
         if not required <= set(value) or set(value) - required - optional:
             raise ValueError("model variant fields do not match catalog schema")
         item = cls(
@@ -54,6 +64,11 @@ class ModelVariant:
             upstream_source=str(value["upstream_source"]) if value.get("upstream_source") else None,
             upstream_revision=str(value["upstream_revision"]) if value.get("upstream_revision") else None,
             supported_contexts=tuple(value.get("supported_contexts", CONTEXTS)),
+            quantization_justification=(
+                str(value["quantization_justification"]).strip()
+                if value.get("quantization_justification") else None
+            ),
+            accuracy_tier=bool(value.get("accuracy_tier", False)),
         )
         item.validate()
         return item
@@ -82,6 +97,16 @@ class ModelVariant:
             raise ValueError(f"model {self.id} repeats a runtime feature")
         if not self.supported_contexts or not set(self.supported_contexts) <= set(CONTEXTS):
             raise ValueError(f"model {self.id} has invalid supported contexts")
+        if self.quantization_justification is not None and not self.quantization_justification.strip():
+            raise ValueError(f"model {self.id} has an empty quantization justification")
+        if not isinstance(self.accuracy_tier, bool):
+            raise ValueError(f"model {self.id} accuracy_tier must be boolean")
+        verdict = classify(self.quantization)
+        if self.accuracy_tier and verdict.is_excluded:
+            raise ValueError(
+                f"model {self.id} is above the Q4 ceiling; accuracy_tier only applies "
+                "to Q8/full-precision entries"
+            )
 
 
 @dataclass(frozen=True)
@@ -114,9 +139,16 @@ class ModelCatalog:
         if self.contexts != CONTEXTS:
             raise ValueError("catalog must expose 64K, 128K, 262K, and 1M contexts")
         by_id = {item.id: item for item in self.models}
-        if not self.auxiliary_options or self.auxiliary_options[-1] != "auto":
-            raise ValueError("auxiliary options must end with auto")
-        for model_id in self.auxiliary_options[:-1]:
+        if not self.auxiliary_options:
+            raise ValueError("catalog must name at least one auxiliary option")
+        if len(set(self.auxiliary_options)) != len(self.auxiliary_options):
+            raise ValueError("auxiliary options must be unique")
+        # `auto` is a runtime routing mode (share the main process), not a
+        # model, so it must never become a swept matrix column. Only concrete
+        # auxiliary models belong here.
+        for model_id in self.auxiliary_options:
+            if model_id == "auto":
+                raise ValueError("auxiliary options are concrete models; auto is a runtime mode")
             if model_id not in by_id or "aux" not in by_id[model_id].roles:
                 raise ValueError(f"invalid auxiliary option: {model_id}")
         if any(not set(item.roles) & {"main", "aux"} for item in self.models):

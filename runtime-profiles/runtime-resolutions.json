@@ -69,15 +69,6 @@
           "gpu": "0",
           "port": 8092
         }
-      },
-      "local-underdog-pq2-32768": {
-        "main": {
-          "model_tag": "underdog-pq2-32768-main",
-          "expected_vram_mb": 7450,
-          "family": "Underdog 27B",
-          "gpu": "0",
-          "port": 8092
-        }
       }
     },
     "hardware-16gb": {
@@ -96,42 +87,6 @@
           "expected_vram_mb": 12300,
           "family": "Qwen 3.8 27B GSQ-RCO IQ3_S",
           "gpu": "0",
-          "port": 8092
-        }
-      },
-      "local-gsq-rco-iq3s-32768": {
-        "main": {
-          "model_tag": "gsq-rco-iq3s-32768-main",
-          "expected_vram_mb": 12050,
-          "family": "Qwen 3.8 27B GSQ-RCO IQ3_S",
-          "gpu": "0",
-          "port": 8092
-        }
-      },
-      "local-bonsai-131072": {
-        "main": {
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "0",
-          "model_tag": "bonsai-27b-1bit-128k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-262144": {
-        "main": {
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "0",
-          "model_tag": "bonsai-27b-1bit-262k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-65536": {
-        "main": {
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "0",
-          "model_tag": "bonsai-27b-1bit-64k-main",
           "port": 8092
         }
       }
@@ -189,10 +144,10 @@
     "hardware-200gb": {
       "local-bonsai-262144": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-262k-main",
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "1",
+          "model_tag": "bonsai-262144-main",
+          "expected_vram_mb": 11200,
+          "family": "Ternary Bonsai 2 27B",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -205,10 +160,10 @@
       },
       "local-bonsai-131072": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-128k-main",
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "1",
+          "model_tag": "bonsai-131072-main",
+          "expected_vram_mb": 9000,
+          "family": "Ternary Bonsai",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -221,10 +176,10 @@
       },
       "local-bonsai-65536": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-64k-main",
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "1",
+          "model_tag": "bonsai-65536-main",
+          "expected_vram_mb": 7500,
+          "family": "Ternary Bonsai",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -262,33 +217,6 @@
           "family": "Qwen 3.8 27B GSQ-RCO IQ3_S",
           "gpu": "0",
           "port": 8092
-        }
-      },
-      "local-unleashed-q3kxl-262144": {
-        "main": {
-          "expected_vram_mb": 19391,
-          "family": "Qwen 3.8 27B Unleashed",
-          "gpu": "0",
-          "model_tag": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-          "port": 11606
-        }
-      },
-      "local-unleashed-q3kxl-131072": {
-        "main": {
-          "expected_vram_mb": 19391,
-          "family": "Qwen 3.8 27B Unleashed",
-          "gpu": "0",
-          "model_tag": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-          "port": 11606
-        }
-      },
-      "local-unleashed-q3kxl-65536": {
-        "main": {
-          "expected_vram_mb": 19391,
-          "family": "Qwen 3.8 27B Unleashed",
-          "gpu": "0",
-          "model_tag": "qwen3-8-27b-unleashed-ud-q3-k-xl",
-          "port": 11606
         }
       }
     },
@@ -345,10 +273,10 @@
     "hardware-300gb": {
       "local-bonsai-262144": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-262k-main",
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "2",
+          "model_tag": "bonsai-262144-main",
+          "expected_vram_mb": 11200,
+          "family": "Ternary Bonsai 2 27B",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -361,10 +289,10 @@
       },
       "local-bonsai-131072": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-128k-main",
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "2",
+          "model_tag": "bonsai-131072-main",
+          "expected_vram_mb": 9000,
+          "family": "Ternary Bonsai",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -377,10 +305,10 @@
       },
       "local-bonsai-65536": {
         "main": {
-          "model_tag": "bonsai-27b-1bit-64k-main",
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "2",
+          "model_tag": "bonsai-65536-main",
+          "expected_vram_mb": 7500,
+          "family": "Ternary Bonsai",
+          "gpu": "0",
           "port": 8092
         },
         "aux": {
@@ -567,33 +495,6 @@
           "gpu": "1",
           "port": 8093
         }
-      },
-      "local-unleashed-q3kx-128k": {
-        "main": {
-          "expected_vram_mb": 16000,
-          "family": "qwen38-27b-unleashed",
-          "gpu": "0",
-          "model_tag": "qwen38-27b-unleashed-q3kx-128k-main",
-          "port": 8092
-        }
-      },
-      "local-unleashed-q3kx-262k": {
-        "main": {
-          "expected_vram_mb": 17500,
-          "family": "qwen38-27b-unleashed",
-          "gpu": "0",
-          "model_tag": "qwen38-27b-unleashed-q3kx-262k-main",
-          "port": 8092
-        }
-      },
-      "local-unleashed-q3kx-65k": {
-        "main": {
-          "expected_vram_mb": 15000,
-          "family": "qwen38-27b-unleashed",
-          "gpu": "0",
-          "model_tag": "qwen38-27b-unleashed-q3kx-65k-main",
-          "port": 8092
-        }
       }
     },
     "hardware-64gb": {
@@ -644,50 +545,23 @@
           "gpu": "1",
           "port": 8093
         }
-      },
-      "local-bonsai-131072": {
-        "main": {
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-128k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-262144": {
-        "main": {
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-262k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-65536": {
-        "main": {
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "1",
-          "model_tag": "bonsai-27b-1bit-64k-main",
-          "port": 8092
-        }
       }
     },
     "hardware-8gb": {
       "local-maple-65536": {
         "main": {
-          "model_tag": "maple-preview-tq2-64k-main",
-          "expected_vram_mb": 5497,
-          "family": "maple-preview-tq2",
+          "model_tag": "maple-65536-main",
+          "expected_vram_mb": 6300,
+          "family": "Maple Preview",
           "gpu": "0",
           "port": 8092
         }
       },
       "local-maple-131072": {
         "main": {
-          "model_tag": "maple-preview-tq2-128k-main",
-          "expected_vram_mb": 6115,
-          "family": "maple-preview-tq2",
+          "model_tag": "maple-131072-main",
+          "expected_vram_mb": 7800,
+          "family": "Maple Preview",
           "gpu": "0",
           "port": 8092
         }
@@ -741,41 +615,14 @@
           "gpu": "1",
           "port": 8093
         }
-      },
-      "local-bonsai-131072": {
-        "main": {
-          "expected_vram_mb": 8149,
-          "family": "bonsai-27b",
-          "gpu": "3",
-          "model_tag": "bonsai-27b-1bit-128k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-262144": {
-        "main": {
-          "expected_vram_mb": 11093,
-          "family": "bonsai-27b",
-          "gpu": "3",
-          "model_tag": "bonsai-27b-1bit-262k-main",
-          "port": 8092
-        }
-      },
-      "local-bonsai-65536": {
-        "main": {
-          "expected_vram_mb": 6677,
-          "family": "bonsai-27b",
-          "gpu": "3",
-          "model_tag": "bonsai-27b-1bit-64k-main",
-          "port": 8092
-        }
       }
     },
     "apple-16gb": {
-      "local-ornith-131k": {
+      "local-cyber-tiel-131k": {
         "main": {
-          "model_tag": "ornith-131k-main",
+          "model_tag": "cyber-tiel-131k-main",
           "expected_vram_mb": 13000,
-          "family": "Ornith 1.5 35A3B",
+          "family": "Cyber-Tiel Coder 35B-A3B",
           "gpu": "0",
           "port": 8092
         }
@@ -824,42 +671,6 @@
           "expected_vram_mb": 7800,
           "family": "Maple Preview",
           "gpu": "0",
-          "port": 8092
-        }
-      }
-    },
-    "carwin-nano-1-bit-bonsai-262k": {
-      "local-262144": {
-        "aux": {
-          "expected_vram_mb": 11163,
-          "family": "carwin-nano",
-          "gpu": "0",
-          "model_tag": "carwin-nano-1-bit-bonsai-262k-aux",
-          "port": 8093
-        },
-        "main": {
-          "expected_vram_mb": 15284,
-          "family": "carwin-nano",
-          "gpu": "1",
-          "model_tag": "carwin-nano-1-bit-bonsai-262k-main",
-          "port": 8092
-        }
-      }
-    },
-    "carwin-nano-ternary-bonsai-262k": {
-      "local-262144": {
-        "aux": {
-          "expected_vram_mb": 14503,
-          "family": "carwin-nano",
-          "gpu": "0",
-          "model_tag": "carwin-nano-ternary-bonsai-262k-aux",
-          "port": 8093
-        },
-        "main": {
-          "expected_vram_mb": 15284,
-          "family": "carwin-nano",
-          "gpu": "1",
-          "model_tag": "carwin-nano-ternary-bonsai-262k-main",
           "port": 8092
         }
       }
